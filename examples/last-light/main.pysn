@@ -1,0 +1,50 @@
+# The Last Light: a noninteractive fantasy journey, expressed entirely in Pyson.
+# Color hardware uses double speed; the same ROM falls back to monochrome GB.
+header.title = "THE LAST LIGHT"
+header.target = "dual"
+header.cpu_speed = "double"
+header.controller = "mbc5"
+
+import includes.visuals as visuals
+import includes.score as score
+
+SCENE_FRAMES = constant(912)
+scene = 0
+tick = 0
+updates = 0
+cycles = 0
+previous = 0
+delta = 0
+last_phase = -1
+
+while True:
+    if tick == 0:
+        stop_music()
+        stop_sound()
+        visuals.prepare(scene)
+        refresh_screen()
+        score.begin(scene)
+        previous = frame_count()
+        last_phase = -1
+        updates = 0
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    tick += delta
+    # Frame time keeps scene lengths and music stable even when drawing is busy.
+    if tick >= SCENE_FRAMES:
+        tick = 0
+        scene += 1
+        if scene == 6:
+            scene = 0
+            cycles += 1
+    else:
+        if tick // 12 != last_phase:
+            visuals.colors(scene, tick)
+            last_phase = tick // 12
+        score.rhythm(tick)
+        visuals.animate(scene, tick, updates, delta)
+        refresh_screen()
+        updates += 1
+        # Tick zero means scene setup, so do not accidentally run it twice.
+        if tick == 0:
+            tick = 1

@@ -1,0 +1,32 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const { compile } = require('../src/compiler');
+const { assemble } = require('../scripts/dev');
+const { makeReport } = require('../src/build-report');
+const { emulatorPython } = require('../scripts/environment');
+const root = path.resolve(__dirname, '..');
+
+test('Lucid Circuit completes four animated, audible scenes within hardware sprite limits', { skip: !fs.existsSync(emulatorPython()) }, () => {
+  const input = path.join(root, 'examples/lucid-circuit/main.pysn');
+  const compiled = compile(fs.readFileSync(input, 'utf8'), input);
+  assert.equal(compiled.music.length, 8);
+  for (const track of compiled.music) assert.equal(track.steps.reduce((sum, step) => sum + step[1], 0), 1024);
+  assert.equal(compiled.assets.filter(asset => asset.kind === 'world').length, 4);
+  const dir = path.join(root, 'build/tests/lucid-circuit');
+  fs.mkdirSync(dir, { recursive: true });
+  const asm = path.join(dir, 'demo.asm');
+  fs.writeFileSync(asm, compiled.assembly);
+  const rom = assemble(asm, 'lucid-circuit');
+  const symbols = path.join(root, 'build/lucid-circuit.sym');
+  const report = makeReport(compiled, fs.readFileSync(symbols, 'utf8'), fs.statSync(rom).size);
+  assert.ok(report.wramFreeBytes >= 1024);
+  const manifest = path.join(dir, 'demo.json');
+  fs.writeFileSync(manifest, JSON.stringify({ rom, symbols, variables: report.variables }));
+  const run = spawnSync(emulatorPython(), [path.join(__dirname, 'lucid-circuit.py'), manifest], { encoding: 'utf8', timeout: 180000 });
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  console.log(run.stdout.trim());
+});

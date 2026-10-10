@@ -1,0 +1,106 @@
+# Conversation state persists across updates while actors continue moving.
+# Start text on an event, then update the active dialogue rather than restarting it each loop.
+
+header.title = "DIALOGUE GARDEN"
+header.target = "dual"
+import includes.messages as messages
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("assets/player.bmp", 8, 8)
+robot = sprite_sheet("assets/robot.bmp", 8, 8)
+# Animation pairs are [frame, duration_ticks]; playback advances only when updated.
+walk = sprite_animation(hero, [[0, 8], [1, 8]])
+patrol = sprite_animation(robot, [[0, 10], [1, 10]])
+song = music_track([[262, 24, 5], [330, 24, 5], [392, 24, 5], [330, 24, 5]])
+x = 76
+y = 64
+robot_x = 24
+robot_dx = 1
+conversation = 0
+speed_mode = 1
+speed = 2
+completed = 0
+last_choice = -1
+was_active = False
+status_dirty = True
+
+# Select a message and start a conversation with the requested text delay.
+def open_message(text, delay=2):
+    # String parameters reference existing text; they do not copy its characters.
+    start_dialogue(text, speed=delay, palette=1)
+
+def talk(which, delay):
+    if which == 0:
+        open_message(text=messages.intro, delay=delay)
+    else:
+        open_message(text=messages.garden, delay=delay)
+
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(1, "#fff8e0", "#d8b878", "#806048", "#302838")
+bg_palette(2, "#302838", "#806048", "#d8b878", "#fff8e0")
+clear_screen()
+print("DIALOGUE GARDEN", 2, 0)
+print("D-PAD MOVE  A TALK", 0, 1)
+print("B CLOSE SELECT SPEED", 0, 2)
+play_animation(0, walk)
+play_animation(1, patrol)
+play_music(song)
+talk(conversation, speed)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if not choices_active():
+        if button("right") and x < 144:
+            x += 1
+        if button("left") and x > 8:
+            x -= 1
+        if button("down") and y < 80:
+            y += 1
+        if button("up") and y > 40:
+            y -= 1
+    robot_x += robot_dx
+    if robot_x >= 144 or robot_x <= 8:
+        robot_dx = -robot_dx
+    if button_pressed("select"):
+        speed_mode = (speed_mode + 1) % 3
+        speed = speed_mode * 2
+        status_dirty = True
+    if button_pressed("b"):
+        close_dialogue()
+    elif button_pressed("a") and not dialogue_active():
+        conversation = (conversation + 1) % 2
+        talk(conversation, speed)
+    update_dialogue()
+    active = dialogue_active()
+    if was_active and not active:
+        if choices_finished():
+            last_choice = choices_result()
+            status_dirty = True
+            play_sound("menu_confirm")
+            if last_choice == 0:
+                talk(1, speed)
+            elif last_choice == 1:
+                talk(0, speed)
+            elif last_choice == 2:
+                speed_mode = (speed_mode + 1) % 3
+                speed = speed_mode * 2
+                start_dialogue("Text speed changed. Finish reading to choose again!", speed=speed, palette=1)
+        elif dialogue_finished():
+            completed += 1
+            status_dirty = True
+            play_sound("menu_confirm")
+            start_choices(["GARDEN STORY", "HOW TO PLAY", "CHANGE SPEED", "GOODBYE"], palette=1, selected_palette=2)
+    was_active = dialogue_active()
+    update_animations()
+    animated_sprite(0, x, y)
+    animated_sprite(1, robot_x, 48, robot_dx < 0)
+    if status_dirty:
+        print("DONE:    SPEED: ", 0, 3)
+        print(completed, 6, 3)
+        print(speed, 15, 3)
+        print("CHOICE:   ", 0, 4)
+        print(last_choice, 8, 4)
+        status_dirty = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

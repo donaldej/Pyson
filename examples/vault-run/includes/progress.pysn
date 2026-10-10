@@ -1,0 +1,10 @@
+# This module owns the saved win count; resetting a round must not reset completed expeditions.
+
+# Slot 0 stores completed expeditions, independently of the current round.
+wins = save_read(0, 0)
+
+# Commit persistent progress when a round finishes, not on every game update.
+def complete():
+    global wins
+    wins = min(wins + 1, 999)
+    save_write(0, wins)

@@ -1,0 +1,93 @@
+# Save slots have explicit ownership and a schema version; validate loaded data before using it.
+# Use a separate ROM/save name when experimenting with schema changes or clearing data.
+
+header.title = "SAVE COUNTER"
+header.target = "dual"
+
+# Slot 0 is the game's save schema; 1=score, 2=best, 3=mute, 4=volume.
+if save_read(0, -1) != 1:
+    save_clear()
+    save_write(0, 1)
+score = save_read(1, 0)
+best = save_read(2, 0)
+muted = save_read(3, False)
+volume = save_read(4, 5)
+if score < 0:
+    score = 0
+if best < score:
+    best = score
+if volume < 0 or volume > 7:
+    volume = 5
+mute_sound(muted)
+set_sound_volume(volume, volume)
+dirty = True
+saved = True
+
+bg_palette(1, "#E7F2FF", "#A5C9E7", "#527CA0", "#172334")
+clear_screen(1)
+print("SAVE COUNTER", 4, 1, 1)
+print("Score:", 2, 4, 1)
+print("Best:", 2, 6, 1)
+print("Volume:", 2, 8, 1)
+print("Muted:", 2, 9, 1)
+print("A/B: add/subtract", 2, 12, 1)
+print("Left/Right: volume", 1, 13, 1)
+print("Select: mute", 3, 14, 1)
+print("Start: reset score", 1, 15, 1)
+print("Up: erase all saves", 0, 16, 1)
+
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("a") and score < 32767:
+        score += 1
+        play_sound("collect")
+        dirty = True
+    if button_pressed("b") and score > 0:
+        score -= 1
+        play_sound("menu_move")
+        dirty = True
+    if button_pressed("left") and volume > 0:
+        volume -= 1
+        dirty = True
+    if button_pressed("right") and volume < 7:
+        volume += 1
+        dirty = True
+    if button_pressed("select"):
+        muted = not muted
+        dirty = True
+    if button_pressed("start"):
+        score = 0
+        dirty = True
+    if button_pressed("up"):
+        save_clear()
+        save_write(0, 1)
+        score = 0
+        best = 0
+        muted = False
+        volume = 5
+        dirty = True
+    if dirty:
+        if score > best:
+            best = score
+        # Write every field even if an earlier write fails.
+        saved = save_write(1, score)
+        saved = save_write(2, best) and saved
+        saved = save_write(3, muted) and saved
+        saved = save_write(4, volume) and saved
+        mute_sound(muted)
+        set_sound_volume(volume, volume)
+        print("     ", 11, 4, 1)
+        print(score, 11, 4, 1)
+        print("     ", 11, 6, 1)
+        print(best, 11, 6, 1)
+        print(volume, 11, 8, 1)
+        print(muted, 11, 9, 1)
+        if saved:
+            print("Saved      ", 4, 10, 1)
+        else:
+            print("Save failed", 4, 10, 1)
+        dirty = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

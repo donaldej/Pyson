@@ -1,0 +1,25 @@
+# Pool capacity and field defaults are fixed at compilation; each spawn receives fresh defaults.
+
+# Pool defaults are compile-time values; each spawn starts with a fresh copy.
+bullets = pool(12, x=0, y=0, dy=-3)
+enemies = pool(4, x=0, y=0, dy=1, health=2)
+player = record(x=76, y=104)
+
+# Update the original shot and release its pool slot when it leaves the play area.
+def move_shot(shot):
+    shot.y += shot.dy
+    if shot.y < 32:
+        despawn(shot)
+
+# Apply damage to the original actor and remove defeated enemies.
+def hit_enemy(enemy):
+    enemy.health -= 1
+    if enemy.health <= 0:
+        despawn(enemy)
+        return 1
+    return 0
+
+def reset():
+    reset_pool(bullets)
+    reset_pool(enemies)
+    player.x = 76

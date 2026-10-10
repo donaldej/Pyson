@@ -1,0 +1,47 @@
+lead_0 = music_file("../assets/section-0.json")
+bass_0 = music_file("../assets/section-0.json", 1)
+lead_1 = music_file("../assets/section-1.json")
+bass_1 = music_file("../assets/section-1.json", 1)
+lead_2 = music_file("../assets/section-2.json")
+bass_2 = music_file("../assets/section-2.json", 1)
+lead_3 = music_file("../assets/section-3.json")
+bass_3 = music_file("../assets/section-3.json", 1)
+lead_4 = music_file("../assets/section-4.json")
+bass_4 = music_file("../assets/section-4.json", 1)
+lead_5 = music_file("../assets/section-5.json")
+bass_5 = music_file("../assets/section-5.json", 1)
+kick = sound_effect("pulse", [[180, 1, 13], [100, 1, 11], [64, 1, 7]], 3, 2)
+snare = sound_effect("noise", [[52, 1, 12], [36, 1, 8], [68, 1, 4]], 3)
+hat = sound_effect("noise", [[17, 1, 5]], 3)
+
+def begin(section):
+    if section == 0:
+        play_music(lead_0, restart=True)
+        play_music(bass_0, restart=True)
+    elif section == 1:
+        play_music(lead_1, restart=True)
+        play_music(bass_1, restart=True)
+    elif section == 2:
+        play_music(lead_2, restart=True)
+        play_music(bass_2, restart=True)
+    elif section == 3:
+        play_music(lead_3, restart=True)
+        play_music(bass_3, restart=True)
+    elif section == 4:
+        play_music(lead_4, restart=True)
+        play_music(bass_4, restart=True)
+    elif section == 5:
+        play_music(lead_5, restart=True)
+        play_music(bass_5, restart=True)
+
+def percussion(tick, section):
+    if tick & 15 == 0:
+        if tick & 63 == 16 or tick & 63 == 48:
+            if section != 0 or tick >= 256:
+                play_sound(snare)
+        else:
+            play_sound(kick)
+    elif tick & 15 == 8:
+        play_sound(hat)
+    elif section == 3 and tick & 3 == 0:
+        play_sound(hat)

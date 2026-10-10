@@ -1,0 +1,143 @@
+# An arcade game combines pooled actors, random waves, music, and a saved high score.
+
+header.title = "METEOR GUARD"
+header.target = "dual"
+import includes.actors as actors
+
+PLAYER_SPEED = constant(3)
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("assets/player.bmp", 8, 8)
+rock = sprite_sheet("assets/enemy.bmp", 8, 8)
+laser = sprite_sheet("assets/shot.bmp")
+lead = music_file("assets/theme.json")
+bass = music_file("assets/theme.json", 1)
+spawn_delays = [55, 42, 32, 24]
+score = 0
+best = save_read(0, 0)
+lives = 5
+frame = 0
+cooldown = 0
+spawn_timer = 1
+level = 0
+paused = False
+dirty = True
+menu_pending = False
+
+def restart():
+    global score, lives, cooldown, spawn_timer, level, paused, dirty
+    actors.reset()
+    score = 0
+    lives = 5
+    cooldown = 0
+    spawn_timer = 1
+    level = 0
+    paused = False
+    dirty = True
+    random_seed(frame)
+    close_dialogue()
+    resume_music()
+
+def finish():
+    global best, menu_pending, dirty
+    if score > best:
+        best = score
+        save_write(0, best)
+    dirty = True
+    play_sound("lose")
+    start_choices(["RETRY", "VIEW FINAL SCORE"], palette=1, selected_palette=2)
+    menu_pending = True
+
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(1, "#fff8e0", "#d8b878", "#806048", "#302838")
+bg_palette(2, "#302838", "#806048", "#d8b878", "#fff8e0")
+clear_screen()
+print("METEOR GUARD", 4, 0)
+print("LEFT RIGHT  A FIRE", 0, 15)
+print("START PAUSE B RESET", 0, 16)
+print("SELECT HELP", 0, 17)
+play_music(lead)
+play_music(bass)
+random_seed(17)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    frame = (frame + 1) % 32000
+    if button_pressed("b"):
+        if dialogue_active():
+            close_dialogue()
+        else:
+            restart()
+    if button_pressed("start") and not dialogue_active() and lives > 0:
+        paused = not paused
+        if paused:
+            pause_music()
+        else:
+            resume_music()
+        dirty = True
+    if button_pressed("select") and not dialogue_active() and lives > 0:
+        start_dialogue("HOLD A TO FIRE. STOP METEORS BEFORE THEY REACH YOUR SHIP! TOUGH METEORS NEED TWO HITS. EVERY FIVE POINTS MAKES THE NEXT WAVE FASTER.", palette=1)
+        dialogue_speaker("CONTROL")
+    if not paused and not dialogue_active() and lives > 0:
+        if button("right"):
+            actors.player.x = clamp(actors.player.x + PLAYER_SPEED, 8, 144)
+        elif button("left"):
+            actors.player.x = clamp(actors.player.x - PLAYER_SPEED, 8, 144)
+        if cooldown > 0:
+            cooldown -= 1
+        if button("a") and cooldown == 0:
+            fired = spawn(actors.shots, x=actors.player.x, y=actors.player.y - 8)
+            if fired:
+                play_sound("menu_move")
+            cooldown = 8
+        level = min(score // 5, len(spawn_delays) - 1)
+        spawn_timer -= 1
+        if spawn_timer <= 0:
+            incoming = spawn(actors.meteors, x=randrange(1, 18) * 8, y=32, health=randint(1, 2), dy=1 + level // 2)
+            spawn_timer = spawn_delays[level]
+        for shot in actors.shots:
+            actors.advance_shot(ceiling=32, shot=shot)
+            if shot:
+                for meteor in actors.meteors:
+                    if rect_overlap(shot.x, shot.y, 8, 8, meteor.x, meteor.y, 8, 8):
+                        despawn(shot)
+                        score += actors.hit(meteor)
+                        dirty = True
+                        play_sound("damage")
+                        break
+        if frame % 3 == 0:
+            for meteor in actors.meteors:
+                meteor.y += meteor.dy
+                if meteor.y >= 104:
+                    despawn(meteor)
+                    lives -= 1
+                    dirty = True
+                    play_sound("damage")
+                    if lives <= 0:
+                        actors.reset()
+                        finish()
+                        break
+    update_dialogue()
+    if menu_pending and not dialogue_active():
+        if choices_finished() and choices_result() == 0:
+            restart()
+        else:
+            start_dialogue(format_text("FINAL SCORE: {}. BEST: {}. PRESS B AFTER CLOSING THIS MESSAGE TO TRY AGAIN!", score, best), palette=1)
+        menu_pending = False
+    for i in range(1, 16):
+        hide_sprite(i)
+    for shot in actors.shots:
+        sprite(1 + pool_index(shot), laser, 0, shot.x, shot.y)
+    for meteor in actors.meteors:
+        sprite(11 + pool_index(meteor), rock, meteor.health - 1, meteor.x, meteor.y)
+    sprite(0, hero, 0, actors.player.x, actors.player.y)
+    if dirty:
+        print(format_text("SCORE:{} BEST:{}     ", score, best), 0, 2)
+        print(format_text("LIVES:{} WAVE:{}     ", lives, level + 1), 0, 3)
+        if paused:
+            print("PAUSED", 7, 8)
+        else:
+            print("      ", 7, 8)
+        dirty = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

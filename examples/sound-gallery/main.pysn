@@ -1,0 +1,85 @@
+# Select effects and inspect priorities, mute, and volume while keeping audio serviced by waits.
+
+header.title = "SOUND GALLERY"
+header.target = "dual"
+
+# [Hz, frame ticks, volume]; pitch 0 creates a silent rest.
+custom = sound_effect("pulse", [[523, 6, 10], [0, 2, 0], [784, 8, 8]], 3, 1)
+selected = 0
+volume = 5
+muted = False
+
+set_sound_volume(volume, volume)
+clear_screen()
+print("SOUND GALLERY", 3, 1)
+print("Up/Down: choose", 2, 4)
+print("A: play   B: stop", 1, 9)
+print("Left/Right: volume", 1, 11)
+print("Select: mute", 3, 12)
+print("Volume:", 1, 14)
+print("Muted:", 1, 15)
+print("Playing:", 1, 16)
+
+def draw_selection():
+    print("                  ", 1, 6)
+    if selected == 0:
+        print("Menu move", 1, 6)
+    elif selected == 1:
+        print("Menu confirm", 1, 6)
+    elif selected == 2:
+        print("Collect", 1, 6)
+    elif selected == 3:
+        print("Damage", 1, 6)
+    elif selected == 4:
+        print("Win", 1, 6)
+    elif selected == 5:
+        print("Lose", 1, 6)
+    else:
+        print("Custom", 1, 6)
+
+def play_selected():
+    stop_sound()
+    if selected == 0:
+        play_sound("menu_move")
+    elif selected == 1:
+        play_sound("menu_confirm")
+    elif selected == 2:
+        play_sound("collect")
+    elif selected == 3:
+        play_sound("damage")
+    elif selected == 4:
+        play_sound("win")
+    elif selected == 5:
+        play_sound("lose")
+    else:
+        play_sound(custom)
+
+draw_selection()
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("up"):
+        selected = (selected + 6) % 7
+        draw_selection()
+    if button_pressed("down"):
+        selected = (selected + 1) % 7
+        draw_selection()
+    if button_pressed("left") and volume > 0:
+        volume -= 1
+        set_sound_volume(volume, volume)
+    if button_pressed("right") and volume < 7:
+        volume += 1
+        set_sound_volume(volume, volume)
+    if button_pressed("select"):
+        muted = not muted
+        mute_sound(muted)
+    if button_pressed("a"):
+        play_selected()
+    if button_pressed("b"):
+        stop_sound()
+    print(volume, 10, 14)
+    print(muted, 10, 15)
+    print(sound_playing(), 10, 16)
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

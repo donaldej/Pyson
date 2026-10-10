@@ -1,0 +1,80 @@
+# Live rotation, morphing, and perspective projection. These are calculations
+# made by the Game Boy, rather than a list of pre-rendered screen positions.
+import includes.math_data as data
+
+pose = record(angle=0, tilt=0, blend=0)
+old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+pieces = sprite_sheet("../assets/fragments.bmp", 8, 8)
+
+def reset():
+    for point in range(32):
+        old_y[point] = -1
+        hide_sprite(point)
+    for row in range(18):
+        rows[row] = 0
+
+def release(slot):
+    y = old_y[slot]
+    if y >= 0:
+        first = y // 8
+        last = (y + 7) // 8
+        rows[first] -= 1
+        if last != first:
+            rows[last] -= 1
+    old_y[slot] = -1
+
+def put(slot, x, y, frame=4, limit=6):
+    release(slot)
+    if x >= 0 and x <= 152 and y >= 0 and y <= 127:
+        first = y // 8
+        last = (y + 7) // 8
+        if rows[first] < limit and rows[last] < limit:
+            rows[first] += 1
+            if first != last:
+                rows[last] += 1
+            old_y[slot] = y
+            sprite(slot, pieces, frame, x, y)
+            return 1
+    hide_sprite(slot)
+    return 0
+
+def blend_value(a, b, point, amount):
+    # This helper reads either ROM array through the normal array interface.
+    return data.scale32[a[point] * (32 - amount) + b[point] * amount + 2048]
+
+def transform(tick, updates, mode=0):
+    pose.angle = (tick // 16 + mode * 8) & 63
+    pose.tilt = (tick // 24 + 9) & 63
+    pose.blend = clamp(16 + data.sine[tick // 12 & 63] // 2, 0, 32)
+    s = data.sine[pose.angle]
+    c = data.sine[(pose.angle + 16) & 63]
+    st = data.sine[pose.tilt]
+    ct = data.sine[(pose.tilt + 16) & 63]
+    first = (updates & 3) * 6
+    for point in range(first, first + 6):
+        x = data.vx[point]
+        x += data.scale32[(data.hx[point] - x) * pose.blend + 2048]
+        y = blend_value(data.vy, data.hy, point, pose.blend)
+        z = data.vz[point]
+        z += data.scale32[(data.hz[point] - z) * pose.blend + 2048]
+        rx = data.scale32[x * c + z * s + 2048]
+        rz = data.scale32[z * c - x * s + 2048]
+        ry = data.scale32[y * ct - rz * st + 2048]
+        depth = data.scale32[rz * ct + y * st + 2048]
+        distance = 112 + depth
+        px = 76 + rx * 104 // distance
+        py = 62 + ry * 104 // distance
+        # Depth changes point brightness, rather than drawing boxes or tiny ships.
+        frame = 6
+        if depth < -8:
+            frame = 5
+        put(point, px, py, frame)
+
+def halo(tick, updates):
+    # A sparse orbit stays outside the central crest; all positions are live.
+    point = updates & 7
+    angle = (point * 8 + tick // 32) & 63
+    x = 76 + data.sine[(angle + 16) & 63] * 46 // 32
+    y = 57 + data.sine[angle] * 32 // 32
+    put(point, x, y, frame=tick // 16 & 3, limit=4)

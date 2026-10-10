@@ -1,0 +1,23 @@
+# Fixed-capacity pools own temporary shots and meteors; helpers update validated actor handles.
+
+player = record(x=76, y=104)
+shots = pool(10, x=0, y=0, dy=-3)
+meteors = pool(5, x=0, y=0, dy=1, health=1)
+
+# Move the shot handle and remove it after it crosses the allowed boundary.
+def advance_shot(shot, ceiling=32):
+    shot.y += shot.dy
+    if shot.y < ceiling:
+        despawn(shot)
+
+def hit(meteor):
+    meteor.health -= 1
+    if meteor.health <= 0:
+        despawn(meteor)
+        return 1
+    return 0
+
+def reset():
+    reset_pool(shots)
+    reset_pool(meteors)
+    player.x = 76

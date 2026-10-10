@@ -1,0 +1,58 @@
+# Group actor values into records and pass references to helpers that update the original actor.
+
+header.title = "RECORD FLEET"
+header.target = "dual"
+import includes.state as state
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+player_art = sprite_sheet("assets/player.bmp", 8, 8)
+enemy_art = sprite_sheet("assets/enemy.bmp", 8, 8)
+selected = 0
+frame = 0
+hud_dirty = True
+state.reset()
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+clear_screen()
+print("RECORD FLEET", 4, 0)
+print("D-PAD MOVE", 0, 13)
+print("A HIT  SELECT NEXT", 0, 14)
+print("B RESET", 0, 15)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    frame += 1
+    if button("right") and state.player.x < 144:
+        state.player.x += 2
+    if button("left") and state.player.x > 8:
+        state.player.x -= 2
+    if button("down") and state.player.y < 96:
+        state.player.y += 2
+    if button("up") and state.player.y > 24:
+        state.player.y -= 2
+    if button_pressed("select"):
+        selected = (selected + 1) % len(state.enemies)
+        hud_dirty = True
+    if button_pressed("a"):
+        state.damage(state.enemies[selected])
+        play_sound("damage")
+        hud_dirty = True
+    if button_pressed("b"):
+        state.reset()
+        hud_dirty = True
+    if frame % 2 == 0:
+        for enemy in state.enemies:
+            state.move_enemy(enemy)
+    for i in range(len(state.enemies)):
+        if state.enemies[i].active:
+            sprite(i + 1, enemy_art, frame // 12 % 2, state.enemies[i].x, state.enemies[i].y)
+        else:
+            hide_sprite(i + 1)
+    sprite(0, player_art, 0, state.player.x, state.player.y)
+    if hud_dirty:
+        print("ENEMY:   HP:  ", 0, 2)
+        print(selected + 1, 7, 2)
+        print(state.enemies[selected].health, 12, 2)
+        hud_dirty = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

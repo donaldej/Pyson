@@ -1,0 +1,36 @@
+# A fresh button press changes the count. Redraw only when the displayed value changes.
+
+header.title = "BUTTON COUNTER"
+header.target = "dual"
+
+# Return a changed value without modifying the caller's variable directly.
+def change(value, amount):
+    return value + amount
+
+count = 0
+previous = -1
+
+print("Button counter", 3, 1)
+print("A: +1   B: -1", 3, 3)
+print("Start: reset", 3, 4)
+# Commit queued drawing; refresh does not sample input.
+refresh_screen()
+
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+
+    if button_pressed("a"):
+        count = change(count, 1)
+    elif button_pressed("b"):
+        count = change(count, -1)
+
+    if button_pressed("start"):
+        count = 0
+
+    if count != previous:
+        print("      ", 7, 8)
+        print(count, 7, 8)
+        previous = count
+    refresh_screen()

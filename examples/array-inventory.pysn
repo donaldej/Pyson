@@ -1,0 +1,60 @@
+# A fixed-size integer array stores inventory quantities; changing an element keeps its storage.
+
+header.title = "ARRAY INVENTORY"
+header.target = "dual"
+
+# Fixed-size mutable inventory. Each slot occupies two bytes of RAM.
+inventory = [2, 0, 5, 1]
+# Reset data stays in ROM; helpers can read it without copying it into RAM.
+initial_inventory = constant_table([2, 0, 5, 1])
+selected = 0
+previous = -1
+changed = 1
+
+# Parameters reference caller storage; the ROM source is copied into the RAM target.
+def copy_items(target, source):
+    if len(target) != len(source):
+        return 0
+    for i in range(len(target)):
+        target[i] = source[i]
+    return 1
+
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(2, "#365878", "#6080a0", "#b8d0e0", "#ffffff")
+print("ARRAY INVENTORY", 2, 1)
+print("D-pad: select slot", 1, 11)
+print("A: add  B: remove", 1, 13)
+print("Start: reset", 3, 15)
+
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("down"):
+        selected = (selected + 1) % len(inventory)
+    elif button_pressed("up"):
+        selected = (selected - 1) % len(inventory)
+    if button_pressed("a") and inventory[selected] < 99:
+        inventory[selected] += 1
+        changed = 1
+    if button_pressed("b") and inventory[selected] > 0:
+        inventory[selected] -= 1
+        changed = 1
+    if button_pressed("start"):
+        copy_items(target=inventory, source=initial_inventory)
+        selected = 0
+        changed = 1
+
+    if changed or selected != previous:
+        for i in range(len(inventory)):
+            palette = 0
+            if i == selected:
+                palette = 2
+            print("             ", 3, 4 + i, palette)
+            print("Slot", 3, 4 + i, palette)
+            print(i + 1, 8, 4 + i, palette)
+            print(inventory[i], 12, 4 + i, palette)
+        previous = selected
+        changed = 0
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

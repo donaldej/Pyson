@@ -1,0 +1,85 @@
+# Streamed backdrops, safe sprite batches, timed color changes, and animation.
+import includes.motion as motion
+import includes.palettes as palettes
+
+forge = worldmap("../assets/forge.bmp")
+kings = worldmap("../assets/kings.bmp")
+moria = worldmap("../assets/moria.bmp")
+forest = worldmap("../assets/forest.bmp")
+doom = worldmap("../assets/doom.bmp")
+white_tree = worldmap("../assets/white-tree.bmp")
+light = sprite_sheet("../assets/light.bmp", 8, 8)
+eagle = sprite_sheet("../assets/eagle.bmp", 32, 16)
+flight = sprite_animation(eagle, [[0, 10], [1, 10], [2, 10], [1, 10]])
+foreground = sprite_sheet("../assets/foreground.bmp", 24, 48)
+camera = 0.0
+
+def prepare(scene):
+    global camera
+    camera = 0.0
+    for slot in range(40):
+        hide_sprite(slot)
+    stop_animation(24)
+    if scene == 0:
+        draw_world(forge)
+        set_camera(48, 16)
+    elif scene == 1:
+        draw_world(kings)
+        play_animation(24, flight, restart=True)
+        set_camera(0, 16)
+    elif scene == 2:
+        draw_world(moria)
+        set_camera(0, 16)
+    elif scene == 3:
+        draw_world(forest)
+        set_camera(0, 16)
+    elif scene == 4:
+        draw_world(doom)
+        set_camera(48, 16)
+    else:
+        draw_world(white_tree)
+        set_camera(48, 16)
+    palettes.update(scene, 0)
+    sprite_palette(2, "#000000", "#62746b", "#243b37", "#050b12")
+
+def colors(scene, tick):
+    palettes.update(scene, tick)
+
+def draw_points(poses, updates, frame):
+    # The same readable helper accepts any of the six banked ROM arrays.
+    # Each pose uses at most three points on a scanline. Two partially updated
+    # poses leave room for the three-component-wide foreground layer.
+    pose = updates // 4 & 63
+    first = (updates & 3) * 5
+    for point in range(first, first + 5):
+        packed = poses[pose * 20 + point]
+        if packed == -1:
+            hide_sprite(point)
+        else:
+            sprite_frame = frame
+            if packed < 0:
+                sprite_frame += 1
+            sprite(point, light, sprite_frame, packed & 255, (packed // 256) & 127)
+
+def animate(scene, tick, updates, delta):
+    global camera
+    update_animations(min(delta, 255))
+    if scene == 1 or scene == 2 or scene == 3:
+        # Fractional speed gives a steady pan. Bounded steps keep streaming live.
+        camera += fixed(min(delta, 8)) * 0.5
+        set_camera(int(camera), 16)
+    if scene == 0:
+        draw_points(motion.pose_0, updates, 0)
+    elif scene == 1:
+        draw_points(motion.pose_1, updates, 0)
+        animated_sprite(24, 72, 36 + motion.bob[tick // 4 & 63])
+    elif scene == 2:
+        draw_points(motion.pose_2, updates, 2)
+        sprite(20, foreground, 0, 160 - (tick * 2 % 208), 96)
+    elif scene == 3:
+        draw_points(motion.pose_3, updates, 2)
+        sprite(20, foreground, 1, 160 - (tick * 2 % 208), 90)
+    elif scene == 4:
+        draw_points(motion.pose_4, updates, 1)
+    else:
+        draw_points(motion.pose_5, updates, 2)

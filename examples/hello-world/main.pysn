@@ -1,0 +1,9 @@
+# Smallest text example: queue a message, display it, then keep the ROM running.
+
+print("HELLO WORLD", 0, 0)
+# Commit queued drawing; refresh does not sample input.
+refresh_screen()
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()

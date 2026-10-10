@@ -1,0 +1,81 @@
+# Seeded integer randomness makes rolls repeatable when the same seed and call sequence are used.
+
+header.title = "RANDOM GALLERY"
+header.target = "dual"
+die_one = 1
+die_two = 1
+rolls = 0
+bonus = False
+ticks = 0
+seed = 1
+dirty = True
+
+# Update both dice and mark the display dirty after consuming random values.
+def roll():
+    global die_one, die_two, rolls, bonus, dirty
+    die_one = randint(1, 6)
+    die_two = randint(1, 6)
+    bonus = randrange(10) == 0
+    rolls = (rolls + 1) % 32000
+    dirty = True
+
+def draw_die(value, x):
+    print("+-----+", x, 6, 1)
+    for y in range(7, 10):
+        print("|     |", x, y, 1)
+    print("+-----+", x, 10, 1)
+    if value % 2 == 1:
+        print("O", x + 3, 8, 1)
+    if value >= 2:
+        print("O", x + 1, 7, 1)
+        print("O", x + 5, 9, 1)
+    if value >= 4:
+        print("O", x + 5, 7, 1)
+        print("O", x + 1, 9, 1)
+    if value == 6:
+        print("O", x + 1, 8, 1)
+        print("O", x + 5, 8, 1)
+
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(1, "#fff8e0", "#d8b878", "#806048", "#302838")
+clear_screen()
+print("RANDOM GALLERY", 3, 0)
+print("A ROLL   B REPLAY", 0, 15)
+print("SELECT: TIMED SEED", 0, 16)
+random_seed(seed)
+roll()
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    ticks = (ticks + 1) % 32767
+    if button_pressed("b"):
+        seed = 1
+        random_seed(seed)
+        rolls = 0
+        roll()
+    elif button_pressed("select"):
+        seed = ticks
+        random_seed(seed)
+        rolls = 0
+        roll()
+    elif button_pressed("a"):
+        roll()
+    if dirty:
+        draw_die(die_one, 2)
+        draw_die(die_two, 11)
+        print("SEED:               ", 0, 2)
+        print(seed, 6, 2)
+        print("ROLL:               ", 0, 3)
+        print(rolls, 6, 3)
+        print("DICE:    +    =     ", 0, 12)
+        print(die_one, 6, 12)
+        print(die_two, 11, 12)
+        print(die_one + die_two, 16, 12)
+        if bonus:
+            print("BONUS!              ", 0, 13)
+        else:
+            print("                    ", 0, 13)
+        dirty = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

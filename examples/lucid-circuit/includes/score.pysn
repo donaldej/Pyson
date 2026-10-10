@@ -1,0 +1,32 @@
+# Choose two independent music voices per scene; rhythm effects use the other audio channels.
+
+lead_0 = music_file("../assets/section-0.json")
+bass_0 = music_file("../assets/section-0.json", 1)
+lead_1 = music_file("../assets/section-1.json")
+bass_1 = music_file("../assets/section-1.json", 1)
+lead_2 = music_file("../assets/section-2.json")
+bass_2 = music_file("../assets/section-2.json", 1)
+lead_3 = music_file("../assets/section-3.json")
+bass_3 = music_file("../assets/section-3.json", 1)
+kick = sound_effect("pulse", [[130, 1, 7], [70, 1, 6], [65, 1, 4]], 3, 2)
+hat = sound_effect("noise", [[17, 1, 3]], 3)
+
+def begin(scene):
+    if scene == 0:
+        play_music(lead_0, restart=True)
+        play_music(bass_0, restart=True)
+    elif scene == 1:
+        play_music(lead_1, restart=True)
+        play_music(bass_1, restart=True)
+    elif scene == 2:
+        play_music(lead_2, restart=True)
+        play_music(bass_2, restart=True)
+    else:
+        play_music(lead_3, restart=True)
+        play_music(bass_3, restart=True)
+
+def rhythm(tick):
+    if tick & 31 == 0:
+        play_sound(kick)
+    elif tick & 31 == 16:
+        play_sound(hat)

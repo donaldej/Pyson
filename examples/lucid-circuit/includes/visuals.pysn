@@ -1,0 +1,39 @@
+# Compose streamed worlds, palette changes, and geometric particles using ordinary graphics APIs.
+
+import includes.fields as fields
+import includes.motion as motion
+import includes.palettes as palettes
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+glow = sprite_sheet("../assets/glow.bmp", 8, 8)
+
+def prepare(scene):
+    clear_screen()
+    for slot in range(40):
+        hide_sprite(slot)
+    if scene == 0:
+        draw_world(fields.cloud)
+    elif scene == 1:
+        draw_world(fields.spiral)
+    elif scene == 2:
+        draw_world(fields.weave)
+    else:
+        draw_world(fields.lotus)
+    sprite_palette(0, "#000000", "#393060", "#9088c8", "#fff0e8")
+    sprite_palette(1, "#000000", "#183848", "#68b8c8", "#d8fff0")
+    sprite_palette(2, "#000000", "#482840", "#c878a8", "#ffe0d0")
+    sprite_palette(3, "#000000", "#302858", "#a098d8", "#ffffff")
+    palettes.update(scene, 0)
+
+def animate(scene, tick):
+    camera_phase = (tick // 2 + scene * 32) & 127
+    set_camera(motion.camera_x[camera_phase], motion.camera_y[camera_phase])
+    if tick & 31 == 0:
+        palettes.update(scene, tick)
+    base = scene * 768 + (tick // 8 & 31) * 24
+    for point in range(tick & 3, 24, 4):
+        packed = motion.points[base + point]
+        if packed >= 0:
+            sprite(point, glow, (point + tick // 32) & 3, packed & 255, packed // 256)
+        else:
+            hide_sprite(point)

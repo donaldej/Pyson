@@ -1,0 +1,24 @@
+# The redraw flag marks screen entry: draw the title once, then keep checking start input.
+
+import includes.state as state
+import includes.graphics as art
+
+def title_screen():
+    if state.redraw:
+        clear_screen()
+        art.hide_characters()
+        print("STAR CHASE", 5, 3,5)
+        print("Best:", 6, 5)
+        print(state.high_score, 12, 5, 5)
+        print("Catch 10 stars!", 3, 6)
+        print("Avoid the red foe", 2, 8)
+        sprite(0, art.player, 0, 48, 80)
+        sprite(1, art.star, 0, 76, 80)
+        sprite(2, art.enemy, 0, 104, 80)
+        print(" > START GAME < ", 2, 12, 3)
+        print("A / Start to play", 2, 14)
+        print("D-pad to move", 3, 16)
+        state.redraw = 0
+    if button_pressed("a") or button_pressed("start"):
+        play_sound("menu_confirm")
+        state.reset_game()

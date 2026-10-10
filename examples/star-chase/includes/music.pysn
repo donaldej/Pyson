@@ -1,0 +1,31 @@
+# Select music from screen state; avoid restarting an already selected track each update.
+
+import includes.state as state
+
+title_theme = music_track([
+    [523, 16, 7], [659, 16, 7], [784, 24, 7], [0, 8, 0],
+    [659, 16, 7], [587, 16, 7], [523, 32, 7]
+])
+game_theme = music_track([
+    [392, 8, 6], [523, 8, 6], [659, 8, 6], [523, 8, 6],
+    [440, 8, 6], [587, 8, 6], [698, 8, 6], [587, 8, 6],
+    [392, 8, 6], [523, 8, 6], [784, 16, 6], [659, 8, 6],
+    [587, 8, 6], [523, 16, 6]
+], duty=1)
+victory_theme = music_track([[523, 12, 8], [659, 12, 8], [784, 12, 8], [1047, 36, 8]], loop=False)
+defeat_theme = music_track([[440, 16, 7], [349, 16, 7], [262, 32, 6]], loop=False)
+last_screen = -1
+
+# Keep the selected track consistent with the active screen without unnecessary restarts.
+def sync_music():
+    global last_screen
+    if last_screen != state.screen:
+        last_screen = state.screen
+        if state.screen == 0:
+            play_music(title_theme, restart=True)
+        elif state.screen == 1:
+            play_music(game_theme, restart=True)
+        elif state.screen == 3:
+            play_music(victory_theme, restart=True)
+        else:
+            play_music(defeat_theme, restart=True)

@@ -1,0 +1,48 @@
+header.title = "VOID ENGINE"
+header.target = "dual"
+header.controller = "mbc5"
+header.ram_kb = 8
+header.battery = True
+import includes.visuals as visuals
+import includes.score as score
+
+SECTION_TICKS = constant(512)
+scene = 0
+tick = 0
+cycles = 0
+completed = save_read(0, 0)
+while True:
+    if tick == 0:
+        stop_music()
+        stop_sound()
+        visuals.prepare(scene)
+        visuals.colors(0)
+        refresh_screen()
+        score.begin(scene)
+    if tick & 3 == 0:
+        visuals.colors(tick)
+    score.percussion(tick, scene)
+    if scene == 0:
+        visuals.opening(tick)
+    elif scene == 1:
+        visuals.road(tick)
+    elif scene == 2:
+        visuals.flight(tick)
+    elif scene == 3:
+        visuals.architecture(tick)
+    elif scene == 4:
+        visuals.hologram(tick)
+    else:
+        visuals.finale(tick)
+    refresh_screen()
+    tick += 1
+    if tick >= SECTION_TICKS:
+        tick = 0
+        scene += 1
+        if scene >= 6:
+            stop_music()
+            stop_sound()
+            scene = 0
+            cycles = (cycles + 1) % 32000
+            completed = min(completed + 1, 999)
+            save_write(0, completed)

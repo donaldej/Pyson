@@ -1,0 +1,137 @@
+# Explore mutable terrain with swept collision checks; persistent progress lives outside the current round.
+
+header.title = "VAULT RUN"
+header.target = "dual"
+import includes.progress as progress
+
+SIZE = constant(8)
+SPEED = constant(2)
+wall = tile("assets/brick.bmp", solid=True, terrain=1)
+floor = tile("assets/floor.bmp", terrain=0)
+board = mutable_map([
+    [wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall]
+])
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("assets/player.bmp", 8, 8)
+star = sprite_sheet("assets/star.bmp", 8, 8)
+portrait = sprite_sheet("assets/hero.bmp", 16, 16)
+# Animation pairs are [frame, duration_ticks]; playback advances only when updated.
+walk = sprite_animation(hero, [[0, 8], [1, 8]])
+lead = music_file("assets/theme.json")
+bass = music_file("assets/theme.json", 1)
+keys_x = [24, 56, 128]
+keys_y = [16, 56, 24]
+collected = [0, 0, 0]
+x = 16
+y = 16
+keys = 0
+door_open = False
+won = False
+dirty = True
+menu_pending = False
+
+# Reset transient game state while preserving the separate progress module.
+def reset_round():
+    global x, y, keys, door_open, won, dirty
+    x = 16
+    y = 16
+    keys = 0
+    door_open = False
+    won = False
+    dirty = True
+    reset_map(board)
+    for i in range(len(collected)):
+        collected[i] = 0
+    close_dialogue()
+
+# Sweep each movement axis through terrain so larger steps still stop at walls.
+def advance(dx=0, dy=0):
+    global x, y
+    x = move_x(board, x, y, SIZE, SIZE, dx)
+    y = move_y(board, x, y, SIZE, SIZE, dy)
+
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(1, "#fff8e0", "#d8b878", "#806048", "#302838")
+bg_palette(2, "#302838", "#806048", "#d8b878", "#fff8e0")
+clear_screen()
+print("VAULT RUN", 5, 0)
+print("GET STARS THEN EXIT", 0, 14)
+print("A DOOR  SELECT GUIDE", 0, 16)
+print("B RESTART", 0, 17)
+play_music(lead)
+play_music(bass)
+play_animation(0, walk)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("b"):
+        if dialogue_active():
+            close_dialogue()
+        else:
+            reset_round()
+    if not dialogue_active() and not won:
+        dx = 0
+        dy = 0
+        if button("right"):
+            dx = SPEED
+        elif button("left"):
+            dx = -SPEED
+        if button("down"):
+            dy = SPEED
+        elif button("up"):
+            dy = -SPEED
+        advance(dy=dy, dx=dx)
+        for i in range(len(collected)):
+            if collected[i] == 0 and rect_overlap(x, y, SIZE, SIZE, keys_x[i], keys_y[i], SIZE, SIZE):
+                collected[i] = 1
+                keys += 1
+                dirty = True
+                play_sound("menu_confirm")
+        if button_pressed("a") and abs(x - 72) <= 8 and abs(y - 40) <= 8:
+            if keys >= 2 and not door_open:
+                set_map_tile(board, 10, 5, floor)
+                door_open = True
+                dirty = True
+                play_sound("menu_confirm")
+            elif not door_open:
+                start_dialogue("THE VAULT NEEDS TWO STARS. FIND BOTH IN THE LEFT ROOM!", palette=1)
+        if keys == 3 and rect_overlap(x, y, SIZE, SIZE, 136, 56, SIZE, SIZE):
+            won = True
+            progress.complete()
+            dirty = True
+            play_sound("win")
+            start_choices(["PLAY AGAIN", "KEEP VICTORY"], palette=1, selected_palette=2)
+            menu_pending = True
+        elif button_pressed("select"):
+            start_dialogue(format_text("YOU HAVE {} OF 3 STARS. GET TWO, OPEN THE CENTER DOOR WITH A, THEN TAKE THE LAST STAR TO THE EXIT. COMPLETED RUNS: {}.", keys, progress.wins), palette=1)
+            dialogue_speaker("KEEPER")
+            dialogue_portrait(portrait, 0, 1)
+    update_dialogue()
+    if menu_pending and not dialogue_active():
+        if choices_finished() and choices_result() == 0:
+            reset_round()
+        menu_pending = False
+    if dirty:
+        draw_map(board, 0, 4)
+        print(format_text("STARS:{} WINS:{}     ", keys, progress.wins), 0, 2)
+        print("E", 17, 11)
+        dirty = False
+    for i in range(len(collected)):
+        if collected[i] == 0:
+            sprite(1 + i, star, 0, keys_x[i], keys_y[i] + 32)
+        else:
+            hide_sprite(1 + i)
+    update_animations()
+    animated_sprite(0, x, y + 32)
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

@@ -1,0 +1,80 @@
+# Reusable objects, seeded randomness, records, terrain sweeps and sprite safety.
+import includes.geometry as geometry
+
+floor = tile("../assets/floor.bmp", terrain=1)
+seal = tile("../assets/floor.bmp", solid=True, terrain=2)
+chamber = mutable_map([[seal,seal,seal,seal], [seal,floor,floor,seal], [seal,floor,floor,seal], [seal,seal,seal,seal]])
+sparks = pool(8, x=0, y=0, dx=0, dy=0, life=0)
+traveller = record(x=68, y=95, mood=0)
+comets = records(4, x=0, y=0, speed=1)
+last_spawn = -1
+
+def reset(seed):
+    global last_spawn
+    reset_pool(sparks)
+    reset_map(chamber)
+    random_seed(seed)
+    last_spawn = -1
+    for comet in comets:
+        comet.x = randrange(0, 152)
+        comet.y = randrange(8, 112)
+        comet.speed = randint(1, 3)
+
+def move_comet(comet, slot, delta, bird=False):
+    # A record parameter updates the original record rather than a copy.
+    comet.x -= comet.speed * min(delta, 16)
+    if comet.x < 0:
+        comet.x = 152
+        comet.y = randrange(8, 100)
+    frame = 7
+    if bird:
+        frame = 4
+    geometry.put(slot, comet.x, comet.y, frame=frame)
+
+def sky(delta, updates, birds=False):
+    index = updates & 3
+    move_comet(comets[index], 24 + index, delta * 4, bird=birds)
+
+def drift_bird(bird, delta):
+    # Update each bird every loop, avoiding the old staggered large jumps.
+    bird.x -= min(delta, 4)
+    if bird.x < -8:
+        bird.x = 160
+        bird.y = randrange(20, 94)
+
+def burst(tick, delta, confined=False):
+    global last_spawn
+    if tick // 32 != last_spawn:
+        last_spawn = tick // 32
+        if confined:
+            newborn = spawn(sparks, x=randint(9, 18), y=randint(9, 18), dx=randint(-2, 2), dy=randint(-2, 2), life=48)
+        else:
+            newborn = spawn(sparks, x=randint(42, 110), y=randint(80, 110), dx=randint(-1, 1), dy=-1, life=96)
+    for ember in sparks:
+        ember.life -= min(delta, 8)
+        slot = 24 + pool_index(ember)
+        if ember.life <= 0:
+            despawn(ember)
+            geometry.release(slot)
+            hide_sprite(slot)
+        else:
+            if confined:
+                next_x = move_x(chamber, ember.x, ember.y, 4, 4, ember.dx)
+                next_y = move_y(chamber, next_x, ember.y, 4, 4, ember.dy)
+                if next_x == ember.x:
+                    ember.dx = -ember.dx
+                if next_y == ember.y:
+                    ember.dy = -ember.dy
+                ember.x = next_x
+                ember.y = next_y
+                geometry.put(slot, 64 + ember.x, 44 + ember.y, frame=6)
+            else:
+                ember.x += ember.dx * min(delta, 4)
+                ember.y += ember.dy * min(delta, 4)
+                if rect_overlap(ember.x, ember.y, 4, 4, 66, 38, 28, 12):
+                    ember.dx = -ember.dx
+                geometry.put(slot, ember.x, ember.y, frame=7, limit=4)
+
+def open_seal():
+    set_map_tile(chamber, 3, 1, floor)
+    set_map_tile(chamber, 3, 2, floor)

@@ -1,0 +1,46 @@
+# Move a sprite against a fixed rectangle and distinguish touching edges from overlap.
+
+header.title = "COLLISION LAB"
+header.target = "dual"
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+player = sprite_sheet("assets/player.bmp", 8, 8)
+x = 40
+y = 56
+hit = False
+previous_hit = -1
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(1, "#102038", "#306048", "#58b878", "#a8f8b8")
+bg_palette(2, "#102038", "#803838", "#d86858", "#ffd890")
+clear_screen()
+print("COLLISION LAB", 3, 0)
+print("D-PAD MOVE  B RESET", 0, 1)
+print("TOUCH EDGE = NO HIT", 0, 14)
+print("OVERLAP = HIT", 0, 15)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("b"):
+        x = 40
+        y = 56
+    if button("right") and x < 144:
+        x += 1
+    if button("left") and x > 0:
+        x -= 1
+    if button("down") and y < 104:
+        y += 1
+    if button("up") and y > 32:
+        y -= 1
+    hit = rect_overlap(x, y, 8, 8, 64, 48, 32, 32)
+    if hit != previous_hit:
+        color = 1
+        if hit:
+            color = 2
+        for row in range(6, 10):
+            print("####", 8, row, color)
+        print("HIT: ", 6, 3)
+        print(hit, 11, 3)
+        previous_hit = hit
+    sprite(0, player, 0, x, y)
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

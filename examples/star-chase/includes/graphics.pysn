@@ -1,0 +1,46 @@
+# Shared artwork and palettes are prepared here so screen logic can focus on game state.
+
+# Asset paths are relative to this file.
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+player = sprite_sheet("../assets/player.bmp", 8, 8)
+star = sprite_sheet("../assets/star.bmp")
+enemy = sprite_sheet("../assets/enemy.bmp", 8, 8)
+# Animation pairs are [frame, duration_ticks]; playback advances only when updated.
+player_idle = sprite_animation(player, [[0, 1]])
+player_walk = sprite_animation(player, [[0, 8], [1, 8]])
+enemy_walk = sprite_animation(enemy, [[0, 8], [1, 8]])
+brick = tile("../assets/brick.bmp", solid=True, terrain=1)
+floor = tile("../assets/floor.bmp")
+
+# Layout, palettes, collision, and terrain come from the same cells.
+board = tilemap([
+    [brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick],
+])
+
+def setup_graphics():
+    bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+    # Imported brick/floor occupy slots 1 and 2; HUD gold uses slot 5.
+    bg_palette(5, "#102038", "#705830", "#d8a848", "#ffdf70")
+    bg_palette(3, "#365878", "#6080a0", "#b8d0e0", "#ffffff")
+    bg_palette(4, "#102038", "#703848", "#c86878", "#ff8090")
+
+def hide_characters():
+    hide_sprite(0)
+    hide_sprite(1)
+    hide_sprite(2)
+
+def draw_board():
+    clear_screen()
+    draw_map(board, 0, 3)

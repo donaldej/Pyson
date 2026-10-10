@@ -1,0 +1,51 @@
+# Every importer sees these same variables; module initializers run once, not on each screen entry.
+
+# Shared screen and game state. 0=title, 1=playing, 2=lost, 3=won.
+screen = 0
+redraw = 1
+score = 0
+high_score = 0
+selection = 0
+player_x = 3
+player_y = 12
+enemy_x = 17
+enemy_y = 5
+star_x = 5
+star_y = 12
+move_ticks = 0
+enemy_ticks = 0
+facing_left = False
+
+def load_progress():
+    global high_score
+    high_score = save_read(0, 0)
+    if high_score < 0 or high_score > 10:
+        high_score = 0
+
+# Initialize a new round; module initialization alone does not reset replay state.
+def reset_game():
+    global screen, redraw, score, selection
+    global player_x, player_y, enemy_x, enemy_y, star_x, star_y
+    global move_ticks, enemy_ticks, facing_left
+    screen = 1
+    redraw = 1
+    score = 0
+    selection = 0
+    player_x = 3
+    player_y = 12
+    enemy_x = 17
+    enemy_y = 5
+    star_x = 5
+    star_y = 12
+    move_ticks = 0
+    enemy_ticks = 0
+    restart_animation(0)
+    restart_animation(2)
+    facing_left = False
+
+# Change the active screen and request its initial redraw.
+def return_to_title():
+    global screen, redraw, selection
+    screen = 0
+    redraw = 1
+    selection = 0

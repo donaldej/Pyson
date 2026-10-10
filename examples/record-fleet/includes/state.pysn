@@ -1,0 +1,30 @@
+# Record arrays reserve a fixed number of actors; an active field is this example's gameplay convention.
+
+player = record(x=76, y=88)
+enemies = records(4, x=0, y=0, dx=1, health=3, active=True)
+
+# Initialize the caller's enemy record through its reference parameter.
+def reset_enemy(enemy, x, y, dx):
+    enemy.x = x
+    enemy.y = y
+    enemy.dx = dx
+    enemy.health = 3
+    enemy.active = True
+
+def reset():
+    for i in range(len(enemies)):
+        reset_enemy(enemies[i], 24 + i * 28, 40 + i * 16, 1)
+    player.x = 76
+    player.y = 88
+
+def move_enemy(enemy):
+    if enemy.active:
+        enemy.x += enemy.dx
+        if enemy.x >= 144 or enemy.x <= 8:
+            enemy.dx = -enemy.dx
+
+def damage(enemy):
+    if enemy.active:
+        enemy.health -= 1
+        if enemy.health <= 0:
+            enemy.active = False

@@ -1,0 +1,51 @@
+# Compare whole-pixel and fractional movement on Game Boy and Game Boy Color.
+header.title = "FRACTION MOTION"
+header.target = "dual"
+
+hero = sprite_sheet("../assets/hero.bmp", width=16, height=16)
+bg_palette(0, "#101828", "#486080", "#a8c8e8", "#ffffff")
+print("FRACTIONAL MOVEMENT", 1, 1)
+print("1 pixel/update", 1, 4)
+print("0.5 pixels/update", 1, 9)
+print("0.125 pixels/update", 1, 14)
+print("A: reset", 6, 17)
+
+# A decimal number tells Pyson to keep a fractional part.
+fast_x = fixed(16)
+medium_x = fixed(16)
+slow_x = fixed(16)
+fast_speed = 1.0
+medium_speed = 0.5
+slow_speed = 0.125
+
+# Functions can receive and return fixed-point numbers without annotations.
+def advance(position, speed):
+    return position + speed
+
+while True:
+    wait_vblank()
+    if button_pressed("a"):
+        fast_x = fixed(16)
+        medium_x = fixed(16)
+        slow_x = fixed(16)
+        fast_speed = 1.0
+        medium_speed = 0.5
+        slow_speed = 0.125
+
+    fast_x = advance(fast_x, fast_speed)
+    medium_x = advance(medium_x, medium_speed)
+    slow_x = advance(slow_x, slow_speed)
+
+    # Reverse direction at either end of the lane.
+    if fast_x >= 128 or fast_x <= 16:
+        fast_speed = -fast_speed
+    if medium_x >= 128 or medium_x <= 16:
+        medium_speed = -medium_speed
+    if slow_x >= 128 or slow_x <= 16:
+        slow_speed = -slow_speed
+
+    # The screen uses whole pixels. Keep the fractions in x for the next update.
+    sprite(0, hero, 0, int(fast_x), 48)
+    sprite(1, hero, 0, int(medium_x), 88)
+    sprite(2, hero, 0, int(slow_x), 128)
+    refresh_screen()

@@ -1,0 +1,19 @@
+node_modules/
+tools/rgbds/
+tools/emulator-env/
+tools/.setup-rgbds-*/
+__pycache__/
+build/
+binary/
+parser/
+*.log
+*.gb
+*.sav
+*.ram
+*.rtc
+*.state
+Thumbs.db
+.DS_Store
+
+# Internal generators; examples include all required output assets.
+/dev-tools/assets/

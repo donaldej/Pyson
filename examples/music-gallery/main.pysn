@@ -1,0 +1,61 @@
+# Compare looping and one-shot tracks, playback controls, and effects alongside music.
+
+header.title = "MUSIC GALLERY"
+header.target = "dual"
+
+melody = music_track([
+    [523, 12, 8], [659, 12, 8], [784, 24, 8], [0, 6, 0],
+    [659, 12, 8], [587, 12, 8], [523, 24, 8], [392, 24, 7]
+], loop=True, duty=2)
+ending = music_track([[523, 12, 9], [659, 12, 9], [784, 12, 9], [1047, 36, 8]], loop=False)
+
+bg_palette(0, "#E7F2FF", "#A5C9E7", "#527CA0", "#172334")
+clear_screen()
+print("MUSIC GALLERY", 3, 1)
+print("A: looping melody", 1, 4)
+print("B: one-shot song", 1, 5)
+print("START: pause/resume", 1, 7)
+print("SELECT: stop music", 1, 8)
+print("UP: pulse effect", 1, 10)
+print("DOWN: noise effect", 1, 11)
+print("LEFT: mute all", 1, 13)
+print("RIGHT: unmute all", 1, 14)
+paused = False
+playing = 1
+previous = -1
+play_music(melody)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("a"):
+        play_music(melody, restart=True)
+        paused = False
+    if button_pressed("b"):
+        play_music(ending, restart=True)
+        paused = False
+    if button_pressed("start"):
+        paused = not paused
+        if paused:
+            pause_music()
+        else:
+            resume_music()
+    if button_pressed("select"):
+        stop_music()
+        paused = False
+    if button_pressed("up"):
+        play_sound("collect")
+    if button_pressed("down"):
+        play_sound("damage")
+    if button_pressed("left"):
+        mute_sound()
+        paused = False
+    if button_pressed("right"):
+        mute_sound(False)
+    playing = music_playing()
+    if playing != previous:
+        print("PLAYING:", 3, 16)
+        print(playing, 12, 16)
+        previous = playing
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

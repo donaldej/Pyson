@@ -1,0 +1,82 @@
+# Select banked room data through ordinary map APIs; the runtime handles bank switching.
+
+header.title = "BANKED WORLDS"
+header.target = "dual"
+import includes.rooms as rooms
+
+room = 0
+view_x = 0
+view_y = 0
+changed = True
+bg_palette(4, "#E7F2FF", "#A5C9E7", "#527CA0", "#172334")
+window_position(0, 128)
+show_window()
+print_window("A/B: room Dpad: pan", 0, 0, 4)
+
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("a"):
+        room = (room + 1) % 18
+        changed = True
+        play_sound("menu_confirm")
+    if button_pressed("b"):
+        room = (room + 17) % 18
+        changed = True
+        play_sound("menu_move")
+    if changed:
+        view_x = 0
+        view_y = 0
+        if room == 0:
+            draw_world(rooms.room0)
+        elif room == 1:
+            draw_world(rooms.room1)
+        elif room == 2:
+            draw_world(rooms.room2)
+        elif room == 3:
+            draw_world(rooms.room3)
+        elif room == 4:
+            draw_world(rooms.room4)
+        elif room == 5:
+            draw_world(rooms.room5)
+        elif room == 6:
+            draw_world(rooms.room6)
+        elif room == 7:
+            draw_world(rooms.room7)
+        elif room == 8:
+            draw_world(rooms.room8)
+        elif room == 9:
+            draw_world(rooms.room9)
+        elif room == 10:
+            draw_world(rooms.room10)
+        elif room == 11:
+            draw_world(rooms.room11)
+        elif room == 12:
+            draw_world(rooms.room12)
+        elif room == 13:
+            draw_world(rooms.room13)
+        elif room == 14:
+            draw_world(rooms.room14)
+        elif room == 15:
+            draw_world(rooms.room15)
+        elif room == 16:
+            draw_world(rooms.room16)
+        elif room == 17:
+            draw_world(rooms.room17)
+        print_window("Room:   /18", 0, 1, 4)
+        print_window(room + 1, 6, 1, 4)
+        changed = False
+    if button("right"):
+        view_x += 2
+    if button("left"):
+        view_x -= 2
+    if button("down"):
+        view_y += 2
+    if button("up"):
+        view_y -= 2
+    set_camera(view_x, view_y)
+    view_x = camera_x()
+    view_y = camera_y()
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

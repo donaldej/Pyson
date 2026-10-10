@@ -1,0 +1,93 @@
+# Animation definitions are shared data; each playback slot has independent state.
+
+header.title = "ANIMATIONS"
+header.target = "dual"
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("assets/hero.bmp", 16, 16)
+# Animation pairs are [frame, duration_ticks]; playback advances only when updated.
+idle = sprite_animation(hero, [[0, 1]])
+walk = sprite_animation(hero, [[0, 8], [1, 8]])
+slow_walk = sprite_animation(hero, [[0, 16], [1, 16]])
+action = sprite_animation(hero, [[1, 4], [0, 4], [1, 4], [0, 12]], loop=False)
+
+mode = 1
+paused = False
+flipped = False
+dirty = True
+last_frame = -1
+last_playing = -1
+last_finished = -1
+play_animation(0, walk)
+play_animation(4, slow_walk)
+
+bg_palette(1, "#E7F2FF", "#A5C9E7", "#527CA0", "#172334")
+clear_screen(1)
+print("ANIMATION GALLERY", 1, 1, 1)
+print("A: walk  B: idle", 2, 3, 1)
+print("Start: one-shot", 2, 4, 1)
+print("Select: restart", 2, 5, 1)
+print("Up: stop Left: flip", 0, 6, 1)
+print("Right: pause", 3, 7, 1)
+print("Mode:", 2, 11, 1)
+print("Frame:", 2, 12, 1)
+print("Playing:", 2, 13, 1)
+print("Finished:", 2, 14, 1)
+print("Paused:", 2, 15, 1)
+print("Independent players", 0, 17, 1)
+
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if not paused:
+        update_animations()
+    if button_pressed("a"):
+        mode = 1
+        dirty = True
+    if button_pressed("b"):
+        mode = 0
+        dirty = True
+    if button_pressed("start"):
+        mode = 2
+        play_animation(0, action, restart=True)
+        dirty = True
+    if button_pressed("select"):
+        restart_animation(0)
+        dirty = True
+    if button_pressed("up"):
+        stop_animation(0)
+        dirty = True
+    if button_pressed("left"):
+        flipped = not flipped
+    if button_pressed("right"):
+        paused = not paused
+        dirty = True
+    if mode == 0:
+        play_animation(0, idle)
+    elif mode == 1:
+        play_animation(0, walk)
+    else:
+        play_animation(0, action)
+    animated_sprite(0, 56, 72, flipped)
+    animated_sprite(4, 96, 72)
+    frame = animation_frame(0)
+    playing = animation_playing(0)
+    finished = animation_finished(0)
+    if dirty or frame != last_frame or playing != last_playing or finished != last_finished:
+        if mode == 0:
+            print("Idle    ", 10, 11, 1)
+        elif mode == 1:
+            print("Walk    ", 10, 11, 1)
+        else:
+            print("One-shot", 10, 11, 1)
+        print(frame, 12, 12, 1)
+        print(playing, 12, 13, 1)
+        print(finished, 12, 14, 1)
+        print(paused, 12, 15, 1)
+        last_frame = frame
+        last_playing = playing
+        last_finished = finished
+        dirty = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

@@ -1,0 +1,853 @@
+# Pyson project context and agent handoff
+
+Last verified: 2026-10-10. This is a Markdown-formatted handoff despite its
+`.MF` extension. Read it before planning or changing this project. It records
+project intent, current implementation, user preferences, and navigation to
+the detailed references. It is not a replacement for reading relevant code.
+Update it when architecture, public APIs, workflow, or accepted priorities change.
+
+## 1. Purpose and product philosophy
+
+Pyson is a Python-like compiled language for Game Boy and Game Boy Color games.
+The name reflects Python and Jison. Source files currently use `.pysn`; do not
+rename their extension merely because the project was renamed to Pyson.
+
+The workflow is source project -> RGBDS assembly -> assembled, linked, and fixed
+Game Boy ROM. Pyson is not CPython, an interpreter, or a Python runtime embedded
+in a cartridge. Games execute generated native Game Boy instructions.
+
+The central user requirement is:
+
+> Pyson users should need to learn game development, without also needing to
+> learn assembly to use its features.
+
+Python familiarity plus game-development fundamentals should be sufficient for
+advanced features. Beginners should be able to make basic games without complex
+configuration. Familiar concepts include loops, states, cameras, animation,
+graphics buffers, collision, and shared state. Keep syntax familiar and APIs
+straightforward. Hide registers, interrupts, bank switching, and hardware timing
+inside the compiler/runtime whenever practical. Expert manual optimization can
+be added later; requiring assembly knowledge is not a current product goal.
+
+The project is genre-neutral. RPGs were only an example, not the defining target.
+The ideal ranges from Flappy Bird-like games to substantial games within actual
+GB/GBC hardware constraints. Do not promise unlimited Python or modern-console
+capabilities. Feature-rich does not mean finished, exhaustively optimized, or
+certified on every physical device.
+
+Tutorial positioning: prior Python knowledge is helpful, not a prerequisite.
+Describe Pyson as its own language modeled closely on Python syntax and
+conventions where practical, not as Python itself. Beginners can use widely
+available Python tutorials to learn variables, conditions, loops, and functions,
+then use Pyson's lessons/references for its supported features and differences.
+
+## 2. Collaboration and authorization
+
+- When the user is providing context and asks only for acknowledgement, respond
+  that you understand. Summarize only when requested. Do not infer code-change
+  authorization from context, a hypothetical question, or a compatibility check.
+- The user's original workflow is description -> requested plan -> approved
+  implementation. Later explicit instructions such as "go for it" authorize
+  the discussed work; honor the scope of that authorization.
+- During feature development the user prefers one feature at a time, with a
+  compiled example they can test in an emulator before approving continuation.
+  They have granted autonomy for specific batches before; that is not permanent
+  authorization for every future feature or unrelated refactor.
+- Explain behavior, practical benefits, and limitations plainly. Use meaningful
+  progress updates during longer work and report what was actually tested.
+- Preserve established examples and APIs where possible. Do not quietly migrate
+  existing games to new timing or performance modes.
+- All example projects, including Void Engine, are editable learning material.
+  The earlier request not to change Void Engine meant creating a separate new
+  demo rather than rewriting a demo the user liked. It was not a permanent
+  protection rule or a restriction on learners. Preserve that distinction when
+  making new demos; ordinary authorized example improvements remain allowed.
+- The user wants a clean project suitable for a future public Git repository
+  that others can clone and set up. Windows x64 is the supported automated
+  development environment for now. Do not expand platform scope unsolicited.
+- After compilation/testing, clean generated temporary build/test artifacts
+  when the work is complete. Keep example source, assets, fixtures, tests, and
+  relevant example ROMs for emulator testing. Never delete personal saves or
+  accepted videos as incidental cleanup.
+- Documentation and tutorials need to make advanced features approachable.
+  During rendering work the user allowed full tutorials to wait, but requested
+  that documentation needs be tracked. See the rendering notes backlog.
+
+These are project preferences, not permission to override current user requests
+or higher-priority environment instructions. Do not fabricate approvals.
+
+## 3. Environment and reproducible commands
+
+Current workspace: `C:\Users\Madz\Projects\GB_Python`, PowerShell on Windows.
+The historical folder name does not change the product name. Avoid hardcoding
+this machine's absolute paths into portable compiler or example code.
+
+Pinned tools:
+
+- Node.js >=18, 64-bit, with npm. Use `npm.cmd` in PowerShell.
+- Jison 0.4.18, installed by `npm.cmd ci` using `package-lock.json`.
+- RGBDS 1.0.4, installed project-locally in `tools/rgbds/`.
+- Optional Python 3.10-3.13, 64-bit; Python 3.10 was verified here.
+- Optional emulator dependencies: PyBoy 2.8.1, NumPy 2.2.6, PySDL2 0.9.17,
+  and Windows pysdl2-dll 2.32.10, pinned in `tests/emulator-requirements.txt`.
+- Optional FFmpeg for MP4 recording; not required to compile games.
+
+Fresh-clone PowerShell workflow:
+
+```powershell
+npm.cmd ci
+npm.cmd run setup
+npm.cmd run doctor
+npm.cmd run test:compiler
+npm.cmd run build -- examples/hello-world/main.pysn hello-world
+```
+
+Optional runtime verification:
+
+```powershell
+npm.cmd run setup:emulator
+npm.cmd run doctor -- --emulator
+npm.cmd run test:emulator
+```
+
+Useful commands:
+
+```powershell
+npm.cmd test
+npm.cmd run test:timing
+npm.cmd run test:void-engine
+npm.cmd run test:lucid
+npm.cmd run test:profile
+npm.cmd run test:tables
+npm.cmd run test:examples
+npm.cmd run test:toolchain
+npm.cmd run build -- path/to/main.pysn output-name
+npm.cmd run build:asm -- path/to/source.asm output-name
+npm.cmd run profile -- examples/void-engine/main.pysn --target cgb --frames 600
+```
+
+Pass the output name explicitly: the CLI default is `pyson`, not the input
+folder's name. `npm.cmd test` skips emulator cases when their environment is
+absent; `test:emulator` requires it. A green run with skipped cases is not full
+runtime verification. `test:compiler` still requires RGBDS for build checks.
+
+Setup verifies the official toolchain download checksum. Its release metadata
+is in `scripts/toolchain.json`. It does not require administrator rights, PATH
+changes, or execution-policy changes. `PYSON_SETUP_PYTHON` selects setup Python;
+`PYSON_EMULATOR_PYTHON` selects an existing emulator environment. Older `GBPY_`
+aliases remain supported. See `documentation/development.md` for details.
+
+Local sandbox execution may require tool approval for Node/npm. This is a session
+environment constraint, not a requirement that users elevate PowerShell.
+
+## 4. Repository navigation and compilation pipeline
+
+| Location | Responsibility |
+| --- | --- |
+| `jison/language.jison` | Python-like grammar and AST construction. |
+| `src/lexer.js` | Indentation-aware lexer; spaces, not tabs; bracket continuations. |
+| `src/parser.js` | Loads Jison grammar and supplies the custom lexer. |
+| `src/modules.js` | Resolves modules, namespaces, initialization, and source locations. |
+| `src/language-extensions.js` | Preparation, constants, practical language extensions. |
+| `src/compiler.js` | Compile entry point and header validation/orchestration. |
+| `src/assets.js`, `src/world-assets.js` | BMP conversion, maps, palettes, tile budgets, streaming assets. |
+| `src/constant-tables.js` | Immutable ROM-resident integer tables. |
+| `src/codegen.js` | Types/scopes, definite assignment, expressions, statements, diagnostics. |
+| `src/*-codegen.js` | Feature-specific builtin collection and emission. |
+| `src/banking.js`, `src/code-banking.js` | Asset/function placement and bank-safe runtime wrappers. |
+| `src/rom-template.js` | ROM layout, header, startup, runtime composition, data and WRAM. |
+| `include/*.asm` | RGBDS runtime routines for graphics, language, sound, saves, etc. |
+| `src/frame-codegen.js`, `include/frame-clock.asm` | Optional hardware frame timing. |
+| `src/build-report.js` | Linked memory, banking, and diagnostics reports. |
+| `src/cli.js`, `scripts/dev.js` | Compile/build CLI and RGBDS execution. |
+| `scripts/environment.js`, `scripts/setup.js` | Windows tools and optional emulator setup. |
+| `scripts/profile.js`, `scripts/profile.py` | Development profiling. |
+| `examples/` | Source examples, included original assets, fixtures. |
+| `dev-tools/` | Public optional MP4 recorders; local asset generators are ignored. |
+| `documentation/` | Focused language/API references. |
+| `tutorials/` | Eight progressive lessons linking explained source examples, build commands, and experiments. |
+| `tests/` | Node tests and Python emulator checks. |
+
+`compile(source, filename)` in `src/compiler.js` resolves modules, prepares the
+AST, configures headers/saves/assets/tables, emits code, and plans banks. The
+CLI writes assembly and metadata, then invokes `rgbasm`, `rgblink`, and `rgbfix`.
+Parser files under `parser/` are generated/ignored, not the authoritative grammar.
+
+Build outputs normally include:
+
+- `build/<name>.asm`, object/linker/debug artifacts including `.sym` and `.map`.
+- Asset, sound, music, animation, save, bank, and memory JSON manifests.
+- `build/<name>.report.json`: linked ROM/WRAM budgets, addresses, banks, assets.
+- `binary/<name>.gb`: playable ROM.
+
+`build/`, `binary/`, downloaded tools, dependencies, saves, and state files are
+ignored by Git. Keep reproducible source/assets in the repository. Existing
+handwritten ASM fixtures may be required by tests; do not delete all `.asm`
+files indiscriminately. `examples/toolchain-smoke.asm` is a required fixture.
+
+## 5. Language semantics and constraints
+
+Pyson deliberately implements a practical subset, not arbitrary Python.
+
+- Indented `def`, `if/elif/else`, `while`, `for ... in range(...)`, `break`,
+  `continue`, `pass`, and `return`; supported collections also have iteration.
+- Signed 16-bit integers, -32768..32767. Arithmetic wraps in two's complement.
+  Booleans are numeric 0/1. Decimal fractional literals use fixed-point Q12.4;
+  no general floating-point or unlimited integers.
+- Arithmetic `+ - * // %` and fixed-point `/`, bitwise `& | ^ ~`, signed comparisons and comparison
+  chains, Python-like precedence and short-circuit `and`, `or`, `not`.
+  Division floors; remainder follows the divisor's sign. See variables docs
+  for overflow and division-by-zero behavior.
+- Fixed types inferred from assignments and function calls. Literal ROM strings
+  and the shared format_text buffer are referenced by pointers; strings are not
+  general-purpose mutable Python objects.
+- Definite-assignment checking: every read must be initialized on relevant paths.
+- Functions are top-level, statically allocated, and automatically banked.
+  Numeric arguments/results, string and integer-array parameters (RAM or ROM), record reference parameters, and pool handles are
+  supported. Bare return/fallthrough returns 0. No recursion, including indirect.
+- User function defaults are compile-time integers/fixed-point/booleans or constant
+  expressions. Keyword arguments are supported; expressions evaluate once in
+  written order, before overwriting static callee parameter storage.
+- Parameters and assigned names are local unless declared `global`. Module
+  initializers are required for globals. Qualified module writes update shared
+  state without a `global` declaration.
+- No closures, nested function definitions, first-class functions, classes,
+  decorators, `nonlocal`, heap allocation, exceptions, or arbitrary Python
+  library imports. No string returns or string defaults, dynamic dictionaries,
+  resizable lists, or general slicing. Check focused docs before claiming an
+  unsupported Python operation exists.
+
+Math helpers include `abs`, `min`, `max`, `clamp`, and compile-time `constant`.
+Formatting, seeded RNG, movement helpers, and runtime diagnostic messages also
+exist; their contracts are in the focused docs below.
+
+### Modules and storage
+
+Imports resolve from the main source directory: `includes.state` identifies
+`includes/state.pysn`. No package marker is needed. Asset paths instead resolve
+relative to the file declaring the asset. Imports are top-level and static;
+missing exports, circular dependencies, and conflicting bindings are errors.
+`from module import name` currently imports functions; use qualified access for
+shared variables/assets. Do not invent Python-style relative or dynamic imports.
+
+Modules are compiled once per module name. Their initializer/storage/function
+code is shared across importers, not duplicated for each screen. Dependency
+initializers execute before dependent modules. Module variables belong to that
+module, not automatically to one active screen or a runtime module object.
+
+Numeric variables reserve two bytes at fixed WRAM addresses. Local variables
+reserve memory per function; the CPU call stack is not a heap or local-variable
+allocator. Repeated calls reuse that function's fixed locations. Same-named
+locals in different functions do not automatically share storage.
+
+Automatic lifetime-based local RAM reuse is explicitly deferred. Manual scratch
+reuse uses a shared module with disposable variables. Prefer scratch use in
+screen code. Do not use it in helpers unless callers, nested calls, and screens
+are known not to clash. Document overwritten locations, initialize before use,
+and never store persistent state there. This is a convention, not a checked
+`volatile` variable feature. See `documentation/modules.md`.
+
+### Collections
+
+- Integer arrays are fixed-size, mutable WRAM storage, two bytes per element.
+  They support indexing (including negative indices), `len`, iteration, and
+  element updates under their documented bounds/type rules.
+- `constant_table([...])` is a top-level readonly integer table in banked ROM.
+  Reads, indexing, `len`, truth, and iteration resemble arrays. Tables can be
+  passed to read-only array parameters; writes, aliases, and slicing are unsupported. A table contains
+  at most 8191 elements and stays within one ROM bank. Reads restore bank state.
+- Records provide fixed numeric field schemas; record arrays and helpers can
+  reference original storage. They are not dynamic classes/dictionaries.
+- Object pools provide fixed capacities, spawning/removal, validated handles,
+  and active iteration. Handle identities and retirement behavior matter;
+  consult `documentation/pools.md` before treating them as raw array indices.
+
+## 6. What becomes ROM code versus compile-time data
+
+Ordinary functions, loops, conditionals, assignments, and arithmetic produce
+runtime assembly. The compiler does not generally execute game logic at build
+time. A nested `for` loop calling `draw_map` remains a runtime drawing loop.
+
+Header declarations, imports/namespaces, literal constants, BMP conversion,
+static map layouts, animation definitions, and imported music definitions are
+handled at compilation. Their results may be ROM data or generated instructions;
+they do not require Python objects or a Python interpreter at runtime.
+
+Nested lists supplied to static `tilemap`/`worldmap` constructors describe data.
+They do not allocate runtime nested arrays or execute placement loops. Mutable
+maps additionally allocate their documented working state. Read build reports
+instead of guessing RAM/ROM costs from source length.
+
+## 7. Graphics, assets, and screen updates
+
+- Screen: 160x144 pixels; text uses an 8x8 font and 20x18 tile positions.
+  `print(value, x, y[, palette])` clips and supports newlines; long lines do not
+  automatically wrap. Font supports 95 printable ASCII characters.
+- Drawing is buffered. `refresh_screen()` is the public update name. The older
+  proposed `present()` name was intentionally replaced; do not revive it.
+- `sprite_sheet(path, width, height)` imports BMP sprite frames; `sprite(slot,
+  sheet, frame, x, y, flip_x=False, flip_y=False)` draws them. This API accepts
+  5..7 arguments: there is no final per-instance palette argument.
+- `tile(path, solid=False, terrain=0)` requires an 8x8 BMP. It does NOT accept a
+  `palette=` argument. `tilemap` supports BMPs or nested tile rows. `mutable_map`
+  supports editable nested maps. `worldmap` supports streamed larger worlds.
+- `draw_map`, `draw_world`, `set_camera`, world sprites, map dimensions, tile
+  queries, terrain/collision queries, rectangle hitboxes, and swept movement
+  helpers are implemented. Ordinary map limits differ from streamed worlds.
+- BMPs are converted into 2bpp tiles and deduplicated. Importing a full map does
+  not reserve a new graphic tile for every repeated 8x8 region. Nested maps can
+  still be useful for readable layouts and per-tile collision/terrain metadata.
+- Four colors per tile. Imported background palette slots are 1..7; sprite
+  palettes are 0..7. Palette allocation currently keys by source file and asset
+  kind, not just identical RGB values. Reusing one file shares its palette;
+  many distinct files can exhaust palette slots even with identical colors.
+- `bg_palette(index,c0,c1,c2,c3)` and `sprite_palette(...)` set slots with RGB15
+  integer literals or `"#RRGGBB"` strings. Screens may overwrite slots. Color
+  conversion quantizes to hardware precision; DMG has monochrome behavior.
+- Non-alpha sprite transparency uses the BMP's top-left color as transparent
+  color 0; alpha BMPs use alpha transparency. Backgrounds are opaque. Color 0
+  transparency is a sprite rule, not a universal background color key.
+- Larger sprite frames consume multiple hardware sprites. Hardware totals are
+  40 sprites and ten per scanline. Respect both when composing demos.
+- Static resident font/assets share a 256-tile budget in the current renderer.
+  Streamed worlds use a bounded cache in the remaining slots; large world
+  graphics are not all resident at once. Check world-region budgets in docs and
+  compile reports instead of assuming total world tiles must fit in VRAM.
+- Rendering includes safe VRAM access, dirty rows, background map management,
+  queued/gradual world loading, and buffered camera/sprite commits. Internal
+  bulk world/window loads can pause the LCD. Smooth steady streaming is tested;
+  it is not a universal zero-cost rendering guarantee.
+- Window/HUD text, dialogue, typewriter pages, choices, dynamic number formatting,
+  and sprite animation are implemented.
+
+Asset format specifics and palette ordering are defined by `src/assets.js` and
+`documentation/assets.md`. Do not infer them from a random external converter.
+
+## 8. Timing, input, audio, and CPU speed
+
+`wait_vblank()` waits for a fresh frame and samples buttons. `read_buttons()`
+samples without waiting. `button`/`button_pressed` read that sample. A refresh
+is not a substitute for explicit input sampling. Fast events between samples
+may be missed. Source-end programs receive an automatic final refresh.
+
+Default projects retain the historical cooperative wait-driven audio timing.
+`wait_vblank` and internal refresh waits advance audio. A game update is not
+necessarily one hardware frame. Adding both waits and refreshes can add delay.
+
+Optional hardware timing, implemented most recently:
+
+- `frame_count()` returns a VBlank count 0..32767, wrapping to zero.
+- `elapsed_frames(previous)` computes the wrap-safe elapsed count.
+- `wait_frames(count)` waits at least that many further display frames and then
+  samples input; 0 performs no wait. Literal negative arguments are errors;
+  runtime negatives yield zero/no wait.
+- Using any helper in the source enables the clock at startup for that ROM.
+  It allocates four WRAM bytes and enables an internal VBlank interrupt. Existing
+  projects without helpers retain the default runtime and no clock allocation.
+- The interrupt preserves AF, touches only the counter, and never switches
+  banks or services audio. Timing-sensitive VRAM writes and OAM DMA are guarded.
+- Audio controls synchronize after evaluating arguments and before changing
+  playback. Waits service audio for elapsed display frames, keeping sequence
+  position aligned under slower updates. Audio is still cooperative: a long
+  computation can delay audible changes, and missed sounds cannot be recreated.
+- The clock pauses while LCD is disabled. It is active display time, not wall
+  time. Compare timestamps less than 32768 frames apart to avoid wrap ambiguity.
+- Animation remains explicit: `update_animations(delta)` accepts 0..255 ticks.
+  Bound updates or process longer deltas in chunks. For movement/collision,
+  use small simulation steps when a large delta could jump through an obstacle.
+
+Canonical elapsed-time pattern:
+
+```python
+previous = frame_count()
+position = 0
+while True:
+    read_buttons()
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    position = (position + delta) % 144
+    sprite(0, hero, 0, position, 72)
+    refresh_screen()
+```
+
+Advancing `previous` by the returned delta avoids losing the interval between
+two independent reads. `hero` must be declared as a sprite sheet first.
+
+`header.cpu_speed` defaults to `"normal"`; `"double"` is optional for `dual` or
+`cgb` targets. Dual ROMs retain normal speed on monochrome hardware. This is a
+startup runtime option, not an invented cartridge-header byte. It provides more
+CPU work per display frame; update-count-based motion can therefore run faster.
+Elapsed-frame movement avoids that dependence. Display timing and audio pitch
+do not double. See `examples/cpu-speed` versus `examples/frame-timing`.
+
+Music provides channel-1 pulse and channel-3 wave voices. JSON `music_file`
+imports and literal `music_track` definitions are supported, including original
+wave instruments, loops, restart, pause/resume, and controls. Effects use channel
+2 pulse or channel 4 noise, with priorities and shared mute/volume controls.
+Only used definitions and enabled feature runtimes are included. Tracker-file
+imports and arbitrary audio formats are not implemented.
+
+## 9. Banking, headers, saves, and diagnostics
+
+Headers are literal main-module configuration before executable statements.
+Unknown, duplicate, or incompatible settings are errors. Supported fields:
+`title`, `target`, `controller`, `ram_kb`, `battery`, `rtc`, `rumble`, `sgb`,
+`version`, `licensee`, `manufacturer`, `destination`, `rom_kb`, `cpu_speed`.
+The source of defaults/validation is `src/compiler.js`; exact options are in
+`documentation/header.md`. Logo, size bytes, and checksums are generated/fixed.
+
+Targets: DMG, dual, Color-only. Controllers: ROM-only, MBC1, MBC3, MBC5. Banked
+asset/function placement is automatic, respecting configured controller limits.
+MBC5 supports the ninth ROM-bank bit. Main/runtime and small definitions remain
+in ROM0, which is still a finite budget. A user function must fit within one
+16 KB bank; split oversized functions. Do not assume everything can be moved
+out of bank 0 or that cartridge capacity fixes a ROM0 overflow.
+
+RTC, rumble, and SGB flags can be declared, but gameplay APIs for their hardware
+operations are not implemented. Declaring a header capability is not proof of
+runtime feature support.
+
+Save APIs provide integer slots with defaults, committed-record validation,
+immediate verified writes, existence, deletion, clearing, and capacity queries.
+When omitted, save calls configure MBC5, 8 KB battery RAM. Configured controller
+and RAM limits still apply. Never casually clear a user's save or change slot
+ownership/schema; modules need agreed slot ranges. Physical EverDrive X7
+compatibility was a design target, not a hardware certification from emulator
+tests. Cartridge RAM is separate from the compiler's working RAM budget.
+
+Runtime diagnostics include source context and errors such as zero division,
+bad indices, and invalid handles. Build reports describe linked addresses and
+memory budgets. Current allocator/report target is a 4096-byte working RAM
+budget, not unrestricted use of all possible CGB memory banks.
+
+The development profiler compiles a separate `profile-*` ROM and reports guest
+CPU work/wait/idle, commit counts, refresh intervals, and source checkpoint
+visits. It uses fresh in-memory saves. Defaults: 600 frames after 30 warmup.
+Source visits are not per-line CPU costs; static frames without commits are not
+necessarily missed deadlines. PyBoy source hooks above bank 255 are omitted and
+reported. Tests compare profiler guest CPU timing and RAM against baseline.
+One unattended profile does not cover interactive paths or certify hardware.
+
+## 10. Examples and existing outputs
+
+| Example | Purpose |
+| --- | --- |
+| `hello-world` | Smallest approachable text example. |
+| `star-chase` | Modular game/screens/shared state, colored assets and menus. |
+| `vault-run`, `meteor-guard` | Larger gameplay combinations, collision/pools/saves. |
+| `feature-lab` | Combined practical language/gameplay features. |
+| `record-fleet`, `pool-shooter` | Records and managed fixed-capacity actors. |
+| `dialogue-garden`, audio/animation galleries | Focused API examples. |
+| `banked-world`, `banked-functions`, `streaming-world` | Banking and world streaming. |
+| `cpu-speed` | Deliberate workload showing increased update rate at double speed. |
+| `frame-timing` | Same travel pace under CPU load; hold A for heavy work. |
+| `runtime-diagnostics` | Source-aware runtime error behavior. |
+| `neon-requiem` | Four-scene Color demo, original dark synthwave/chiptune music. |
+| `void-engine` | Six-scene dual-hardware demo and original music. |
+| `lucid-circuit` | Separate dreamy four-world Color-only demo and original score. |
+| `last-light` | Six-scene Lord of the Rings-inspired fantasy composition, dual hardware, original score, White Tree/Pyson finale. |
+| `oath-of-stars` | Seven-act fantasy showcase: aurora/gate scenery, live orbital projection, birds, streamed worlds, phoenix/Pyson finale. |
+
+Void Engine: normal CPU speed, dual target, MBC5+battery, 8 KB cartridge RAM,
+128 KB ROM, 3027/4096 working RAM bytes used after ROM-table migration. Six
+scenes include an opening, road, one-direction city flight, architecture,
+projected particle torus, and a 40-sprite finale. The released ROM is distinct
+from temporary double-speed/frame-clock regression variants.
+
+Void Engine ROM SHA-256 at the recorded verification point (not an immutable target):
+`9B0050C0CDD8DD317D62766540E2882109CCA0D3A39CCAF93F3BD9A12AA5E79D`.
+
+Current `binary/void-engine.mp4` records a complete Color loop with audio,
+approximately 106.718 seconds. User saves such as `binary/void-engine.sav` must
+be preserved. Neon Requiem's accepted music/finale and existing preview video
+also should not be replaced incidentally.
+
+Lucid Circuit: Color-only, double CPU speed, standard MBC5 without save RAM,
+1 MB ROM, four 512x512 abstract worlds, animated palettes, ROM motion tables,
+24 geometric particles, and an original four-section two-voice score. Its
+loop is approximately 91.834 seconds in the recorded emulator run. Its field
+maps are static with palette/camera animation, not realtime 3D or raster plasma.
+The full-loop test observed at most seven particles on a scanline.
+
+The Last Light (2026-10-10) is a new, separate demo; established demos were not
+rewritten. Build examples/last-light/main.pysn as last-light. It uses dual target,
+CGB double speed with DMG normal-speed fallback, standard MBC5, six streamed
+worlds, palette fades/cycles, perspective ROM poses, foreground parallax,
+fractional camera movement, an animated eagle, and twelve original music parts
+plus percussion. Each scene lasts 912 active display frames; the complete show
+takes about 94 seconds including loads and loops without input. The final scene
+is Pyson beneath the White Tree. Perspective is prepared geometry animated by
+Pyson, not a general 3D/raster API. All BMP/JSON/Pyson assets are included.
+Its local dev-tools/assets/last-light.js generator is ignored and never needed
+by users or normal builds. npm.cmd run test:last-light builds and verifies a
+complete loop on both emulated models, visible map cells/tile bytes, safe VRAM
+writes, distinct scenes, audio, monotonic pans, and sprite scanline limits.
+Observed maximum: seven sprites per scanline. Physical hardware is untested.
+Final ROM: 256 KB, 3205/4096 WRAM bytes used, 891 free. The full runtime test
+passed with 5583 CGB and 5616 DMG frames through one loop, including boot/load
+time. All 30 example entry points compiled and 317 local links across the
+feature docs, tutorials, and example READMEs resolved. Void Engine's recorded
+ROM hash remained unchanged. Temporary build output was cleaned; the demo ROM,
+source, assets, public preview, and repeatable test remain.
+See examples/last-light/README.md and its preview.png for a source walkthrough.
+
+Oath of Stars (2026-10-10) preserves The Last Light exactly. Build
+examples/oath-of-stars/main.pysn as oath-of-stars. It is dual-compatible,
+double-speed on CGB, normal-speed on DMG, MBC5 with 8 KB battery RAM. Seven
+1024-active-frame acts use newly created assets/compositions and a new phoenix
+Pyson finale. All data needed to compile is included. Its ignored local tool
+is dev-tools/assets/oath-of-stars.js; normal users never need it.
+Geometry rotates, morphs, and projects coordinates at runtime; six points
+are updated per loop. A bounded 4097-word ROM lookup implements signed floor
+division by 32 over -2048..2048, saving CPU work without allocating RAM.
+Opening and gate use two areas of veil.bmp, a 96-pattern streamed world with
+tile-aligned lettering. Palette shimmer and live projection supply movement;
+the old progressively filled text fields were replaced, not optimized into
+a new live-pixel renderer. Both backgrounds are complete from their first frame.
+Comet record parameters update original records; a reusable pool supplies
+particles. Rectangle collision, swept movement, and mutable rune tiles guide
+their paths. Worlds stream, fractional cameras pan, two riders animate in
+screen/world coordinates, sprites flip, and the sea scrolls vertically.
+Two newly composed music voices per act each total 1024 ticks. Percussion and
+palette cues share sixteen-frame subdivisions. Audio is cooperative. A skips
+an act; Start pauses/resumes scene time and music. Completed/skipped-through
+shows increment save slot 0, which the test validates after restarting.
+This composition intentionally omits dialogue/choices/window buffers: they
+would consume additional WRAM and change its graphics workflow.
+Do not claim it invokes every built-in or implements filled-polygon/raster APIs.
+It is more CPU-intensive than Last Light; frame-clock sequencing maintains act
+and music timing but does not promise 60 visual updates per second.
+npm.cmd run test:oath builds and verifies all acts on both emulated models,
+visible map cells/tile bytes, safe streaming writes, sprite scanline limits,
+audio, camera progression, input controls, persistent saves, and distinct
+asset files relative to Last Light. Physical hardware remains untested.
+Read examples/oath-of-stars/README.md for the source and performance walkthrough.
+Visual refinement: box/triangle depth fragments became small points. Projection
+remains in acts 0, 1, 3; act 4 uses subtle embers, act 5 keeps boat and birds,
+and act 6 uses a sparse live star orbit. Original music and Last Light unchanged.
+Showcase refinement preserves the music/score exactly. Dedicated two-frame
+birds update each loop, palette pulses are restrained, and all foreground
+palettes fade with the backgrounds. New regression checks cover first-frame
+world completeness and black foreground fades. A full 121-second CGB recording
+was inspected across all acts/transitions, not only the seven preview captures.
+Optional recorder: dev-tools/recordings/oath-of-stars.py, uses fresh in-memory
+save RAM and never overwrites a personal .sav. See dev-tools/README.md.
+Validated ROM size: 256 KB. Working RAM: 3816 bytes used, 280 bytes free.
+Review correction: citadel/rider/crown BMPs omit repetitive sky/terrain/masonry
+marks; their internal tile reduction pins all four flat fills to prevent pattern
+substitution into solid areas. Both riders face right, the world rider moves
+with the camera, and the small pennant follows the foreground rider's bobbing.
+Opening/sea/finale artwork and all music were verified byte-for-byte unchanged.
+
+Latest authorized Last Light correction: forest.bmp was cleaned of repeating
+ground marks with flat-fill/color-region-preserving tile reduction, and
+foreground.bmp's top-left pixel was restored to the blank transparency color.
+Other Last Light assets, music, pose data and composition remain unchanged.
+Its current ROM/preview include these fixes. Earlier byte-identical preservation
+notes describe the preceding Oath work, not a ban on this requested correction.
+Optional recording tools now cover both Last Light and Oath of Stars.
+
+Asset generators under dev-tools/assets/ are local internal tools, excluded
+by .gitignore at the user's request. Keep the local files; do not publish them
+or require them for setup/builds. Included BMP/JSON assets and Pyson includes
+remain public and sufficient to build every example. Old generator paths no
+longer exist. Public MP4 recorders remain under dev-tools/recordings/;
+dev-tools/README.md describes prerequisites, commands, and overwrite behavior.
+Build first because recording depends on reports and symbols.
+Historical relocation checks on 2026-10-10 verified all six generators in a
+temporary copy and both recorders' --help; no real artwork was regenerated.
+
+Compiler errors now include the relevant source line (including imported
+files) and practical hints for common number, variable, array, and argument
+mistakes. src/diagnostics.js formats errors at the compile boundary; modules
+collect the exact source strings used by parsing. This changes diagnostics,
+not accepted syntax, allocation, or generated instructions. See
+documentation/diagnostics.md and tests/diagnostics.test.js.
+Verified 2026-10-10: 103 compiler tests passed, all 29 discovered example entry
+points compiled, and 298 documentation/tutorial/dev-tools links resolved.
+The final hint plumbing also passed nine targeted tests. A temporary Git
+fixture confirmed generators ignored and recorders visible. Void Engine's ROM
+SHA256 remained 2f76372a8b2de64aa4bb801d6c027fbdb1810812bf89efd597c6e95efbae05ac.
+
+Explanatory comments were added to 50 example entry/module/data files outside
+the Void Engine folder, which was excluded under the earlier interpretation.
+Void Engine can also be annotated or modified in authorized work.
+Relevant generators preserve the generated data
+headers. Comments explain state, timing, coordinate systems, and API ownership;
+they do not change the executable statements.
+Recording uses exact hardware-frame pacing, nearest-neighbor scaling to 640x576,
+H.264 video, and synchronized AAC audio. Use fresh in-memory cartridge RAM and
+`stop(save=False)` when recordings must not read/write personal saves. A recording
+helper originally used for Void Engine was temporary under `build/` and cleaned;
+do not assume a permanent Void Engine recorder exists.
+
+## 11. Verification and cleanup practice
+
+Latest completed full suite (2026-10-09, fixed-point numbers): **126 tests passed,
+zero failures/skips**. Includes arithmetic and large intermediates, imports and
+defaults, DMG/Color example movement/bouncing/A resets, and existing demos/games.
+All 30 example entry points compiled and assembled; 345 local documentation links
+resolved and all four complete fixed-point guide snippets compiled. Fractional
+Motion's real ROM is binary/fractional-motion.gb. Generated build/test artifacts
+were cleaned after verification. Void Engine source and ROM were unchanged by
+this feature (SHA-256 2f76372a8b2de64aa4bb801d6c027fbdb1810812bf89efd597c6e95efbae05ac).
+
+Previous completed full suite (2026-10-09, ROM-table parameters): **123 tests passed,
+zero failures/skips**, including DMG/Color runtime checks for mixed RAM/ROM helpers,
+MBC1/3/5 high-bank reads (including bank 257), forwarding, nested argument snapshots,
+empty tables, bounds errors, and the Array Inventory reset controls. All 29 example
+entry points compiled and assembled, and 327 local documentation/tutorial links
+resolved. Array Inventory's real ROM was rebuilt. Generated build/test artifacts
+were removed after verification. Existing demo source files were not edited.
+
+Previous completed full suite (2026-10-09, mutable array parameters): 120 tests
+passed, zero failures/skips. All 29 example entry points compiled and assembled;
+327 local documentation/tutorial links resolved. After adding inference for
+unused array helpers, all 94 compiler tests and 13 focused array/record/pool/string
+checks also passed. Color Sprites' named calls
+produce the same instructions as their positional equivalents. Void Engine's
+ROM SHA-256 remained unchanged. The earlier frame-timing change also passed an
+additional nine timing/audio tests after tightening synchronization around
+argument evaluation. These are dated observations, not a guarantee for later
+changes. Run checks appropriate to your changes.
+
+New timing tests cover DMG, Color normal/double speed, rollover, deliberate CPU
+load, music/wave/effects, animation, A-button behavior, window rendering, and
+delayed argument evaluation. A separate clock-enabled Void Engine ROM passed
+all six scenes on both models, including streaming data, legal VRAM writes,
+scanline limits, motion, audio, and save/reload checks. Released demos were not
+migrated to the new clock. Their normal regression cases also passed.
+
+Node tests assemble ROMs and Python tests execute them in PyBoy, inspect actual
+RAM/registers/maps/tile bytes, simulate input, and sometimes write PNGs. Pillow
+is optional; the test harness can encode PNGs directly. Avoid tests that merely
+mirror implementation; validate meaningful behavior and hardware constraints.
+Do not claim physical hardware testing unless the user actually performed it.
+
+For cleanup, verify resolved paths are inside this workspace before deleting
+recursively. Use PowerShell `Remove-Item -LiteralPath` consistently. Remove
+temporary contents of `build/` and known generated `runtime-*`/`profile-*` test
+ROMs when finished, keeping real example ROMs. `runtime-diagnostics.gb` is a real
+example despite its prefix. Preserve `.sav`, `.ram`, `.rtc`, state files, videos,
+source tests, handwritten fixtures, and installed development tools unless the
+user specifically authorizes their deletion. Build reports/symbols can be
+regenerated; cleaning them means record/profile tools must rebuild first.
+
+## 12. Remaining improvements, not implemented capabilities
+
+The foundation is substantial enough to build games. Further work should focus
+on measured performance, reliability, and accessible explanations, rather than
+claiming every possible feature is complete. Potential priorities:
+
+1. Faster graphics transfers using CGB DMA behind existing APIs.
+2. More actionable performance diagnostics and transfer/frame budgets.
+3. Optional approachable raster APIs for line scrolling/color effects.
+4. Memory optimization, automatic local reuse if revisited, and broader CGB
+   memory/VRAM-bank use without exposing mandatory assembly concepts.
+5. Extend the implemented fixed-point scalar math if game examples demonstrate a need.
+6. Tutorials progressing from tiny games to advanced rendering and simulation.
+7. Stronger timeline/audio scheduling if cooperative servicing proves insufficient.
+
+Do not implement these merely because they appear here. Discuss or proceed only
+within the user's current authorization. The earlier abstract "Phase Shift"
+concept is a proposal, not an implemented example or guaranteed roadmap item.
+Existing asynchronous world rendering is real; a new generalized CGB DMA/raster
+engine is not. Automatic lifetime-based RAM reuse remains in the icebox.
+
+## 13. Detailed reference index and staleness rules
+
+Read the relevant files before implementing a change or presenting exact API
+syntax. References live in `documentation/`:
+
+- Setup: `development.md`; cartridge configuration: `header.md`.
+- Language: `variables.md`, `control-flow.md`, `functions.md`, `modules.md`,
+  `arguments.md`, `math.md`, `arrays.md`, `constant-tables.md`, `records.md`, `pools.md`.
+- Gameplay: `random.md`, `movement.md`, `collision.md`, `rectangles.md`,
+  `tilemaps.md`, `mutable-maps.md`, `star-chase.md`, `feature-lab.md`.
+- Graphics: `print.md`, `graphics.md`, `assets.md`, `scrolling.md`, `worlds.md`,
+  `window.md`, `animation.md`, `dialogue.md`, `choices.md`.
+- Timing/audio: `input.md`, `frame-timing.md`, `music.md`, `sound.md`.
+- Tools/persistence: `banking.md`, `save.md`, `diagnostics.md`,
+  `advanced-rendering-notes.md`.
+
+The tutorial/documentation consistency pass corrected older statements about
+interrupts, keyword arguments, types, streamed BMP limits, and text formatting.
+`tutorials/README.md` is the learning-path index; `documentation/README.md` groups
+the feature references. Rendering notes still contain historical measurements
+and proposals, which must not be mistaken for supported APIs. The frame-timing
+reference and current source define the optional clock's actual limitations.
+
+If this handoff conflicts with current source/tests, investigate and update the
+handoff; do not force the compiler to match a historical summary. Distinguish
+implemented features, observed test outcomes, user preferences, and proposals.
+Never infer a feature from its name, a header flag, or an impressive demo alone.
+
+## 14. Consistent named built-in arguments
+
+Fixed-parameter built-ins accept their public keyword names, normalized in
+`src/builtin-arguments.js` at the beginning of `prepare()` before asset/audio
+collectors inspect calls. `signatures` is the authoritative name/default catalog;
+`documentation/arguments.md` lists it, and a test verifies catalog coverage.
+Public names do not depend on internal ASM variables. Print uses `value`, palette
+setters use `color0`..`color3`, and tilemap/worldmap use `source` (BMP or nested rows).
+Unknown, duplicate, missing, excess, and positional-after-keyword arguments fail.
+Existing positional calls remain supported. Defaults, types, literal-only options,
+and hardware constraints retain their meanings. `randrange(stop=6)` starts at zero;
+`play_sound(effect="collect")` retains the selected effect's priority.
+
+Explicit expressions evaluate once in written order, including nested calls.
+`argumentOrder` stores original slot order. Shared `evaluateArguments()` preserves
+it while producing canonical stacked values for existing emitters. Reordered calls
+use stack scratch rather than extra WRAM allocations; parameter-order calls retain
+their existing assembly evaluation path. Dialogue and choices store directly by
+source order. RGBDS stack-relative loads need two-byte instruction size accounting
+in code-banking.js. Audio synchronization remains after evaluating arguments.
+
+Tile `solid`/`terrain` and BMP world `collision` options remain keyword-only.
+Collectors preserve absent options: noise must not acquire a pulse duty and pulse
+music must not acquire a wave instrument. Record/records/pool/spawn field keywords
+remain schema-driven; capacities and spawn pool remain positional. `format_text`
+and `range` retain positional variable-length arguments. Math/movement helpers
+continue through user-function keyword binding, with their existing publicParams.
+
+Color Sprites now demonstrates mixed named calls without changing gameplay.
+Tutorial 9 explains names versus variables, skipped defaults, and expression order;
+tutorial 2 and the references link it. Regression tests cover public names, errors,
+default gaps, exact assembly for parameter-order names, and DMG/CGB evaluation
+order, nested calls, saves, collision, text, sprites, dialogue, choices, and audio.
+
+## 15. User-function string parameters
+
+User-defined functions now infer string parameters from all call sites, including
+forward, named, nested, and imported helper calls. Type inference in records.js
+retains `string` rather than treating all scalar arguments as integers. Codegen
+passes text pointers through the existing two-byte static parameter slots, after
+evaluating every argument in source order. There is no character copy, heap,
+garbage collector, or separate string runtime. Existing record/handle inference,
+fixed-type errors, definite initialization, and recursion rejection remain.
+
+Accept literal strings, string variables (including module strings), and
+format_text results. A parameter may forward text, alias it locally, rebind to
+another string locally, print it, or start dialogue with it. It cannot alternate
+between numeric values and strings. Numeric returns can be integers or fixed-point; string returns,
+string defaults, concatenation, indexing, comparison, and mutation are unsupported.
+Numeric defaults for other parameters still work normally.
+Literal-only built-ins retain their restrictions; string parameters cannot serve
+as format_text templates, dialogue_speaker names, or compile-time asset paths.
+
+Formatted text refers to one shared buffer, not a snapshot. Another formatting
+call overwrites aliases and parameters pointing to it. Consume it before another
+formatting call; do not pass two separately formatted messages expecting independent
+contents, or overwrite the buffer while dialogue still reads it. Literal ROM
+strings are stable and deduplicated. See functions.md and tutorial 10.
+
+Dialogue Garden's open_message(text, delay=2) demonstrates the feature with
+existing imported messages; its controls and conversations remain the same.
+String-parameter tests cover inferred types, forwarding, modules, invalid mixed
+types, nested calls, formatted text, empty/multiline text, HUDs, and dialogue
+on both emulator models. The standalone agent manual remains deferred until
+the feature/API work settles; keep this handoff and focused documentation current.
+
+## 16. Mutable integer-array parameters
+
+Functions accept named integer arrays and read-only ROM tables by reference,
+with inferred types and existing positional/named binding. RAM-only parameters
+reserve four bytes: base address and actual length. ROM-capable parameters reserve
+six bytes, including the bank. Owners still have fixed allocations; the same helper
+can accept arrays of different lengths, including zero. No array elements are
+copied at the call boundary. Forwarding and local arrays are supported while
+their owner is active; arrays cannot be returned or persisted as ordinary aliases.
+
+records.js marks inferred array parameters with arrayReference and bytes=4.
+Indexing, len, and direct iteration also infer unused helper parameters so
+utility modules do not need dummy calls solely to establish array types.
+Codegen loads their base/length dynamically for len, truth, indexing, and direct
+iteration. Calls snapshot pointer plus length on the stack in written argument
+order, then populate parameter slots after all expressions finish. Nested calls
+cannot overwrite a pending outer call's argument metadata. Parameter literals
+are bounds-checked at runtime; owner literals still have compile-time checks.
+Both ordinary and augmented writes update caller storage without global.
+
+Rebinding a parameter to a list, another array, or an iteration value is rejected.
+Record arrays, inline list expressions, and whole pools remain unsupported as
+integer-array arguments. Read-only constant_table values are now supported for
+parameters that do not write, including through other helpers. ROM table
+reads/banking through module variables retain their existing behavior.
+Two parameters may reference the same array, with writes visible through both.
+Direct iteration copies integers into the loop variable rather than referring
+to individual array cells. Function return values can be integers or fixed-point, not arrays.
+
+Array Inventory now restores its initial quantities with copy_items(target,
+source), demonstrating explicit element copies from a ROM table to RAM. Tutorial
+11 and arrays.md explain reference semantics, lengths, bounds, mutability, and
+ROM-table differences. Regression tests cover different/empty lengths, negative
+indices, forwarding, imported helpers, local arrays, shared aliases, nested calls,
+and actual runtime bounds errors on DMG and Color.
+
+## 17. ROM tables as array parameters
+
+src/array-parameters.js analyzes calls after ordinary type inference. ROM capability
+propagates from table owners through parameter forwarding. Write requirements
+propagate in the reverse direction from indexed writes through all helper calls.
+Passing a read-only table to a writing parameter fails at compile time, including
+conditional/augmented/transitive writes. Requirements are per parameter, so a
+copy helper can write its target while reading a ROM source. This conservative
+analysis does not depend on branches running or being optimized away.
+
+ROM-capable parameters have romReference=true and bytes=6: pointer at +0,
+length at +2, 16-bit bank at +4. RAM-only parameters stay bytes=4. Bank $ffff
+identifies RAM; legal ROM banks are 0..511. Calls snapshot the optional bank
+alongside pointer/length before populating callee slots, preserving nested and
+named evaluation order. Forwarding a RAM-only parameter to a ROM-capable helper
+supplies the RAM sentinel. ReadArrayParameterWord dispatches direct RAM reads or
+the existing ReadConstantTableWord, which executes in ROM0 and restores the
+execution bank. No table elements are copied or allocated in WRAM at a call.
+
+No new source syntax or annotations. Indexing, negative indices, len, iteration,
+truth, varying/empty lengths, imports, and bounds diagnostics work for both storage
+kinds. No array returns, rebinding, general aliases, slices, or dynamic allocation.
+Documentation arrays/functions/constant-tables and tutorial 11 cover this feature.
+constant-tables.md#passing-tables-to-functions provides a plain-language guide:
+RAM/ROM meanings, when to choose each, a shared total helper, rejected writes,
+copying ROM defaults to RAM, expected results, and restrictions. Keep feature
+explanations approachable without requiring assembly or hardware-bank knowledge.
+
+## 18. Fixed-point scalar numbers
+
+Decimal literals and fixed(value) use signed Q12.4: two bytes, steps of 1/16,
+range -2048..2047.9375. Literals round nearest, ties away from zero; runtime
+products and fractional division truncate toward zero. Runtime overflow wraps
+modulo 65536 like integers, including integer-to-fixed conversions; literals
+outside the fixed range fail. int(value) truncates toward zero and accepts
+integers unchanged. No general floating point or scientific notation.
+
+Lexer/Jison add DECIMAL and `/`/`/=`. Decimal AST nodes have type fixed; prepare
+accepts compile-time fractional defaults. Codegen type inference promotes scalar
+variables/parameters to fixed if they receive fixed values anywhere, and promotes
+a function's numeric returns if any return is fixed. Integer arguments and
+assignments convert automatically in fixed contexts. String/record/handle/array
+restrictions remain. Function forwarding, modules, named evaluation order,
+default arguments, abs/min/max/clamp, comparisons/chains, truth and unary signs
+work. +,-,* return fixed if either operand is fixed; / requires a fixed operand;
+// returns a floor integer; % returns a remainder with the divisor's sign.
+Bitwise operations and integer APIs require explicit int() conversion.
+Integer-only programs retain their assembly/runtime behavior.
+
+FixedMul and FixedDiv in include/fixed.asm use full unsigned 32-bit intermediates
+and apply the signed result, avoiding premature 16-bit intermediate overflow.
+FixedToInt handles negative truncation. Required runtime routines are included
+only when graphics.fixed is enabled by conversions or multiply/divide/comparison;
+eight shared scratch bytes are inside wStateStart..wStateEnd for accurate reports.
+No per-operation heap allocation. Bounds/ranges of integer collections remain;
+integer arrays, ROM tables, record/pool fields do not store fixed elements.
+range bounds and loop counters remain integer-only. Out-of-range mixed runtime
+conversions can wrap, so keep operands within the fixed range.
+
+documentation/fixed-point.md is a plain-language guide with small complete
+examples, conversion meanings, precision/limits, errors, and practical uses.
+Tutorial 12 links examples/fractional-motion/main.pysn (dual, three bouncing
+sprites at 1/0.5/0.125 pixels per game update, A resets). Counts are per update,
+not a promise of one update per hardware frame. Existing examples were kept.
+Tests cover signs, rounding, raw representation, large intermediates, helpers,
+imports/defaults/nesting, integer-only compatibility, zero division diagnostics,
+and example bouncing/reset on DMG and Color.

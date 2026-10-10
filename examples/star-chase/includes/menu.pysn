@@ -1,0 +1,24 @@
+# The result menu shares selection state and handles replay or a return to the title.
+
+import includes.state as state
+
+def draw_end_menu():
+    if state.selection == 0:
+        print(" > REPLAY         ", 1, 11, 3)
+        print("   TITLE SCREEN   ", 1, 13)
+    else:
+        print("   REPLAY         ", 1, 11)
+        print(" > TITLE SCREEN   ", 1, 13, 3)
+
+def update_end_menu():
+    if button_pressed("down") or button_pressed("up"):
+        play_sound("menu_move")
+        state.selection = 1 - state.selection
+        draw_end_menu()
+    if button_pressed("a"):
+        stop_sound()
+        play_sound("menu_confirm")
+        if state.selection == 0:
+            state.reset_game()
+        else:
+            state.return_to_title()

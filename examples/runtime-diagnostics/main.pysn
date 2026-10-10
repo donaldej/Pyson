@@ -1,0 +1,20 @@
+# This example deliberately triggers checked runtime errors.
+# A reads past the array; B divides by zero. Restart the ROM after an error stops execution.
+
+header.title = "DIAGNOSTICS"
+items = [1, 2, 3]
+index = 3
+denominator = 0
+print("RUNTIME DIAGNOSTICS", 0, 0)
+print("A: ARRAY BOUNDS", 0, 2)
+print("B: DIVIDE BY ZERO", 0, 3)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("a"):
+        value = items[index]
+    elif button_pressed("b"):
+        value = 10 // denominator
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

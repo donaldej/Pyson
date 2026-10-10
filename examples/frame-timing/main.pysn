@@ -1,0 +1,60 @@
+# Elapsed display frames drive movement and animation, even when CPU work reduces drawing frequency.
+# Hold A to compare heavy work; audio remains cooperative and needs regular service.
+
+header.title = "FRAME TIMING"
+header.target = "dual"
+header.cpu_speed = "double"
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("../assets/hero.bmp", 16, 16)
+# Animation pairs are [frame, duration_ticks]; playback advances only when updated.
+walk = sprite_animation(hero, [[0, 8], [1, 8]])
+melody = music_track([[262, 30, 7], [330, 30, 7], [392, 30, 7], [330, 30, 7]])
+bass = music_track([[131, 60, 8], [196, 60, 8]], voice=1, instrument="triangle")
+
+bg_palette(0, "#14243c", "#486888", "#90b8c8", "#e8f0d8")
+sprite_palette(0, "#000000", "#486888", "#90b8c8", "#e8f0d8")
+clear_screen()
+print("HARDWARE FRAME CLOCK", 0, 1)
+print("Hold A: heavy work", 1, 4)
+print("Same movement pace", 1, 6)
+print("Same music tempo", 2, 7)
+print("Light workload", 3, 14)
+# Commit queued drawing; refresh does not sample input.
+refresh_screen()
+
+previous = frame_count()
+timeline = 0
+checksum = 0
+heavy_before = False
+play_animation(0, walk)
+play_music(melody)
+play_music(bass)
+# Run one update at a time; state survives between iterations.
+while True:
+    read_buttons()
+    heavy = button("a")
+    if heavy != heavy_before:
+        if heavy:
+            print("Heavy workload", 3, 14)
+        else:
+            print("Light workload", 3, 14)
+        heavy_before = heavy
+
+    # Deliberate CPU work changes how often this loop can draw a new frame.
+    work_count = 40
+    if heavy:
+        work_count = 700
+    for work in range(work_count):
+        checksum += 1
+
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    timeline = (timeline + delta) % 576
+    phase = timeline // 2
+    x = phase
+    if phase > 144:
+        x = 288 - phase
+    update_animations(min(delta, 255))
+    animated_sprite(0, x, 80, phase > 144)
+    refresh_screen()

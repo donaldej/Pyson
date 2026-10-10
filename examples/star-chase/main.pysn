@@ -1,0 +1,26 @@
+# Main owns the ongoing loop; imported screens perform one update and return to it.
+
+header.title = "STAR CHASE"
+header.target = "dual"
+
+import includes.state as state
+from includes.music import sync_music
+from includes.graphics import setup_graphics
+from screens.title import title_screen
+from screens.game import game_screen
+
+state.load_progress()
+setup_graphics()
+
+# Screens perform one update and share persistent state through this module.
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if state.screen == 0:
+        title_screen()
+    else:
+        game_screen()
+    sync_music()
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

@@ -1,0 +1,59 @@
+# The camera reveals a larger world while a bounded tile cache streams nearby graphics.
+
+header.title = "STREAMING WORLD"
+header.target = "dual"
+import world
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+player = sprite_sheet("assets/player.bmp", 8, 8)
+# Animation pairs are [frame, duration_ticks]; playback advances only when updated.
+walk = sprite_animation(player, [[0, 8], [1, 8]])
+x = 40
+y = 40
+zone = 0
+last_a = False
+
+# Check the proposed position before committing movement.
+def can_move(nx, ny):
+    return not rect_is_solid(world.board, nx, ny, 8, 8)
+
+draw_world(world.board)
+bg_palette(1, "#e8f8d0", "#88b858", "#386848", "#183828")
+clear_window(0)
+window_position(0, 128)
+print_window("D-PAD MOVE  A JUMP", 0, 0)
+show_window()
+play_animation(0, walk)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    dx = 0
+    dy = 0
+    if button("right"):
+        dx = 2
+    elif button("left"):
+        dx = -2
+    if button("down"):
+        dy = 2
+    elif button("up"):
+        dy = -2
+    if can_move(x + dx, y):
+        x += dx
+    if can_move(x, y + dy):
+        y += dy
+    a = button("a")
+    if a and not last_a:
+        zone = (zone + 1) % 16
+        x = (zone % 4) * 256 + 40
+        y = (zone // 4) * 256 + 40
+        play_sound("menu_confirm")
+    last_a = a
+    set_camera(x - 76, y - 68)
+    update_animations()
+    world_animated_sprite(0, x, y)
+    print_window("X:     Y:          ", 0, 1)
+    print_window(x, 2, 1)
+    print_window(y, 9, 1)
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

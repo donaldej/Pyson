@@ -1,0 +1,20 @@
+# Select a scene whose drawing helpers are automatically placed in ROM banks.
+
+header.title = "BANKED CODE"
+header.target = "dual"
+from includes.boards import draw_scene
+selected = 0
+redraw = True
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("a") or button_pressed("b"):
+        selected = 1 - selected
+        redraw = True
+    if redraw:
+        clear_screen()
+        draw_scene(selected)
+        redraw = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

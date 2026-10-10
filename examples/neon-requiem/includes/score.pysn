@@ -1,0 +1,41 @@
+# Scene transitions select original music; short percussion effects share the cooperative audio clock.
+
+intro_lead = music_file("../assets/section-0.json")
+intro_bass = music_file("../assets/section-0.json", 1)
+city_lead = music_file("../assets/section-1.json")
+city_bass = music_file("../assets/section-1.json", 1)
+prism_lead = music_file("../assets/section-2.json")
+prism_bass = music_file("../assets/section-2.json", 1)
+final_lead = music_file("../assets/section-3.json")
+final_bass = music_file("../assets/section-3.json", 1)
+
+# One effect sequencer alternates pulse kick, noise snare, and noise hats.
+kick = sound_effect("pulse", [[180, 1, 13], [100, 1, 11], [64, 1, 7]], 3, 2)
+snare = sound_effect("noise", [[52, 1, 12], [36, 1, 8], [68, 1, 4]], 3)
+hat = sound_effect("noise", [[17, 1, 5]], 3)
+
+def begin(section):
+    if section == 0:
+        play_music(intro_lead, restart=True)
+        play_music(intro_bass, restart=True)
+    elif section == 1:
+        play_music(city_lead, restart=True)
+        play_music(city_bass, restart=True)
+    elif section == 2:
+        play_music(prism_lead, restart=True)
+        play_music(prism_bass, restart=True)
+    else:
+        play_music(final_lead, restart=True)
+        play_music(final_bass, restart=True)
+
+def percussion(tick, section):
+    if tick & 15 == 0:
+        if tick & 63 == 16 or tick & 63 == 48:
+            if section != 0 or tick >= 256:
+                play_sound(snare)
+        else:
+            play_sound(kick)
+    elif tick & 15 == 8:
+        play_sound(hat)
+    elif section == 3 and tick & 3 == 0:
+        play_sound(hat)

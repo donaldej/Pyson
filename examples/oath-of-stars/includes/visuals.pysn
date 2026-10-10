@@ -1,0 +1,102 @@
+import includes.geometry as geometry
+import includes.math_data as data
+import includes.actors as actors
+import includes.palettes as palettes
+
+citadel = worldmap("../assets/citadel.bmp")
+riders = worldmap("../assets/riders.bmp")
+crown = worldmap("../assets/crown.bmp")
+sea = worldmap("../assets/sea.bmp")
+herald = worldmap("../assets/herald.bmp")
+veil = worldmap("../assets/veil.bmp")
+horse = sprite_sheet("../assets/rider.bmp", 24, 16)
+gallop = sprite_animation(horse, [[0, 6], [1, 6], [2, 6], [3, 6]])
+pennant = sprite_sheet("../assets/pennant.bmp", 16, 24)
+sail = sprite_sheet("../assets/sail.bmp", 16, 16)
+phoenix = sprite_sheet("../assets/phoenix.bmp", 32, 32)
+birds = sprite_sheet("../assets/birds.bmp", 8, 8)
+flight = sprite_animation(birds, [[0, 12], [1, 12]])
+camera = 0.0
+opened = False
+
+def prepare(scene, completed):
+    global camera, opened
+    for slot in range(40):
+        hide_sprite(slot)
+    geometry.reset()
+    actors.reset(1543 + scene * 97)
+    stop_animation(32)
+    stop_animation(0)
+    camera = 0.0
+    opened = False
+    if scene == 0:
+        draw_world(veil)
+        set_camera(0, 0)
+    elif scene == 1:
+        draw_world(citadel)
+        set_camera(0, 16)
+    elif scene == 2:
+        draw_world(riders)
+        set_camera(0, 16)
+        play_animation(32, gallop, restart=True)
+        play_animation(0, gallop, restart=True)
+    elif scene == 3:
+        draw_world(veil)
+        set_camera(0, 176)
+    elif scene == 4:
+        draw_world(crown)
+        set_camera(48, 16)
+    elif scene == 5:
+        draw_world(sea)
+        set_camera(0, 0)
+        for index in range(4):
+            play_animation(24 + index, flight, restart=True)
+    else:
+        draw_world(herald)
+        set_camera(48, 16)
+    palettes.update(scene, 0)
+
+def colors(scene, tick):
+    palettes.update(scene, tick)
+
+def animate(scene, tick, updates, delta):
+    global camera, opened
+    update_animations(min(delta, 255))
+    if scene == 0:
+        geometry.transform(tick, updates)
+        actors.sky(delta, updates)
+    elif scene == 1:
+        camera += fixed(min(delta, 8)) * 0.75
+        set_camera(int(camera), 16)
+        geometry.transform(tick, updates, mode=1)
+        actors.sky(delta, updates)
+    elif scene == 2:
+        camera += fixed(min(delta, 8)) * 0.75
+        set_camera(int(camera), 16)
+        actors.traveller.y = 93 + data.sine[tick // 4 & 63] // 16
+        animated_sprite(32, actors.traveller.x, actors.traveller.y)
+        # Both riders travel right through the world with the scrolling camera.
+        world_animated_sprite(0, int(camera) + 108, 105)
+        # The standard belongs to the foreground rider, including its bobbing.
+        sprite(18, pennant, tick // 16 & 1, actors.traveller.x + 9, actors.traveller.y - 14)
+        actors.burst(tick, delta)
+    elif scene == 3:
+        geometry.transform(tick, updates, mode=3)
+        if tick >= 512 and not opened:
+            actors.open_seal()
+            opened = True
+        actors.burst(tick, delta, confined=True)
+        # The editable chamber guides the motes; the gate artwork stays clear.
+    elif scene == 4:
+        # Small rising embers leave the crown silhouette unobstructed.
+        actors.burst(tick, delta)
+    elif scene == 5:
+        camera += fixed(min(delta, 8)) * 0.75
+        set_camera(0, int(camera))
+        sprite(32, sail, 0, 72 + data.sine[tick // 8 & 63] // 4, 78)
+        for index in range(4):
+            actors.drift_bird(actors.comets[index], delta)
+            animated_sprite(24 + index, actors.comets[index].x, actors.comets[index].y)
+    else:
+        geometry.halo(tick, updates)
+        sprite(24, phoenix, 0, 64, 44 + data.sine[tick // 8 & 63] // 8)

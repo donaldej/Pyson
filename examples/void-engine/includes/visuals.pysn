@@ -1,0 +1,132 @@
+import includes.geometry as geometry
+eclipse = worldmap("../assets/eclipse.bmp")
+highway = worldmap("../assets/highway.bmp")
+city = worldmap("../assets/metropolis.bmp")
+cathedral = worldmap("../assets/cathedral.bmp")
+vortex = worldmap("../assets/vortex.bmp")
+throne = worldmap("../assets/throne.bmp")
+particles = sprite_sheet("../assets/particles.bmp", 8, 8)
+fighter = sprite_sheet("../assets/fighter.bmp", 32, 16)
+silhouette = sprite_sheet("../assets/silhouette.bmp", 40, 16)
+sentinel = sprite_sheet("../assets/sentinel.bmp", 48, 48)
+star_x = [12,28,44,60,76,92,108,124,140,20,36,52,68,84,100,116]
+star_y = [8,26,44,62,80,98,116,134,16,34,52,70,88,106,124,12]
+requested_x = 0
+requested_y = 0
+
+def prepare(scene):
+    global requested_x, requested_y
+    requested_x = 0
+    requested_y = 0
+    clear_screen()
+    for slot in range(40):
+        hide_sprite(slot)
+    if scene == 0:
+        draw_world(eclipse)
+    elif scene == 1:
+        draw_world(highway)
+    elif scene == 2:
+        draw_world(city)
+    elif scene == 3:
+        draw_world(cathedral)
+    elif scene == 4:
+        draw_world(vortex)
+    else:
+        draw_world(throne)
+    sprite_palette(0, "#000000", "#783060", "#ffc898", "#fff0d0")
+    sprite_palette(1, "#000000", "#482048", "#e84868", "#fff0c8")
+    sprite_palette(2, "#000000", "#080818", "#382040", "#f84860")
+    sprite_palette(3, "#000000", "#301838", "#b83058", "#ffe0a0")
+
+def colors(tick):
+    if tick & 7 == 0:
+        bg_palette(1, "#040410", "#402048", "#c83858", "#ffc898")
+        bg_palette(2, "#040410", "#281840", "#a82868", "#fa7860")
+        bg_palette(3, "#040410", "#181028", "#b83058", "#fa5868")
+        bg_palette(4, "#040410", "#382048", "#b83858", "#e090a0")
+        bg_palette(5, "#080818", "#501848", "#d83858", "#ffb068")
+        bg_palette(6, "#040410", "#301830", "#b83058", "#ffd0a0")
+    else:
+        bg_palette(1, "#040410", "#281840", "#984868", "#e0a898")
+        bg_palette(2, "#040410", "#181838", "#784888", "#c878a0")
+        bg_palette(3, "#040410", "#181028", "#882840", "#c83858")
+        bg_palette(4, "#040410", "#201830", "#784878", "#c898b0")
+        bg_palette(5, "#080818", "#281848", "#984888", "#e85880")
+        bg_palette(6, "#040410", "#201838", "#903860", "#e0a090")
+
+def stars(tick, slot=0):
+    for i in range(tick & 3, 16, 4):
+        star_x[i] += (i & 3) - 1
+        star_y[i] += 1 + (i & 1)
+        if star_y[i] >= 144 or star_x[i] >= 160 or star_x[i] < -8:
+            star_x[i] = 76 + geometry.circle_x[i * 2]
+            star_y[i] = 40 + geometry.circle_y[i * 2]
+        sprite(slot + i, particles, tick // 8 & 1, star_x[i], star_y[i])
+
+def opening(tick):
+    global requested_x
+    requested_x = tick // 8
+    set_camera(requested_x, 0)
+    stars(tick)
+
+def road(tick):
+    global requested_y
+    requested_y = tick * 3 // 2
+    set_camera(0, requested_y)
+    stars(tick)
+
+def flight(tick):
+    global requested_x
+    requested_x = tick * 3 // 2
+    set_camera(requested_x, 0)
+    if tick & 1 == 0:
+        front = tick * 2
+        while front >= 224:
+            front -= 224
+        sprite(0, silhouette, 0, 160 - front, 112)
+        front += 112
+        if front >= 224:
+            front -= 224
+        sprite(10, silhouette, 0, 160 - front, 120)
+    else:
+        phase = tick // 2 & 31
+        sprite(20, fighter, tick // 4 & 1, 64, 44 + geometry.circle_y[phase] // 4)
+    for i in range(tick & 3, 12, 4):
+        star_x[i] -= 1
+        if star_x[i] < -8:
+            star_x[i] = 160
+        sprite(28 + i, particles, 0, star_x[i], i * 2)
+
+def architecture(tick):
+    global requested_x
+    requested_x = tick * 3 // 2
+    set_camera(requested_x, 0)
+    for i in range(tick & 3, 16, 4):
+        phase = (tick // 4 + i * 2) & 31
+        sprite(i, particles, 2, 76 + geometry.circle_x[phase] * 2, 68 + geometry.circle_y[phase])
+
+def hologram(tick):
+    # Geometry and depth ordering are baked; runtime decodes and animates it.
+    base = (tick // 4 & 15) * 24
+    group = (tick & 3) * 6
+    for i in range(group, group + 6):
+        packed = geometry.torus[base + i]
+        if packed >= 0:
+            if i < 8:
+                frame = 3
+            else:
+                frame = 0
+            sprite(i, particles, frame, packed & 255, packed // 256)
+        else:
+            hide_sprite(i)
+
+def finale(tick):
+    if tick & 3 == 0:
+        if tick < 32:
+            lift = 144 - tick * 4
+        else:
+            lift = 28 + geometry.circle_y[tick // 2 & 31] // 4
+        sprite(0, sentinel, 0, 56, lift)
+    for i in range(4):
+        phase = (tick // 4 + i * 8) & 31
+        sprite(36 + i, particles, 2, 76 + geometry.circle_x[phase] * 2, 60 + geometry.circle_y[phase])

@@ -1,0 +1,55 @@
+# Move a sprite with sampled input and change its palette without replacing its artwork.
+
+header.title = "COLOR SPRITES"
+header.target = "dual"
+
+# Paths are relative to this source file, not the shell's working directory.
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("assets/hero.bmp", width=16, height=16)
+garden = tilemap("assets/garden.bmp")
+
+bg_palette(0, "#13243f", "#6588aa", "#aaccdd", "#ffdd77")
+bg_palette(2, "#13243f", "#6588aa", "#aaccdd", "#65e8ff")
+clear_screen()
+draw_map(garden, x=2, y=5)
+print("COLOR + BMP DEMO", x=2, y=1, palette=2)
+print("D-pad: move", 4, 3)
+print("A: change colors", 2, 16)
+
+x = 72
+y = 72
+ticks = 0
+flipped = False
+theme = 0
+sprite(0, hero, 0, x, y)
+# Commit queued drawing; refresh does not sample input.
+refresh_screen()
+
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button("right") and x < 120:
+        x += 1
+        flipped = False
+    elif button("left") and x > 24:
+        x -= 1
+        flipped = True
+    if button("down") and y < 96:
+        y += 1
+    elif button("up") and y > 40:
+        y -= 1
+
+    if button_pressed("a"):
+        theme = 1 - theme
+        if theme == 1:
+            sprite_palette(0, "#ff00ff", "#88eeff", "#8866ee", "#182030")
+        else:
+            sprite_palette(0, "#ff00ff", "#ffd888", "#e84048", "#182030")
+
+    ticks = (ticks + 1) % 240
+    frame = ticks // 12 % 2
+    # Labels describe the call; the coordinate variables may have any names.
+    # An omitted flip_y keeps its False default.
+    sprite(0, hero, frame, x=x, y=y, flip_x=flipped)
+    refresh_screen()

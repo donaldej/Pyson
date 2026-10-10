@@ -1,0 +1,15 @@
+# Header assignments configure the cartridge at compilation; print queues screen text.
+
+# Header settings apply to the ROM at build time.
+header.title = "HEADER PRINT"
+header.target = "dmg"
+header.controller = "rom_only"
+header.ram_kb = 0
+header.battery = False
+header.version = 1
+
+# x and y are tile coordinates on the 20x18 character screen.
+print("Hello World!", 4, 8)
+print("Pyson", 7, 10)
+print("TOP LEFT", 0, 0)
+print("BOTTOM RIGHT", 8, 17)

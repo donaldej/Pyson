@@ -1,0 +1,92 @@
+# Spawn temporary actors, move active pool members, check hits, and draw them into reserved sprite slots.
+
+header.title = "POOL SHOOTER"
+header.target = "dual"
+import includes.state as state
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+player_art = sprite_sheet("assets/player.bmp", 8, 8)
+enemy_art = sprite_sheet("assets/enemy.bmp", 8, 8)
+shot_art = sprite_sheet("assets/shot.bmp")
+score = 0
+lives = 3
+frame = 0
+fire_cooldown = 0
+enemy_column = 0
+blocked_shots = 0
+hud_dirty = True
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+clear_screen()
+print("POOL SHOOTER", 4, 0)
+print("LEFT/RIGHT  A FIRE", 0, 15)
+print("B RESTART", 0, 16)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("b"):
+        state.reset()
+        score = 0
+        lives = 3
+        frame = 0
+        fire_cooldown = 0
+        enemy_column = 0
+        blocked_shots = 0
+        hud_dirty = True
+        print("                    ", 0, 8)
+    if lives > 0:
+        frame = (frame + 1) % 32000
+        if button("right") and state.player.x < 144:
+            state.player.x += 2
+        if button("left") and state.player.x > 8:
+            state.player.x -= 2
+        if fire_cooldown > 0:
+            fire_cooldown -= 1
+        if button("a") and fire_cooldown == 0:
+            fired = spawn(state.bullets, x=state.player.x, y=state.player.y - 8)
+            if fired:
+                play_sound("menu_move")
+            else:
+                blocked_shots += 1
+            fire_cooldown = 8
+        if frame % 45 == 1:
+            arriving = spawn(state.enemies, x=16 + enemy_column * 32, y=32)
+            enemy_column = (enemy_column + 1) % 4
+        for shot in state.bullets:
+            state.move_shot(shot)
+            if shot:
+                for enemy in state.enemies:
+                    if rect_overlap(shot.x, shot.y, 8, 8, enemy.x, enemy.y, 8, 8):
+                        despawn(shot)
+                        score += state.hit_enemy(enemy)
+                        hud_dirty = True
+                        play_sound("damage")
+                        break
+        if frame % 3 == 0:
+            for enemy in state.enemies:
+                enemy.y += enemy.dy
+                if enemy.y >= 112:
+                    despawn(enemy)
+                    lives -= 1
+                    hud_dirty = True
+                    if lives <= 0:
+                        reset_pool(state.bullets)
+                        reset_pool(state.enemies)
+                        print("GAME OVER - B RESET", 0, 8)
+                        play_sound("lose")
+                        break
+    # Sprite slots belong to the pools, independent of which slots are active.
+    for i in range(1, 17):
+        hide_sprite(i)
+    for shot in state.bullets:
+        sprite(1 + pool_index(shot), shot_art, 0, shot.x, shot.y)
+    for enemy in state.enemies:
+        sprite(13 + pool_index(enemy), enemy_art, frame // 12 % 2, enemy.x, enemy.y)
+    sprite(0, player_art, 0, state.player.x, state.player.y)
+    if hud_dirty:
+        print("SCORE:      LIVES: ", 0, 2)
+        print(score, 7, 2)
+        print(lives, 18, 2)
+        hud_dirty = False
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

@@ -1,0 +1,6 @@
+{
+  "parts": [
+    { "notes": [[262,24,8],[330,24,8],[392,24,8],[330,24,8]], "loop": true, "duty": 2 },
+    { "notes": [[131,48,8],[196,48,8]], "loop": true, "voice": 1, "instrument": "triangle" }
+  ]
+}

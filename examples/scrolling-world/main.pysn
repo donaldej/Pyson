@@ -1,0 +1,173 @@
+# Player coordinates are world pixels, tile queries use map-local cells, and the window HUD stays fixed.
+
+header.title = "SCROLLING WORLD"
+header.target = "dual"
+
+brick = tile("assets/brick.bmp", solid=True, terrain=1)
+floor = tile("assets/floor.bmp")
+water = tile("assets/water.bmp", terrain=2)
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+player = sprite_sheet("assets/player.bmp", 8, 8)
+# Animation pairs are [frame, duration_ticks]; playback advances only when updated.
+player_idle = sprite_animation(player, [[0, 1]])
+player_walk = sprite_animation(player, [[0, 8], [1, 8]])
+star = sprite_sheet("assets/star.bmp")
+
+# 256x256 pixels: shared tiles and properties, immutable in ROM.
+board = tilemap([
+    [brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, water, water, water, water, water, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, water, water, water, water, water, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, water, water, water, water, water, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, water, water, water, water, water, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, water, water, water, water, water, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, brick, brick, brick, brick, floor, brick, brick, brick, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, floor, brick],
+    [brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick],
+])
+
+splash = sound_effect("noise", [[36, 3, 6], [52, 4, 3]], 1)
+
+mode = 0
+player_x = 24
+player_y = 24
+move_tick = 0
+facing_left = False
+hud_x = -1
+hud_y = -1
+hud_ground = -1
+
+# Refresh status only when its recorded values differ from the current game state.
+def update_hud():
+    global hud_x, hud_y, hud_ground
+    ground = tile_terrain(board, player_x // 8, player_y // 8)
+    if player_x == hud_x and player_y == hud_y and ground == hud_ground:
+        return
+    print_window("   ", 2, 0, 4)
+    print_window(player_x, 2, 0, 4)
+    print_window("   ", 8, 0, 4)
+    print_window(player_y, 8, 0, 4)
+    if ground == 2:
+        if hud_ground != 2:
+            play_sound(splash)
+        print_window("WATER", 13, 0, 4)
+    else:
+        print_window("FLOOR", 13, 0, 4)
+    hud_x = player_x
+    hud_y = player_y
+    hud_ground = ground
+
+# Initialize this round and arrange its world, camera, and HUD.
+def start_game():
+    global mode, player_x, player_y, move_tick, facing_left, hud_x, hud_y, hud_ground
+    stop_sound()
+    play_sound("menu_confirm")
+    mode = 1
+    player_x = 24
+    player_y = 24
+    play_animation(0, player_idle, restart=True)
+    move_tick = 0
+    facing_left = False
+    clear_screen()
+    draw_world(board)
+    set_camera(0, 0)
+    hud_x = -1
+    hud_y = -1
+    hud_ground = -1
+    clear_window(4)
+    window_position(0, 136)
+    print_window("X:    Y:", 0, 0, 4)
+    update_hud()
+    show_window()
+
+# Check the proposed position before committing movement.
+def can_move(x, y):
+    # Check every corner of the player's 8x8 bounds before moving.
+    return not tile_is_solid(board, x // 8, y // 8) and not tile_is_solid(board, (x + 7) // 8, y // 8) and not tile_is_solid(board, x // 8, (y + 7) // 8) and not tile_is_solid(board, (x + 7) // 8, (y + 7) // 8)
+
+def update_game():
+    global mode, player_x, player_y, move_tick, facing_left
+    update_animations()
+    dx = 0
+    dy = 0
+    if button("right"):
+        dx = 1
+        facing_left = False
+    elif button("left"):
+        dx = -1
+        facing_left = True
+    elif button("up"):
+        dy = -1
+    elif button("down"):
+        dy = 1
+
+    move_tick = (move_tick + 1) % 2
+    ground = tile_terrain(board, player_x // 8, player_y // 8)
+    if ground != 2 or move_tick == 0:
+        if can_move(player_x + dx, player_y + dy):
+            player_x += dx
+            player_y += dy
+
+    if dx or dy:
+        play_animation(0, player_walk)
+    else:
+        play_animation(0, player_idle)
+    set_camera(player_x - 76, player_y - 68)
+    world_animated_sprite(0, player_x, player_y, facing_left)
+    world_sprite(1, star, 0, 232, 232)
+    update_hud()
+
+    if player_x < 240 and player_x + 8 > 232 and player_y < 240 and player_y + 8 > 232:
+        play_sound("win")
+        mode = 2
+        hide_window()
+        clear_screen()
+        hide_sprite(0)
+        hide_sprite(1)
+        print("STAR FOUND!", 4, 5)
+        print("A / Start: replay", 1, 9)
+        print("256x256 world", 3, 12)
+
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(4, "#203850", "#486880", "#a0c0e0", "#ffffff")
+hide_window()
+clear_screen()
+print("SCROLLING WORLD", 2, 3)
+print("D-pad: move", 4, 6)
+print("Water slows you", 2, 8)
+print("Find the gold star", 1, 10)
+print("A / Start: play", 2, 13)
+
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    if button_pressed("a") or button_pressed("start"):
+        start_game()
+    if mode == 1:
+        update_game()
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

@@ -1,0 +1,97 @@
+# Combine mutable terrain, swept movement, formatted text, dialogue, and two music voices.
+# Door graphics and collision change together through the mutable map.
+
+header.title = "FEATURE LAB"
+header.target = "dual"
+SIZE = constant(8)
+SPEED = constant(3)
+wall = tile("assets/brick.bmp", solid=True, terrain=1)
+floor = tile("assets/floor.bmp", terrain=0)
+board = mutable_map([
+    [wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,floor,floor,floor,floor,floor,floor,floor,floor,floor,wall,floor,floor,floor,floor,floor,floor,floor,floor,wall],
+    [wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall]
+])
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("assets/player.bmp", 8, 8)
+portrait = sprite_sheet("assets/hero.bmp", 16, 16)
+lead = music_file("assets/theme.json")
+bass = music_file("assets/theme.json", 1)
+x = 16
+y = 16
+door_open = False
+dirty = True
+
+# Sweep each movement axis through terrain so larger steps still stop at walls.
+def advance(dx=0, dy=0):
+    global x, y
+    x = move_x(board, x, y, SIZE, SIZE, clamp(dx, -SPEED, SPEED))
+    y = move_y(board, x, y, SIZE, SIZE, clamp(dy, -SPEED, SPEED))
+
+bg_palette(0, "#102038", "#607890", "#b8c8d8", "#f0f8ff")
+bg_palette(3, "#fff8e0", "#d8b878", "#806048", "#302838")
+clear_screen()
+print("FEATURE LAB", 4, 0)
+print("A DOOR  B RESET", 0, 15)
+print("SELECT TALK", 0, 16)
+print("START PAUSE MUSIC", 0, 17)
+play_music(lead)
+play_music(bass)
+# Run one update at a time; state survives between iterations.
+while True:
+    # Wait for a fresh display frame and sample buttons for this update.
+    wait_vblank()
+    dx = 0
+    dy = 0
+    if button("right"):
+        dx = SPEED
+    elif button("left"):
+        dx = -SPEED
+    if button("down"):
+        dy = SPEED
+    elif button("up"):
+        dy = -SPEED
+    advance(dy=dy, dx=dx)
+    if button_pressed("b"):
+        close_dialogue()
+        reset_map(board)
+        x = 16
+        y = 16
+        door_open = False
+        dirty = True
+    elif button_pressed("a") and not dialogue_active():
+        door_open = not door_open
+        if door_open:
+            set_map_tile(board, 10, 5, floor)
+        else:
+            if not rect_overlap(x, y, SIZE, SIZE, 80, 40, SIZE, SIZE):
+                set_map_tile(board, 10, 5, wall)
+            else:
+                door_open = True
+        dirty = True
+        play_sound("menu_confirm")
+    if button_pressed("select"):
+        start_dialogue(format_text("YOUR POSITION IS {}, {}. THE DOOR IS {}. MOVE WHILE READING: THESE NUMBERS ARE A SNAPSHOT!", x, y, door_open), palette=3)
+        dialogue_speaker("GUIDE")
+        dialogue_portrait(portrait, 0, 3)
+    if button_pressed("start") and not dialogue_active():
+        if music_playing():
+            pause_music()
+        else:
+            resume_music()
+    update_dialogue()
+    hud_text = format_text("LAST {},{} DOOR:{}  ", x, y, door_open)
+    if dirty:
+        draw_map(board, 0, 4)
+        print(hud_text, 0, 2)
+        dirty = False
+    sprite(0, hero, 0, x, y + 32)
+    # Commit queued drawing; refresh does not sample input.
+    refresh_screen()

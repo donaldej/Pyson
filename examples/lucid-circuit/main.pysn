@@ -1,0 +1,33 @@
+# Coordinate four abstract scenes and their original scores, then repeat the show.
+# This demo uses update-count timing; double speed is part of its chosen presentation.
+
+header.title = "LUCID CIRCUIT"
+header.target = "cgb"
+header.cpu_speed = "double"
+header.controller = "mbc5"
+import includes.visuals as visuals
+import includes.score as score
+
+SECTION_TICKS = constant(1024)
+scene = 0
+tick = 0
+cycles = 0
+# Run one update at a time; state survives between iterations.
+while True:
+    if tick == 0:
+        stop_music()
+        stop_sound()
+        visuals.prepare(scene)
+        # Commit queued drawing; refresh does not sample input.
+        refresh_screen()
+        score.begin(scene)
+    visuals.animate(scene, tick)
+    score.rhythm(tick)
+    refresh_screen()
+    tick += 1
+    if tick >= SECTION_TICKS:
+        tick = 0
+        scene += 1
+        if scene == 4:
+            scene = 0
+            cycles = (cycles + 1) % 32000

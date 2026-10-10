@@ -1,0 +1,152 @@
+# Each scene combines prepared map artwork, palette changes, camera movement, or geometric sprites.
+
+cosmos = tilemap("../assets/cosmos.bmp")
+city = worldmap("../assets/city.bmp")
+prism = tilemap("../assets/prism.bmp")
+altar = tilemap("../assets/altar.bmp")
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+spark = sprite_sheet("../assets/spark.bmp", 8, 8)
+ship = sprite_sheet("../assets/ship.bmp", 32, 16)
+foreground = sprite_sheet("../assets/foreground.bmp", 40, 16)
+machine = sprite_sheet("../assets/machine.bmp", 32, 48)
+meteor = sprite_sheet("../assets/meteor.bmp", 24, 8)
+wire = sprite_sheet("../assets/wire.bmp", 8, 8)
+core = sprite_sheet("../assets/core.bmp", 16, 16)
+import includes.geometry as geometry
+cube_phase = 0
+cube_group = 0
+city_camera = 0
+
+# Sine/cosine samples replace floating-point trigonometry on the Game Boy.
+circle_x = [32,31,30,27,23,18,12,6,0,-6,-12,-18,-23,-27,-30,-31,-32,-31,-30,-27,-23,-18,-12,-6,0,6,12,18,23,27,30,31]
+circle_y = [0,6,12,18,23,27,30,31,32,31,30,27,23,18,12,6,0,-6,-12,-18,-23,-27,-30,-31,-32,-31,-30,-27,-23,-18,-12,-6]
+star_x = [12,28,44,60,76,92,108,124,140,20,36,52,68,84,100,116]
+star_y = [8,26,44,62,80,98,116,134,16,34,52,70,88,106,124,12]
+drift_x = [-3,-2,-1,1,2,3,-2,2,-3,3,-1,1,-2,2,-3,3]
+drift_y = [-2,1,-1,2,-2,1,2,-1,1,-2,2,-1,-2,2,1,-1]
+
+def prepare(section):
+    global cube_phase, cube_group, city_camera
+    cube_phase = 0
+    cube_group = 0
+    city_camera = 0
+    clear_screen()
+    for slot in range(40):
+        hide_sprite(slot)
+    if section == 0:
+        draw_world(cosmos)
+    elif section == 1:
+        draw_world(city)
+    elif section == 2:
+        draw_world(prism)
+    else:
+        draw_world(altar)
+    bg_palette(0, "#050510", "#382040", "#b83058", "#ffe8d0")
+    sprite_palette(0, "#000000", "#482848", "#fa3860", "#ffe0b8")
+    sprite_palette(1, "#000000", "#482048", "#d84060", "#fff0c8")
+    sprite_palette(2, "#000000", "#080818", "#382040", "#f84860")
+    sprite_palette(3, "#000000", "#301838", "#b83058", "#ffe0a0")
+    sprite_palette(4, "#000000", "#482848", "#fa3860", "#ffe0b8")
+    sprite_palette(5, "#000000", "#603058", "#ffe0b8", "#ffe0b8")
+    sprite_palette(6, "#000000", "#482048", "#d84060", "#fff0c8")
+
+def colors(tick):
+    # Moderate color accents rather than repeated full-screen white flashes.
+    phase = tick // 4 & 3
+    if phase == 0:
+        bg_palette(1, "#040410", "#301830", "#b83058", "#ffd0a0")
+        bg_palette(2, "#040410", "#181028", "#903048", "#fa5868")
+        bg_palette(3, "#080818", "#381858", "#b82868", "#fa9058")
+        bg_palette(4, "#040410", "#301830", "#b83058", "#ffd0a0")
+    elif phase == 1:
+        bg_palette(1, "#040410", "#281840", "#903868", "#ffb890")
+        bg_palette(2, "#040410", "#201028", "#a82848", "#d84868")
+        bg_palette(3, "#080818", "#501848", "#d83858", "#ffb068")
+        bg_palette(4, "#040410", "#281840", "#903868", "#ffb890")
+    elif phase == 2:
+        bg_palette(1, "#040410", "#181838", "#684878", "#e090a0")
+        bg_palette(2, "#040410", "#181028", "#782840", "#b83858")
+        bg_palette(3, "#080818", "#481838", "#a83878", "#d87898")
+        bg_palette(4, "#040410", "#181838", "#684878", "#e090a0")
+    else:
+        bg_palette(1, "#040410", "#201830", "#984860", "#ffc0a0")
+        bg_palette(2, "#040410", "#181028", "#882840", "#e04858")
+        bg_palette(3, "#080818", "#281848", "#884898", "#e85880")
+        bg_palette(4, "#040410", "#201830", "#984860", "#ffc0a0")
+
+def space(tick):
+    pan = tick & 127
+    if pan > 64:
+        pan = 128 - pan
+    set_camera(pan, 0)
+    phase = tick // 2 & 31
+    sprite(0, meteor, 0, (tick & 127) * 2 - 24, 108 + (circle_y[phase] // 4))
+    cohort = tick & 3
+    for i in range(cohort, 16, 4):
+        star_x[i] += drift_x[i]
+        star_y[i] += drift_y[i]
+        if star_x[i] < -8 or star_x[i] > 160 or star_y[i] < -8 or star_y[i] > 144:
+            star_x[i] = 76 + (circle_x[i * 2] // 2)
+            star_y[i] = 68 + (circle_y[i * 2] // 2)
+        sprite(8 + i, spark, tick // 8 & 1, star_x[i], star_y[i])
+
+def flyover(tick):
+    global city_camera
+    # A long streamed world replaces the short map's reversing camera.
+    city_camera = tick * 3 // 2
+    set_camera(city_camera, 0)
+    # Foreground silhouettes move faster than the background camera.
+    if tick & 1 == 0:
+        front = tick * 2
+        while front >= 224:
+            front -= 224
+        sprite(0, foreground, 0, 160 - front, 112)
+        front += 112
+        if front >= 224:
+            front -= 224
+        sprite(10, foreground, 0, 160 - front, 120)
+    else:
+        phase = tick // 2 & 31
+        sprite(20, ship, tick // 4 & 1, 64 + (circle_x[phase] // 4), 52 + (circle_y[phase] // 4))
+    # Four far stars per update, with precomputed positions.
+    for i in range(tick & 3, 12, 4):
+        star_x[i] -= 1
+        if star_x[i] < -8:
+            star_x[i] = 160
+        sprite(28 + i, spark, 0, star_x[i], i * 2)
+
+def reactor(tick):
+    global cube_phase, cube_group
+    # Six wire pieces per update; every four updates rebuild a full 3D pose.
+    # Packed coordinates avoid projecting and multiplying every edge at runtime.
+    base = cube_phase * 24
+    for piece in range(cube_group, cube_group + 6):
+        packed = geometry.cube_pieces[base + piece]
+        if packed >= 0:
+            sprite(piece, wire, packed // 4096, (packed & 63) + 44, (packed // 64 & 63) + 36)
+        else:
+            hide_sprite(piece)
+    if cube_group == 0:
+        sprite(24, core, tick // 4 & 1, 68, 60)
+    cube_group += 6
+    if cube_group >= 24:
+        cube_group = 0
+        cube_phase += 1
+        if cube_phase >= 12:
+            cube_phase = 0
+
+def reveal(tick):
+    if tick & 3 == 0:
+        if tick < 32:
+            lift = 144 - (tick * 4)
+        else:
+            lift = 32 + (circle_y[tick // 2 & 31] // 4)
+        sprite(0, machine, 0, 64, lift)
+    for i in range(tick & 3, 16, 4):
+        ring = (tick + (i * 2)) & 31
+        sprite(24 + i, spark, tick // 8 & 1, 76 + (circle_x[ring] * 2), 60 + circle_y[ring])
+    if tick & 3 == 0:
+        if tick & 7 == 0:
+            sprite_palette(3, "#000000", "#301838", "#c83058", "#ffe0a0")
+        else:
+            sprite_palette(3, "#000000", "#201838", "#783860", "#e09078")

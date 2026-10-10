@@ -1,0 +1,31 @@
+# This comparison intentionally moves once per update, so more CPU capacity changes travel speed.
+# See frame-timing for movement based on elapsed display time instead.
+
+# Change "double" to "normal" and rebuild to compare Color CPU budgets.
+# On a monochrome Game Boy this dual-compatible ROM always uses normal speed.
+header.title = "CPU SPEED"
+header.target = "dual"
+header.cpu_speed = "double"
+
+# The BMP path is relative to this file; compilation converts it into tiles and frames.
+hero = sprite_sheet("../assets/hero.bmp", 16, 16)
+bg_palette(0, "#101828", "#304050", "#90b8b0", "#f0e0a0")
+print("CGB CPU SPEED", 3, 2)
+print("Normal vs double", 2, 4)
+print("Same game code", 3, 14)
+print("DMG: normal speed", 1, 16)
+sprite_palette(0, "#000000", "#90e0d0", "#d06090", "#fff0c0")
+# Commit queued drawing; refresh does not sample input.
+refresh_screen()
+
+x = 0
+counter = 0
+# Run one update at a time; state survives between iterations.
+while True:
+    # Deliberate CPU work makes the speed difference visible. A real game
+    # would spend this time on actors, collision, or effects instead.
+    for i in range(100):
+        counter += 1
+    x = (x + 1) % 144
+    sprite(0, hero, 0, x, 64)
+    refresh_screen()
