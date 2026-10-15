@@ -1,0 +1,18 @@
+# A small looping arcade theme: pulse melody, wave bass, and quiet percussion.
+melody = music_track([[523,16,8],[659,16,7],[784,16,8],[988,16,6],[880,16,7],[784,16,7],[659,16,8],[587,16,6],[523,16,8],[659,16,7],[784,16,8],[1047,16,7],[988,16,7],[784,16,7],[659,16,8],[0,16,0]], duty=2)
+bass = music_track([[131,32,8],[131,32,7],[196,32,8],[196,32,7],[110,32,8],[110,32,7],[147,32,8],[147,32,7]], voice=1)
+beat = sound_effect("noise", [[19,1,5],[38,2,3]], priority=2)
+last_beat = -1
+
+def begin():
+    set_sound_volume(5, 5)
+    play_music(melody, restart=True)
+    play_music(bass, restart=True)
+
+def rhythm(tick):
+    global last_beat
+    step = tick // 16
+    if step != last_beat:
+        last_beat = step
+        if step & 1:
+            play_sound(beat)

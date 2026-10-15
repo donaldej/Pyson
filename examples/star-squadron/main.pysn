@@ -1,0 +1,27 @@
+# Automatic single-screen space battle. All 40 hardware sprite slots are used.
+header.title = "STAR SQUADRON"
+header.target = "dual"
+header.cpu_speed = "double"
+
+import includes.visuals as visuals
+import includes.score as score
+
+tick = 0
+updates = 0
+cycles = 0
+visuals.prepare()
+refresh_screen()
+score.begin()
+previous = frame_count()
+
+while True:
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    tick += delta
+    if tick >= 1024:
+        tick %= 1024
+        cycles += 1
+    visuals.animate(tick, updates)
+    score.rhythm(tick)
+    updates += 1
+    refresh_screen()

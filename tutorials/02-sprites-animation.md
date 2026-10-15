@@ -67,6 +67,13 @@ Read the on-screen controls for the other actions.
 
 ## Try it
 
+For a complete example of reserving sprite slots, see
+[Star Squadron](../examples/star-squadron/README.md). Its automatic space battle
+uses all 40 components: a 16x16 player, four 16x16 enemies, twelve bullets,
+and eight sparks. The README shows the slot ranges. Read `visuals.pysn` to see
+how separate enemy rows and spaced bullets avoid the ten-components-per-scanline
+limit. Background stars and the fixed HUD use no sprite slots.
+
 In a copied gallery, change both walk durations from 8 to 16. That walk should
 animate more slowly without changing the artwork. Next compare the independent
 players: pausing or restarting one playback slot need not redefine its shared

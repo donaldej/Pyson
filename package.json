@@ -23,7 +23,10 @@
     "test:lucid": "node --test tests/lucid-circuit-runtime.test.js",
     "test:timing": "node --test tests/frame-clock.test.js tests/frame-clock-runtime.test.js",
     "test:last-light": "node --test tests/last-light-runtime.test.js",
-    "test:oath": "node --test tests/oath-of-stars-runtime.test.js"
+    "test:oath": "node --test tests/oath-of-stars-runtime.test.js",
+    "test:signal": "node --test tests/zero-signal-runtime.test.js",
+    "test:litany": "node --test tests/iron-litany-runtime.test.js",
+    "test:squadron": "node --test tests/star-squadron-runtime.test.js"
   },
   "author": "",
   "license": "ISC",

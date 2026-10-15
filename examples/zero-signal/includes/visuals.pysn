@@ -1,0 +1,102 @@
+import includes.data as data
+import includes.palettes as palettes
+
+planet = worldmap("../assets/planet.bmp")
+city = worldmap("../assets/city.bmp")
+gate = worldmap("../assets/gate.bmp")
+finale = worldmap("../assets/finale.bmp")
+ship = sprite_sheet("../assets/ship.bmp", 32, 16)
+points = sprite_sheet("../assets/points.bmp", 8, 8)
+core = sprite_sheet("../assets/core.bmp", 32, 32)
+stars = records(16, x=0, y=0, depth=32)
+rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+camera = 0.0
+
+def prepare(scene):
+    global camera
+    for slot in range(40):
+        hide_sprite(slot)
+    for row in range(18):
+        rows[row] = 0
+    for index in range(16):
+        old_y[index] = -1
+    random_seed(2731 + scene * 113)
+    for star in stars:
+        star.x = randint(-40, 40)
+        star.y = randint(-30, 30)
+        star.depth = randint(32, 160)
+    camera = 0.0
+    if scene == 0:
+        draw_world(planet)
+    elif scene == 1:
+        draw_world(city)
+    elif scene == 2:
+        draw_world(gate)
+    else:
+        draw_world(finale)
+    if scene == 1:
+        set_camera(0, 16)
+    else:
+        set_camera(48, 16)
+    palettes.update(scene, 0)
+
+def colors(scene, tick):
+    palettes.update(scene, tick)
+
+def point(slot, x, y, frame):
+    # Leave four sprite positions on each scanline for the foreground ship/core.
+    previous_y = old_y[slot]
+    if previous_y >= 0:
+        rows[previous_y // 8] -= 1
+        if (previous_y + 7) // 8 != previous_y // 8:
+            rows[(previous_y + 7) // 8] -= 1
+    old_y[slot] = -1
+    if x < 0 or x > 152 or y < 8 or y > 112:
+        hide_sprite(slot)
+        return
+    top = y // 8
+    bottom = (y + 7) // 8
+    if rows[top] >= 6 or rows[bottom] >= 6:
+        hide_sprite(slot)
+        return
+    rows[top] += 1
+    if bottom != top:
+        rows[bottom] += 1
+    old_y[slot] = y
+    sprite(slot, points, frame, x, y)
+
+def animate(scene, tick, updates, delta):
+    global camera
+    if scene == 1:
+        camera += fixed(min(delta, 16)) * 0.5
+        set_camera(int(camera), 16)
+    # Four stars per update keeps the frame budget practical on the original GB.
+    first = (updates & 3) * 4
+    for index in range(first, first + 4):
+        if scene == 2:
+            # A live perspective projection: stars approach, then respawn behind us.
+            stars[index].depth -= min(delta * 4, 24) * 2
+            if stars[index].depth < 24:
+                stars[index].depth = 160
+                stars[index].x = randint(-40, 40)
+                stars[index].y = randint(-30, 30)
+            x = 76 + stars[index].x * 96 // stars[index].depth
+            y = 62 + stars[index].y * 80 // stars[index].depth
+            frame = 0
+            if stars[index].depth < 72:
+                frame = 2
+            point(index, x, y, frame)
+        elif scene == 3:
+            angle = (tick // 8 + index * 4) & 63
+            x = 76 + data.sine[angle] * (48 + index % 3 * 8) // 32
+            y = 56 + data.sine[(angle + 16) & 63] * 34 // 32
+            point(index, x, y, index & 1)
+        else:
+            x = (index * 37 + 157 - tick // (2 + index % 3)) % 156
+            y = 14 + index * 23 % 90
+            point(index, x, y, index & 1)
+    if scene == 0 or scene == 1:
+        sprite(24, ship, tick // 8 & 1, 61, 85 + data.sine[tick // 8 & 63] // 8)
+    elif scene == 3:
+        sprite(24, core, 0, 64, 44 + data.sine[tick // 8 & 63] // 16)

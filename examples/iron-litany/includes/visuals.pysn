@@ -1,0 +1,148 @@
+# Each act uses a different presentation: ritual, geometry, interference, portrait.
+import includes.data as data
+import includes.palettes as palettes
+
+import includes.art as art
+rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+
+def prepare(scene):
+    for slot in range(40):
+        hide_sprite(slot)
+    for row in range(18):
+        rows[row] = 0
+    for index in range(32):
+        old_y[index] = -1
+    if scene == 0:
+        draw_world(art.seal)
+    elif scene == 1:
+        draw_world(art.prison)
+    elif scene == 2:
+        draw_world(art.altar)
+        reset_map(art.field)
+        draw_map(art.field, 4, 6)
+    else:
+        draw_world(art.face)
+    if scene == 2:
+        set_camera(0, 0)
+    else:
+        set_camera(48, 16)
+    palettes.update(scene, 0)
+
+def colors(scene, tick):
+    palettes.update(scene, tick)
+
+def point(slot, x, y, frame, limit=8):
+    previous_y = old_y[slot]
+    if previous_y >= 0:
+        rows[previous_y // 8] -= 1
+        if (previous_y + 7) // 8 != previous_y // 8:
+            rows[(previous_y + 7) // 8] -= 1
+    old_y[slot] = -1
+    if x < 0 or x > 152 or y < 8 or y > 112:
+        hide_sprite(slot)
+        return
+    top = y // 8
+    bottom = (y + 7) // 8
+    if rows[top] >= limit or rows[bottom] >= limit:
+        hide_sprite(slot)
+        return
+    rows[top] += 1
+    if bottom != top:
+        rows[bottom] += 1
+    old_y[slot] = y
+    sprite(slot, art.points, frame, x, y)
+
+def cube(tick, updates):
+    # Rotate real 3D edge points around two axes, then divide by depth.
+    angle = tick // 24 & 63
+    tilt = (tick // 32 + 7) & 63
+    s = data.sine[angle]
+    c = data.sine[(angle + 16) & 63]
+    st = data.sine[tilt]
+    ct = data.sine[(tilt + 16) & 63]
+    first = (updates & 7) * 4
+    for index in range(first, first + 4):
+        x = data.cube_x[index]
+        y = data.cube_y[index]
+        z = data.cube_z[index]
+        rx = (x * c + z * s) // 32
+        rz = (z * c - x * s) // 32
+        ry = (y * ct - rz * st) // 32
+        depth = (rz * ct + y * st) // 32
+        distance = 100 + depth
+        px = 76 + rx * 108 // distance
+        py = 64 + ry * 108 // distance
+        axis = data.cube_axis[index]
+        dx = c
+        dy = s * st // 32
+        if axis == 1:
+            dx = 0
+            dy = ct
+        elif axis == 2:
+            dx = s
+            dy = -c * st // 32
+        frame = 4
+        if abs(dy) > abs(dx) * 2:
+            frame = 5
+        elif abs(dx) <= abs(dy) * 2:
+            if dx * dy >= 0:
+                frame = 6
+            else:
+                frame = 7
+        if depth >= 0:
+            frame += 4
+        if index < 8:
+            frame = 2
+        point(index, px, py, frame)
+
+def interference(tick, updates):
+    # Rewrite one column of a small mutable map. The slow scan is intentional.
+    column = updates % 12
+    phase = tick // 8
+    for row in range(8):
+        value = data.sine[(column * 5 + phase) & 63]
+        value += data.sine[(row * 7 - phase) & 63]
+        if value < -12:
+            set_map_tile(art.field, column, row, art.low)
+        elif value < 16:
+            set_map_tile(art.field, column, row, art.medium)
+        else:
+            set_map_tile(art.field, column, row, art.high)
+    draw_map(art.field, 4, 6)
+    sprite(0, art.points, 3, 32 + column * 8, 37)
+    sprite(1, art.points, 3, 32 + column * 8, 112)
+
+def animate(scene, tick, updates, delta):
+    if scene == 1:
+        cube(tick, updates)
+    elif scene == 2:
+        interference(tick, updates)
+    else:
+        first = (updates & 7) * 4
+        for index in range(first, first + 4):
+            angle = (tick // 12 + index * 2) & 63
+            radius = 60
+            if scene == 0:
+                if index & 1:
+                    angle = (index * 2 - tick // 12) & 63
+                    radius = 35 + data.sine[tick // 16 & 63] // 8
+                else:
+                    radius = 46
+            x = 76 + data.sine[angle] * radius // 32
+            y_radius = radius
+            if scene == 3:
+                y_radius = 44
+            y = 64 + data.sine[(angle + 16) & 63] * y_radius // 32
+            frame = data.tangent[angle]
+            if index & 1:
+                frame += 4
+            point(index, x, y, frame, limit=6)
+        if scene == 3:
+            blink = 0
+            if tick % 192 < 12:
+                blink = 2
+            elif tick % 192 < 20:
+                blink = 1
+            sprite(32, art.eyes, blink, 56, 46)
+            sprite(34, art.eyes, blink, 86, 46)

@@ -1,0 +1,47 @@
+import includes.data as data
+
+stars = worldmap("../assets/stars.bmp")
+player = sprite_sheet("../assets/player.bmp", 16, 16)
+enemy = sprite_sheet("../assets/enemy.bmp", 16, 16)
+beams = sprite_sheet("../assets/beams.bmp", 8, 8)
+sparks = sprite_sheet("../assets/sparks.bmp", 8, 8)
+
+def prepare():
+    draw_world(stars)
+    bg_palette(1, "#060d20", "#20374c", "#537f98", "#c1dce0")
+    bg_palette(0, "#060d20", "#20374c", "#537f98", "#c1dce0")
+    sprite_palette(0, "#000000", "#1b637e", "#44acc5", "#d8ffff")
+    sprite_palette(1, "#000000", "#59294e", "#cc526c", "#ffd7ba")
+    sprite_palette(2, "#000000", "#784439", "#d09c51", "#fff4ab")
+    sprite_palette(3, "#000000", "#ffdd8a", "#fa9048", "#fff8da")
+    clear_window()
+    window_position(0, 128)
+    print_window("40 SPRITES / PYSON", 1, 0)
+    print_window("STAR SQUADRON", 3, 1)
+    show_window()
+    animate(0, 0)
+    animate(0, 1)
+
+def animate(tick, updates):
+    # A repeating 128-pixel star pattern makes the camera wrap seamless.
+    set_camera(0, 255 - tick // 4)
+    sprite(0, player, tick // 8 & 1, 72 + data.sine[tick // 8 & 63] // 2, 108)
+    for index in range(4):
+        # Four 16x16 enemies occupy slots 4..19. Their rows stay separate.
+        x = 70 + data.sine[(tick // 8 + index * 13) & 63] * 2
+        sprite(4 + index * 4, enemy, tick // 16 & 1, x, 14 + index * 22)
+    # Work on six of the twelve bullets per update. Each always remains visible.
+    first = (updates & 1) * 6
+    for index in range(first, first + 6):
+        x = 76 + data.sine[(tick // 8 - index * 4) & 63] // 2
+        y = 8 + (104 + index * 9 - tick * 2) % 112
+        sprite(20 + index, beams, index & 1, x, y)
+    # Eight animated sparks form repeated bursts near the enemy formation.
+    # Keep their maximum radius bounded so every component fits on screen.
+    first = (updates & 1) * 4
+    radius = 9 + tick % 64 // 3
+    for index in range(first, first + 4):
+        angle = index * 8
+        x = 100 + data.sine[angle] * radius // 32
+        y = 72 + data.sine[(angle + 16) & 63] * radius // 32
+        sprite(32 + index, sparks, tick // 8 & 3, x, y)

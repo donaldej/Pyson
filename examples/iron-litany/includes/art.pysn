@@ -1,0 +1,20 @@
+# Asset declarations keep their palette order together.
+seal = worldmap("../assets/seal.bmp")
+prison = worldmap("../assets/prison.bmp")
+altar = worldmap("../assets/altar.bmp")
+face = worldmap("../assets/face.bmp")
+low = tile("../assets/shade-0.bmp")
+medium = tile("../assets/shade-1.bmp")
+high = tile("../assets/shade-2.bmp")
+field = mutable_map([
+    [low,low,low,low,low,low,low,low,low,low,low,low],
+    [low,low,low,low,low,low,low,low,low,low,low,low],
+    [low,low,low,low,low,low,low,low,low,low,low,low],
+    [low,low,low,low,low,low,low,low,low,low,low,low],
+    [low,low,low,low,low,low,low,low,low,low,low,low],
+    [low,low,low,low,low,low,low,low,low,low,low,low],
+    [low,low,low,low,low,low,low,low,low,low,low,low],
+    [low,low,low,low,low,low,low,low,low,low,low,low]
+])
+points = sprite_sheet("../assets/points.bmp", 8, 8)
+eyes = sprite_sheet("../assets/eyes.bmp", 16, 8)
