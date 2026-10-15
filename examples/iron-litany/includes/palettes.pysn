@@ -1,0 +1,116 @@
+# Coordinated fades: backgrounds, sigils and the mask's eyes.
+def act_0(phase):
+    if phase == 0:
+        bg_palette(1, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(0, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(1, "#000000", "#000000", "#000000", "#000000")
+    elif phase == 1:
+        bg_palette(1, "#020203", "#100c11", "#352517", "#504a3a")
+        sprite_palette(0, "#000000", "#100c11", "#352517", "#504a3a")
+        sprite_palette(1, "#000000", "#100c11", "#352517", "#504a3a")
+    elif phase == 2:
+        bg_palette(1, "#040406", "#1f1922", "#6a4a2e", "#a09475")
+        sprite_palette(0, "#000000", "#1f1922", "#6a4a2e", "#a09475")
+        sprite_palette(1, "#000000", "#1f1922", "#6a4a2e", "#a09475")
+    elif phase == 3:
+        bg_palette(1, "#050509", "#2d2330", "#976a42", "#e4d4a7")
+        sprite_palette(0, "#000000", "#2d2330", "#976a42", "#e4d4a7")
+        sprite_palette(1, "#000000", "#2d2330", "#976a42", "#e4d4a7")
+    elif phase == 4:
+        bg_palette(1, "#050508", "#29202c", "#89603c", "#cfc198")
+        sprite_palette(0, "#000000", "#29202c", "#89603c", "#cfc198")
+        sprite_palette(1, "#000000", "#29202c", "#89603c", "#cfc198")
+def act_1(phase):
+    if phase == 0:
+        bg_palette(2, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(0, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(1, "#000000", "#000000", "#000000", "#000000")
+    elif phase == 1:
+        bg_palette(2, "#020203", "#0d0f13", "#252c2d", "#4c504e")
+        sprite_palette(0, "#000000", "#0d0f13", "#252c2d", "#4c504e")
+        sprite_palette(1, "#000000", "#0d0f13", "#252c2d", "#4c504e")
+    elif phase == 2:
+        bg_palette(2, "#040406", "#191f25", "#4a585a", "#97a09c")
+        sprite_palette(0, "#000000", "#191f25", "#4a585a", "#97a09c")
+        sprite_palette(1, "#000000", "#191f25", "#4a585a", "#97a09c")
+    elif phase == 3:
+        bg_palette(2, "#050509", "#242c35", "#697d81", "#d8e5df")
+        sprite_palette(0, "#000000", "#242c35", "#697d81", "#d8e5df")
+        sprite_palette(1, "#000000", "#242c35", "#697d81", "#d8e5df")
+    elif phase == 4:
+        bg_palette(2, "#050508", "#212830", "#607275", "#c5d0cb")
+        sprite_palette(0, "#000000", "#212830", "#607275", "#c5d0cb")
+        sprite_palette(1, "#000000", "#212830", "#607275", "#c5d0cb")
+def act_2(phase):
+    if phase == 0:
+        bg_palette(3, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(0, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(1, "#000000", "#000000", "#000000", "#000000")
+        bg_palette(5, "#000000", "#000000", "#000000", "#000000")
+        bg_palette(6, "#000000", "#000000", "#000000", "#000000")
+        bg_palette(7, "#000000", "#000000", "#000000", "#000000")
+    elif phase == 1:
+        bg_palette(3, "#020204", "#110b12", "#2f0e17", "#50382d")
+        sprite_palette(0, "#000000", "#110b12", "#2f0e17", "#50382d")
+        sprite_palette(1, "#000000", "#110b12", "#2f0e17", "#50382d")
+        bg_palette(5, "#020204", "#110b12", "#2f0e17", "#50382d")
+        bg_palette(6, "#020204", "#110b12", "#2f0e17", "#50382d")
+        bg_palette(7, "#020204", "#110b12", "#2f0e17", "#50382d")
+    elif phase == 2:
+        bg_palette(3, "#040408", "#221624", "#5d1d2f", "#a0715a")
+        sprite_palette(0, "#000000", "#221624", "#5d1d2f", "#a0715a")
+        sprite_palette(1, "#000000", "#221624", "#5d1d2f", "#a0715a")
+        bg_palette(5, "#040408", "#221624", "#5d1d2f", "#a0715a")
+        bg_palette(6, "#040408", "#221624", "#5d1d2f", "#a0715a")
+        bg_palette(7, "#040408", "#221624", "#5d1d2f", "#a0715a")
+    elif phase == 3:
+        bg_palette(3, "#06050b", "#302034", "#852943", "#e5a180")
+        sprite_palette(0, "#000000", "#302034", "#852943", "#e5a180")
+        sprite_palette(1, "#000000", "#302034", "#852943", "#e5a180")
+        bg_palette(5, "#06050b", "#302034", "#852943", "#e5a180")
+        bg_palette(6, "#06050b", "#302034", "#852943", "#e5a180")
+        bg_palette(7, "#06050b", "#302034", "#852943", "#e5a180")
+    elif phase == 4:
+        bg_palette(3, "#05050a", "#2c1d2f", "#79253d", "#d09374")
+        sprite_palette(0, "#000000", "#2c1d2f", "#79253d", "#d09374")
+        sprite_palette(1, "#000000", "#2c1d2f", "#79253d", "#d09374")
+        bg_palette(5, "#05050a", "#2c1d2f", "#79253d", "#d09374")
+        bg_palette(6, "#05050a", "#2c1d2f", "#79253d", "#d09374")
+        bg_palette(7, "#05050a", "#2c1d2f", "#79253d", "#d09374")
+def act_3(phase):
+    if phase == 0:
+        bg_palette(4, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(0, "#000000", "#000000", "#000000", "#000000")
+        sprite_palette(1, "#000000", "#000000", "#000000", "#000000")
+    elif phase == 1:
+        bg_palette(4, "#020203", "#110f0f", "#31281f", "#524b39")
+        sprite_palette(0, "#000000", "#110f0f", "#31281f", "#524b39")
+        sprite_palette(1, "#000000", "#110f0f", "#31281f", "#4f1712")
+    elif phase == 2:
+        bg_palette(4, "#040406", "#221d1d", "#614f3e", "#a49672")
+        sprite_palette(0, "#000000", "#221d1d", "#614f3e", "#a49672")
+        sprite_palette(1, "#000000", "#221d1d", "#614f3e", "#9f2f24")
+    elif phase == 3:
+        bg_palette(4, "#050509", "#302a2a", "#8b7158", "#ead6a3")
+        sprite_palette(0, "#000000", "#302a2a", "#8b7158", "#ead6a3")
+        sprite_palette(1, "#000000", "#302a2a", "#8b7158", "#e34334")
+    elif phase == 4:
+        bg_palette(4, "#050508", "#2c2626", "#7e6750", "#d5c394")
+        sprite_palette(0, "#000000", "#2c2626", "#7e6750", "#d5c394")
+        sprite_palette(1, "#000000", "#2c2626", "#7e6750", "#cf3d2f")
+
+def update(scene, tick):
+    if tick < 48:
+        phase = tick // 16
+    elif tick >= 976:
+        phase = max(0, (1023 - tick) // 16)
+    else:
+        phase = 3 + (tick // 32 & 1)
+    if scene == 0:
+        act_0(phase)
+    elif scene == 1:
+        act_1(phase)
+    elif scene == 2:
+        act_2(phase)
+    elif scene == 3:
+        act_3(phase)

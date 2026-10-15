@@ -19,15 +19,23 @@ tools/emulator-env/Scripts/python.exe dev-tools/recordings/oath-of-stars.py
 
 npm.cmd run build -- examples/last-light/main.pysn last-light
 tools/emulator-env/Scripts/python.exe dev-tools/recordings/last-light.py
+
+npm.cmd run build -- examples/zero-signal/main.pysn zero-signal
+tools/emulator-env/Scripts/python.exe dev-tools/recordings/zero-signal.py
+
+npm.cmd run build -- examples/iron-litany/main.pysn iron-litany
+tools/emulator-env/Scripts/python.exe dev-tools/recordings/iron-litany.py
+
+npm.cmd run build -- examples/star-squadron/main.pysn star-squadron
+tools/emulator-env/Scripts/python.exe dev-tools/recordings/star-squadron.py
 ```
 
 Install FFmpeg separately. If it cannot be found, pass
 `--ffmpeg "C:/path/to/ffmpeg.exe"`. Use `--output "C:/path/to/video.mp4"`
 to choose another output, or `--help` to see the options.
 
-The defaults are `binary/neon-requiem.mp4`, `binary/lucid-circuit.mp4`, and
-`binary/oath-of-stars.mp4`, and `binary/last-light.mp4`. These two recorders use fresh in-memory save RAM
-and leaves your existing `.sav` file unchanged.
+Default recordings go to `binary/<demo-name>.mp4`. Recorders use fresh in-memory
+save RAM and leave your existing `.sav` files unchanged.
 Recording replaces its chosen output file; choose a new name to preserve an earlier video.
 Build first because recording needs the ROM and matching reports/symbols.
 Rebuild after editing the example. Temporary recording files go under `build/`.

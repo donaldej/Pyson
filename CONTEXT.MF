@@ -1,10 +1,40 @@
 # Pyson project context and agent handoff
 
-Last verified: 2026-10-10. This is a Markdown-formatted handoff despite its
+Last verified: 2026-10-14. This is a Markdown-formatted handoff despite its
 `.MF` extension. Read it before planning or changing this project. It records
 project intent, current implementation, user preferences, and navigation to
 the detailed references. It is not a replacement for reading relevant code.
 Update it when architecture, public APIs, workflow, or accepted priorities change.
+
+Latest example: `examples/zero-signal/` is a separate, original four-scene
+sci-fi music demo. It preserves all earlier demos. Dual DMG/CGB target, MBC5,
+128 KiB ROM, no cartridge RAM/save, hardware frame timing, streamed BMP worlds,
+one-way city scrolling, record-based live perspective stars, a small sine table,
+sprite scanline budgeting, and original two-voice JSON music with percussion.
+`npm.cmd run test:signal` builds and runs a full cycle on both emulator models,
+checking music, motion, camera travel, sprite limits, and visible VRAM contents.
+`dev-tools/recordings/zero-signal.py` captures synchronized MP4 audio/video.
+Included assets suffice for builds; the optional internal generator stays ignored.
+
+The subsequent `examples/iron-litany/` demo responds to the user's preference
+for distinctive presentations rather than repeated landscape/ship travel. It
+uses an original grimdark gothic-machine theme: counter-rotating segmented
+ritual rings, a live two-axis 3D cube, a 12x8 mutable interference display,
+and an armored death-mask Pyson finale with blinking crimson eyes. No landscape
+panning. Dual DMG/CGB, MBC5, 128 KiB ROM, no external RAM or save. Asset
+declarations are grouped in `includes/art.pysn` to keep palette ordering explicit.
+`npm.cmd run test:litany` verifies the full cycle and controls on both models;
+`dev-tools/recordings/iron-litany.py` records its original industrial score.
+Earlier demos, including Zero Signal, are preserved.
+
+`examples/star-squadron/` is an automatic single-screen shooter showcase with
+exactly 40 visible hardware components: player slots 0..3, four enemies 4..19,
+twelve bullets 20..31, eight sparks 32..39. It has a scrolling periodic starfield,
+fixed window HUD, and a small looping arcade score. Dual DMG/CGB, 32 KiB ROM,
+no MBC or cartridge RAM. `npm.cmd run test:squadron` verifies two cycles on both
+models: all components stay visible and animated, audio plays, and no scanline
+exceeds ten components (observed maximum seven). Recording tool:
+`dev-tools/recordings/star-squadron.py`. The demo has no gameplay/collision/input.
 
 ## 1. Purpose and product philosophy
 

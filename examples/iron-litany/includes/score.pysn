@@ -1,0 +1,47 @@
+# Four original electronic movements with a custom wave bass.
+lead_0 = music_file("../assets/score-0.json")
+bass_0 = music_file("../assets/score-0.json", part=1)
+lead_1 = music_file("../assets/score-1.json")
+bass_1 = music_file("../assets/score-1.json", part=1)
+lead_2 = music_file("../assets/score-2.json")
+bass_2 = music_file("../assets/score-2.json", part=1)
+lead_3 = music_file("../assets/score-3.json")
+bass_3 = music_file("../assets/score-3.json", part=1)
+drum = sound_effect("pulse", [[147, 1, 12], [73, 2, 10], [65, 4, 5]], priority=3, duty=1)
+clash = sound_effect("noise", [[35, 2, 10], [51, 2, 7], [79, 3, 3]], priority=3)
+tick_sound = sound_effect("noise", [[8, 1, 3]], priority=2)
+chime = sound_effect("pulse", [[392, 3, 7], [415, 4, 6], [587, 5, 4]], priority=4, duty=0)
+last_beat = -1
+
+def begin(scene):
+    global last_beat
+    last_beat = -1
+    set_sound_volume(6, 6)
+    if scene == 0:
+        play_music(lead_0, restart=True)
+        play_music(bass_0, restart=True)
+    elif scene == 1:
+        play_music(lead_1, restart=True)
+        play_music(bass_1, restart=True)
+    elif scene == 2:
+        play_music(lead_2, restart=True)
+        play_music(bass_2, restart=True)
+    elif scene == 3:
+        play_music(lead_3, restart=True)
+        play_music(bass_3, restart=True)
+
+def rhythm(scene, tick):
+    global last_beat
+    beat = tick // 16
+    if beat != last_beat:
+        last_beat = beat
+        if beat & 15 == 0 and (scene == 0 or scene == 3 or scene == 2):
+            play_sound(chime)
+        elif beat & 3 == 0:
+            play_sound(drum)
+        elif beat & 3 == 2:
+            play_sound(clash)
+        else:
+            play_sound(tick_sound)
+    if tick >= 960:
+        set_sound_volume(max(0, (1023 - tick) // 10), max(0, (1023 - tick) // 10))

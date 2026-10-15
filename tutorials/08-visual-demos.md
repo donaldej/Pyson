@@ -73,6 +73,18 @@ lookup table with the prepared screen poses in the other demos. Its README
 explains the performance tradeoffs and which work happens at runtime.
 
 You can modify Void Engine or any other example to explore its techniques.
+
+[Zero Signal](../examples/zero-signal/README.md) offers a smaller sci-fi example
+with four scenes. Read its `visuals.pysn` to see a simple depth-based starfield:
+each star stores a position and depth, and dividing by depth makes nearby stars
+appear farther from the screen center. Its city camera moves in one direction;
+the final orbit uses a small sine table rather than a large list of poses.
+
+[Iron Litany](../examples/iron-litany/README.md) uses four different stationary
+presentations. Its `cube()` function rotates and projects 3D points; its
+`interference()` function changes one column of a small mutable map per update.
+Compare those live calculations with prepared poses. The large finale portrait
+is BMP artwork, with separate sprites providing blinking eyes and a moving halo.
 If you want to keep the original for comparison, copy the whole project,
 keep assets/includes together, and use another ROM name. Keep personal saves
 and existing preview videos separate from your experiments.

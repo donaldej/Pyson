@@ -3,6 +3,19 @@
 Pyson combines Python-like syntax with Jison parsing to generate Game Boy
 assembly, then assembles and links it into a playable ROM.
 
+## AI development disclosure
+
+Pyson was developed with substantial assistance from OpenAI's ChatGPT and
+Codex AI coding agents. AI contributed to the compiler and runtime implementation,
+language and API design, debugging, tests, documentation, tutorials, and example
+projects, including example artwork and music. The project owner provided the
+goals and direction, reviewed results, and tested example ROMs in emulators.
+This is an AI-assisted project, and AI-generated code and content are part of
+the repository. AI assistance does not guarantee correctness; contributions
+should be reviewed and tested like any other software.
+
+## Getting started
+
 Start with the [tutorial learning path](tutorials/README.md) for explained,
 runnable examples. Use the [grouped feature reference](documentation/README.md)
 when you need exact API behavior and limits.
@@ -97,6 +110,18 @@ chiptune score. It uses double CPU speed and ROM-resident motion tables.
 
 [Frame Timing](examples/frame-timing/README.md) demonstrates elapsed-time
 movement and audio pacing. Hold A to add CPU work while maintaining travel time.
+
+[Zero Signal](examples/zero-signal/README.md) is an original sci-fi music demo
+for Game Boy and Color: an alien planet, a scrolling neon city, live perspective
+stars in a wormhole, and a machine-core Pyson finale.
+
+[Iron Litany](examples/iron-litany/README.md) is a grimdark machine ritual:
+counter-rotating sigils, a live 3D cube, mutable-map interference, and a large
+armored mask with animated crimson eyes. It supports Game Boy and Color.
+
+[Star Squadron](examples/star-squadron/README.md) is a single-screen automatic
+space battle using all 40 sprite components: a player, four enemies, twelve
+bullets, and eight sparks, with a fixed HUD over a scrolling starfield.
 
 ```powershell
 npm.cmd run build -- examples/header-print.pysn header-print
