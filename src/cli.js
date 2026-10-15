@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { compile } = require('./compiler');
 const { assemble } = require('../scripts/dev');
-const { makeReport } = require('./build-report');
+const { makeReport, formatReport } = require('./build-report');
 try {
   const [input, name = 'pyson'] = process.argv.slice(2);
   if (!input || !/^[A-Za-z0-9_-]+$/.test(name)) throw new Error('Usage: npm run build -- project.pysn [output-name]');
@@ -33,8 +33,11 @@ try {
   fs.writeFileSync(path.join(root, 'build', `${name}.memory.json`), JSON.stringify(memory, null, 2));
   const report = makeReport(compiled, fs.readFileSync(path.join(root, 'build', `${name}.sym`), 'utf8'), fs.statSync(path.join(root, 'binary', `${name}.gb`)).size);
   fs.writeFileSync(path.join(root, 'build', `${name}.report.json`), JSON.stringify(report, null, 2));
+  const readableReport = path.join(root, 'build', `${name}.report.txt`);
+  fs.writeFileSync(readableReport, formatReport(report));
   console.log(`Report: ${path.join(root, 'build', `${name}.report.json`)} (${report.romBytes / 1024} KB ROM, ${report.wramFreeBytes} WRAM bytes free)`);
   console.log(`WRAM: ${memory.wramUsedBytes}/4096 bytes (${memory.namedVariableBytes} bytes of named variables)`);
+  console.log(`Readable graphics and memory report: ${readableReport}`);
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

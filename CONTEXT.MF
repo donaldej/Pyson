@@ -1,10 +1,41 @@
 # Pyson project context and agent handoff
 
-Last verified: 2026-10-14. This is a Markdown-formatted handoff despite its
+Last verified: 2026-10-15. This is a Markdown-formatted handoff despite its
 `.MF` extension. Read it before planning or changing this project. It records
 project intent, current implementation, user preferences, and navigation to
 the detailed references. It is not a replacement for reading relevant code.
 Update it when architecture, public APIs, workflow, or accepted priorities change.
+
+Current development priority: improve compiler/tooling without complicating
+Pyson source, and keep the Windows setup minimal. `npm.cmd ci`, `npm.cmd run setup`,
+then the normal build command suffice. Only Node/npm, locked Jison, and RGBDS
+rgbasm/rgblink/rgbfix are required. rgbgfx is bundled but optional (BMP conversion
+is internal); Python/PyBoy, BGB/other interactive emulators, FFmpeg, Git when using
+a ZIP, editor extensions, and Docker are not required to compile. Default doctor
+and setup do not inspect or fail on old optional Python environments. Explicit
+`doctor --emulator`, `setup:emulator`, profiling and recording retain their own
+requirements. Jison checks use the exact lockfile version, not string equality
+against a semver range; mismatched manifests are diagnosed separately.
+
+Every CLI build now also writes `build/<name>.report.txt`, a plain-language
+memory/graphics report. `report.json` retains its old fields and adds `graphics`:
+resident shared tile counts, imported palette counts, per-asset map positions,
+unique patterns/bytes, per-frame sprite costs, and streaming allocation/local
+peak/dictionary counts. Per-asset counts must not be summed: patterns are shared.
+Reports do not infer runtime instance counts, scanline overlap or frame speed.
+See documentation/build-reports.md. This changes tooling only, not Pyson syntax,
+generated instructions, or the graphics runtime. Interactive source debugging
+and automatic memory reuse remain future work.
+
+Installer compatibility diagnostics now run before downloads: Node version/x64,
+locked Jison, each local RGBDS tool plus informational PATH inspections. Local
+RGBDS statuses distinguish compatible, missing, wrong pinned version and unusable;
+repair touches only tools/rgbds. Archive extraction capability is checked when
+installation is necessary. Optional Python setup reports rejected versions and
+bitness, never changes other Python installations, lists all package mismatches,
+and reuses a fully compatible existing local environment without pip/downloads.
+Default setup still does not inspect or require Python. See the installer-check
+section in documentation/development.md and tests/setup.test.js.
 
 Latest example: `examples/zero-signal/` is a separate, original four-scene
 sci-fi music demo. It preserves all earlier demos. Dual DMG/CGB target, MBC5,

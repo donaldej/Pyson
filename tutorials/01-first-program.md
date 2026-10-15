@@ -14,6 +14,11 @@ Open `binary/hello-world.gb`. `print` draws text using tile coordinates, not
 pixels. The visible screen has 20 columns and 18 rows; `(0, 0)` is the top left.
 The compiler supplies a font, header, and startup code. You do not need ASM.
 
+The build also writes `build/hello-world.report.txt`. Open it in any text editor
+to see memory use. As you add graphics, the same report shows tile and sprite
+costs; no extra tools or changes to your program are needed. See
+[reading build reports](../documentation/build-reports.md).
+
 Change the message in a copy and rebuild. The displayed text should change.
 Use printable ASCII; Unicode artwork and emoji are not font characters.
 

@@ -26,7 +26,6 @@ Use PowerShell at the repository root on Windows x64:
 ```powershell
 npm.cmd ci
 npm.cmd run setup
-npm.cmd run doctor
 ```
 
 Install a GB/GBC emulator and learn its button mappings. Build commands below
@@ -36,7 +35,10 @@ are relative to their declaring source file, not your shell directory.
 
 [Windows setup](../documentation/development.md) covers prerequisites and the
 optional automated emulator environment. You do not need that environment to
-build ROMs and test them in your own emulator.
+build ROMs and test them in your own emulator. Python, PyBoy, Docker, FFmpeg,
+and editor extensions are not part of the basic setup. `npm.cmd run doctor` is
+available when you want to check the build tools; it does not require optional
+emulator or recording tools.
 
 ## Learning path
 

@@ -27,7 +27,14 @@ and build again to discover any remaining problems.
 ## Reports from successful builds
 
 Every successful CLI build writes `build/<name>.report.json` alongside the
-existing memory, asset, bank, sound, and music reports. It includes:
+existing memory, asset, bank, sound, and music reports.
+
+A readable `build/<name>.report.txt` is generated at the same time, with memory,
+tile deduplication, streaming slots, palettes, and per-frame sprite costs.
+See [reading build reports](build-reports.md). The JSON adds a `graphics` summary;
+existing fields and linked source/variable metadata remain available.
+
+The JSON report includes:
 
 - ROM size and bank placements.
 - WRAM used/free, named variables, mutable-map bytes, and runtime/buffer bytes.

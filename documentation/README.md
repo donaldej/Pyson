@@ -8,6 +8,7 @@ the development setup and compiler overview.
 ## Getting started
 
 - [Windows setup and commands](development.md)
+- [Reading memory and graphics build reports](build-reports.md)
 - [ROM header configuration](header.md)
 - [Text drawing](print.md)
 - [Buttons and the basic loop](input.md)

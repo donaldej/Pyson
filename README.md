@@ -31,6 +31,7 @@ when you need exact API behavior and limits.
 - [Mutable terrain](documentation/mutable-maps.md): editable cells with synchronized artwork and collision.
 - [Movement helpers](documentation/movement.md): pixel sweeps and wall sliding.
 - [Diagnostics](documentation/diagnostics.md): runtime source context and linked build reports.
+- [Build reports](documentation/build-reports.md): readable memory, tile, palette, and sprite budgets.
 - [Profiling and rendering development notes](documentation/advanced-rendering-notes.md): measure frame work and refresh cadence without changing game code.
 - [Feature Lab](documentation/feature-lab.md): the combined six-feature example.
 - [Arrays and indexing](documentation/arrays.md): fixed-size integer lists, mutation, length, and iteration.
@@ -68,17 +69,29 @@ from a fresh clone:
 ```powershell
 npm.cmd ci
 npm.cmd run setup
-npm.cmd run doctor
-npm.cmd run test:compiler
-npm.cmd run build -- examples/star-chase/main.pysn star-chase
+npm.cmd run build -- examples/hello-world/main.pysn hello-world
 ```
 
-Open `binary/star-chase.gb` in a Game Boy emulator. Setup installs the pinned
+Your ROM is `binary/hello-world.gb`. Open it in a Game Boy emulator when you
+want to play it. Setup installs the pinned
 RGBDS 1.0.4 tools locally and verifies the official download checksum. Jison
 0.4.18 is installed from the npm lockfile. No administrator rights, PATH changes,
 or PowerShell execution-policy changes are required.
 
-For runtime tests, install 64-bit Python 3.10?3.13, then run:
+**Only Node.js/npm and the automatically installed build tools are needed to
+compile ROMs.** Docker, Python, PyBoy, BGB, FFmpeg, an editor extension, and a
+C/C++ compiler are not required. Git is optional if you download the repository
+as a ZIP. Pyson converts BMPs itself; the bundled `rgbgfx` utility is optional.
+
+`npm.cmd run doctor` checks the required build tools. Optional testing and
+recording tools do not make this check fail, even if an old Python environment
+is present. Tests are a separate developer step: `npm.cmd run test:compiler`.
+
+Setup reports existing dependency versions and locations before installing,
+explains mismatches, and repairs project-local RGBDS tools without changing
+system installations. See [installer checks](documentation/development.md#understanding-installer-checks).
+
+For optional emulator tests, install 64-bit Python 3.10-3.13, then run:
 
 ```powershell
 npm.cmd run setup:emulator

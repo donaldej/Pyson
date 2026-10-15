@@ -4,7 +4,9 @@
     "archive": "rgbds-win64.zip",
     "url": "https://github.com/gbdev/rgbds/releases/download/v1.0.4/rgbds-win64.zip",
     "sha256": "bd1d7e386f290afd57f4ea9a7353bfcd4ae10884a94c5c1f2fc42a75db7f97e6",
-    "tools": ["rgbasm", "rgblink", "rgbfix", "rgbgfx"]
+    "tools": ["rgbasm", "rgblink", "rgbfix", "rgbgfx"],
+    "requiredTools": ["rgbasm", "rgblink", "rgbfix"],
+    "optionalTools": ["rgbgfx"]
   },
   "python": { "min": [3, 10], "maxExclusive": [3, 14] }
 }
