@@ -4,7 +4,7 @@ const path = require('node:path');
 const https = require('node:https');
 const crypto = require('node:crypto');
 const { pipeline } = require('node:stream/promises');
-const { root, config, execute, rgbdsVersion, pythonSupported, inspectPython, verifyEmulator, doctor } = require('./environment');
+const { root, config, execute, rgbdsVersion, inspectRGBDS, checkNode, pythonSupported, inspectPython, verifyEmulator, checkLockedDependency, doctor } = require('./environment');
 
 function checkArchive(file) {
   const hash = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -46,10 +46,20 @@ function removeStaging(directory) {
 }
 async function installRGBDS(archive) {
   const destination = path.join(root, 'tools/rgbds');
-  const installed = config.rgbds.tools.every(name => {
-    try { return rgbdsVersion(path.join(destination, name + '.exe')) === config.rgbds.version; } catch { return false; }
+  console.log(`Checking RGBDS installations (project version: ${config.rgbds.version})...`);
+  const local = config.rgbds.requiredTools.map(name => {
+    const result = inspectRGBDS(path.join(destination, name + '.exe'));
+    console.log(describeRGBDS(name, result, true));
+    return result;
   });
+  for (const name of config.rgbds.requiredTools) console.log(describeRGBDS(name, inspectRGBDS(name + '.exe'), false));
+  console.log('[INFO] Setup only installs or repairs tools/rgbds; system installations and PATH are left unchanged.');
+  const installed = local.every(result => result.status === 'compatible');
   if (installed && !archive) { console.log(`RGBDS ${config.rgbds.version} is already installed locally.`); return; }
+  const extraction = execute('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command',
+    'if (Get-Command Expand-Archive -ErrorAction SilentlyContinue) { Write-Output ($PSVersionTable.PSVersion.ToString()) } else { Write-Error "Expand-Archive is unavailable"; exit 1 }']);
+  if (extraction.error || extraction.status !== 0) throw new Error('[MISSING/INCOMPATIBLE] Windows PowerShell with Expand-Archive is required to extract RGBDS. Restore the built-in Windows PowerShell installation, then rerun setup.');
+  console.log(`[OK] Windows PowerShell ${extraction.stdout.trim()}: archive extraction available.`);
   fs.mkdirSync(path.join(root, 'tools'), { recursive: true });
   const staging = fs.mkdtempSync(path.join(root, 'tools/.setup-rgbds-'));
   try {
@@ -73,47 +83,80 @@ async function installRGBDS(archive) {
     console.log(`Installed RGBDS ${config.rgbds.version} in tools/rgbds.`);
   } finally { removeStaging(staging); }
 }
-function choosePython() {
+function describeRGBDS(name, result, local) {
+  const location = local ? 'project-local' : 'PATH';
+  const prefix = local ? result.status === 'compatible' ? 'OK' : result.status.toUpperCase() : 'INFO';
+  const source = `${location} ${name} (${result.executable})`;
+  if (result.status === 'compatible') return `[${prefix}] ${source}: ${result.version}, compatible.`;
+  if (result.status === 'missing') return `[${prefix}] ${source}: not installed.${local ? ' Setup will install it.' : ' No system-wide installation is needed.'}`;
+  if (result.status === 'incompatible') return `[${prefix}] ${source}: installed ${result.version}; project requires ${result.expected}.${local ? ' Setup will replace this local executable.' : ' This version will not be used after local setup.'}`;
+  return `[${prefix}] ${source}: installed but could not run or identify its version: ${result.detail}.${local ? ' Setup will repair this local executable.' : ' The local tools will be used instead.'}`;
+}
+function choosePython(inspect = inspectPython, environment = process.env, log = console.log) {
   const candidates = [];
-  const requestedPython = process.env.PYSON_SETUP_PYTHON || process.env.GBPY_SETUP_PYTHON;
+  const requestedPython = environment.PYSON_SETUP_PYTHON || environment.GBPY_SETUP_PYTHON;
   if (requestedPython) candidates.push([requestedPython, []]);
   else {
+    // Also identify a default unsupported installation before trying supported versions.
+    candidates.push(['py.exe', []]);
     for (const minor of [13, 12, 11, 10]) candidates.push(['py.exe', [`-3.${minor}`]]);
     candidates.push(['python.exe', []]);
   }
   for (const [command, args] of candidates) {
-    const info = inspectPython(command, args);
-    if (info && info.bits === 64 && pythonSupported(info.version)) return info.executable;
+    const info = inspect(command, args);
+    if (!info) { log(`[MISSING/UNUSABLE] Python (${[command, ...args].join(' ')}): could not run this candidate.`); continue; }
+    if (info.bits === 64 && pythonSupported(info.version)) {
+      log(`[OK] Python ${info.version.join('.')} (${info.bits}-bit): ${info.executable}`);
+      return info.executable;
+    }
+    log(`[INCOMPATIBLE] Python ${info.version.join('.')} (${info.bits}-bit): ${info.executable}. Optional emulator tools need 64-bit Python 3.10-3.13; this installation will not be changed.`);
   }
   throw new Error('Install 64-bit Python 3.10–3.13 with the Python launcher, or set PYSON_SETUP_PYTHON to its executable.');
 }
 function installEmulator() {
   const environment = path.join(root, 'tools/emulator-env');
   const python = path.join(environment, 'Scripts/python.exe');
-  if (!fs.existsSync(python)) run(choosePython(), ['-m', 'venv', environment]);
+  if (fs.existsSync(python)) {
+    try {
+      const info = verifyEmulator(python);
+      console.log(`[OK] Optional emulator environment already compatible: Python ${info.version.join('.')}, PyBoy ${info.packages.pyboy}. No package download needed.`);
+      return;
+    } catch (error) {
+      const existing = inspectPython(python);
+      console.log(`[INCOMPATIBLE/INCOMPLETE] Optional emulator environment: ${existing ? `Python ${existing.version.join('.')} (${existing.bits}-bit)` : 'Python cannot run'}. ${error.message}`);
+    }
+  }
+  if (!fs.existsSync(python)) {
+    console.log(`[MISSING] Project-local emulator Python (${python}). Creating the optional environment.`);
+    run(choosePython(), ['-m', 'venv', environment]);
+  }
   const info = inspectPython(python);
-  if (!info || info.bits !== 64 || !pythonSupported(info.version)) throw new Error('tools/emulator-env needs Python 3.10–3.13. Rename the old environment and run setup:emulator again.');
+  if (!info || info.bits !== 64 || !pythonSupported(info.version)) throw new Error(`Existing emulator Python is ${info ? `${info.version.join('.')} (${info.bits}-bit)` : 'unusable'}; tools/emulator-env needs 64-bit Python 3.10-3.13. Rename the old environment and run setup:emulator again. Normal ROM builds do not need it.`);
+  console.log('[INFO] Installing or repairing pinned packages in the project-local emulator environment only.');
   run(python, ['-m', 'pip', 'install', '--disable-pip-version-check', '-r', path.join(root, 'tests/emulator-requirements.txt')]);
   verifyEmulator(python);
   console.log('Emulator environment installed in tools/emulator-env. No activation needed.');
 }
 async function main(args) {
   if (args.includes('--help')) { console.log('Usage: npm.cmd run setup -- [--emulator] [--rgbds-archive path.zip]'); return; }
-  if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('Automatic setup currently supports 64-bit Windows only.');
+  if (process.platform !== 'win32') throw new Error(`Automatic setup supports 64-bit Windows; detected ${process.platform}/${process.arch}.`);
   let archive;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--emulator') continue;
     if (args[i] === '--rgbds-archive' && args[i + 1] && !args[i + 1].startsWith('--')) archive = args[++i];
     else throw new Error(`Unknown or incomplete setup option: ${args[i]}`);
   }
-  const expected = require('../package.json').devDependencies.jison;
+  try { console.log(`[OK] Node.js: ${checkNode()}`); }
+  catch (error) { throw new Error(`[INCOMPATIBLE] Node.js: ${error.message}`); }
   let actual;
   try { actual = require('jison/package.json').version; } catch {}
-  if (actual !== expected) throw new Error('Install JavaScript dependencies first: npm.cmd ci.');
+  try { checkLockedDependency('jison', actual); }
+  catch (error) { throw new Error(`[${actual ? 'INCOMPATIBLE' : 'MISSING'}] Jison: ${error.message}`); }
+  console.log(`[OK] Jison: installed ${actual}, matches the lockfile.`);
   await installRGBDS(archive);
   if (args.includes('--emulator')) installEmulator();
   doctor(args.includes('--emulator'));
-  console.log('Setup complete. Build an example with npm.cmd run build -- examples/star-chase/main.pysn star-chase.');
+  console.log('Setup complete. Build your first ROM: npm.cmd run build -- examples/hello-world/main.pysn hello-world');
 }
-module.exports = { checkArchive, removeStaging, main };
+module.exports = { checkArchive, removeStaging, describeRGBDS, choosePython, main };
 if (require.main === module) main(process.argv.slice(2)).catch(error => { console.error(error.message); process.exitCode = 1; });
