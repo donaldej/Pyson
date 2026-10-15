@@ -5,14 +5,16 @@ assembly, then assembles and links it into a playable ROM.
 
 ## AI development disclosure
 
-Pyson was developed with substantial assistance from OpenAI's ChatGPT and
-Codex AI coding agents. AI contributed to the compiler and runtime implementation,
-language and API design, debugging, tests, documentation, tutorials, and example
-projects, including example artwork and music. The project owner provided the
-goals and direction, reviewed results, and tested example ROMs in emulators.
-This is an AI-assisted project, and AI-generated code and content are part of
-the repository. AI assistance does not guarantee correctness; contributions
-should be reviewed and tested like any other software.
+Pyson was developed through active collaboration between the project owner and
+OpenAI's ChatGPT and Codex coding agents. AI generated nearly all project-specific
+implementation, alongside tests, documentation, and example content. The project
+owner established the vision and requirements, challenged design and
+implementation decisions, guided revisions, and tested example ROMs in emulators.
+
+AI-generated code and content are a substantial part of this repository. This
+disclosure does not imply that every line received human code review or that
+correctness is guaranteed. Third-party dependencies, including Jison and RGBDS,
+are independently developed projects.
 
 ## Getting started
 
