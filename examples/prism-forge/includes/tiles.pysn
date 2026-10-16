@@ -1,3 +1,16 @@
+# THE SHARED PATTERN DICTIONARY
+# Each tN is an asset handle naming one 8x8 selection of patterns.bmp. x/y
+# are tile coordinates, not pixels: (1, 0) begins eight pixels to the right.
+# These are compile-time declarations, not 112 runtime image-loading calls.
+# The 112 named patterns form the image vocabulary shared by all 120 layouts.
+# Choosing t43 repeatedly does not allocate a fresh copy of its pixels each time.
+#
+# The names are dictionary indices, not descriptions of separate scene objects.
+# Changing one selected pattern can change many frames in several scenes.
+# Replacing the atlas also requires preserving these coordinates or updating
+# the matching layouts. Palette 1 is set by visuals.colors(); it can recolor
+# the same patterns without altering their arrangement or stored pixel shapes.
+
 # Shared atlas; x/y are tile coordinates. All selections share one palette.
 t0 = tile("../assets/patterns.bmp", x=0, y=0)
 t1 = tile("../assets/patterns.bmp", x=1, y=0)

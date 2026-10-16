@@ -1,3 +1,20 @@
+# AUDIO READING GUIDE
+# music_file is a compile-time asset declaration: JSON notes become ROM music
+# data. The default part is the first JSON part (index 0); part=1 selects the
+# second. These scores use a pulse lead and a custom-wave bass. Calling
+# play_music starts the runtime sequencer for that part; it does not parse JSON
+# on the console. The remaining pulse/noise channels supply short percussion.
+#
+# sound_effect steps are [pitch, duration, volume]. Pulse pitch is frequency in
+# Hz; noise pitch is a hardware noise setting, not a musical Hz frequency.
+# Duration is in sequencer ticks; volume is 0..15. duty selects the pulse shape.
+# Priority arbitrates competing short effects on a shared channel: the snare
+# should take precedence over the quiet hat. No sample-audio file is streamed.
+#
+# The main loop supplies elapsed-frame position. Music progresses through the
+# audio runtime, while rhythm() requests appropriate percussion at update time.
+# It intentionally does not replay every missed drum hit after a slow draw.
+
 # Five original related arrangements; two music voices plus two effect channels.
 lead0 = music_file("../assets/score-0.json")
 bass0 = music_file("../assets/score-0.json", part=1)
@@ -12,14 +29,27 @@ bass4 = music_file("../assets/score-4.json", part=1)
 kick = sound_effect("pulse", [[180,1,12],[94,2,10],[65,3,7]], duty=1, priority=3)
 snare = sound_effect("noise", [[35,1,11],[51,2,7],[79,3,3]], priority=3)
 hat = sound_effect("noise", [[8,1,4]], priority=1)
+# Remember the last percussion subdivision already visited. -1 ensures
+# the first subdivision can trigger. This is shared module state, unlike a
+# local temporary calculated fresh on each function call.
 last_beat = -1
 
+# Scene-entry audio setup. Stop previous music and effects before selecting
+# the new pair. Reset the percussion cache so the first beat is eligible.
 def begin(scene):
+    # global is needed because this function rebinds the module variable.
+    # Without shared last_beat, repeated calls at the same tick could retrigger
+    # the same drum and erase its natural decay.
     global last_beat
     stop_music()
     stop_sound()
     last_beat = -1
+    # Set left/right master levels (0..7). Six leaves a little headroom while
+    # per-note volume and each effect's envelope control the internal balance.
     set_sound_volume(6, 6)
+    # Select both parts of the same movement and explicitly restart them.
+    # Each branch starts the matching lead/bass pair; it does not layer every
+    # score on top of the previous one. Arrangement choice follows scene choice.
     if scene == 0:
         play_music(lead0, restart=True)
         play_music(bass0, restart=True)
@@ -38,6 +68,10 @@ def begin(scene):
 
 def rhythm(tick):
     global last_beat
+    # One drum subdivision is six hardware display frames. Repeated calls
+    # within it do nothing. Modulo 8 gives a repeating kick/snare pattern; odd
+    # subdivisions fill the gaps with hats. The elif chain allows one hit per
+    # visited subdivision, avoiding a simultaneous snare and hat on noise.
     beat = tick // 6
     if beat != last_beat:
         last_beat = beat

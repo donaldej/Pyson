@@ -1,11 +1,36 @@
+# VISUAL PIPELINE AND COORDINATE GUIDE
+# Background map positions use 8x8-tile coordinates; sprite positions use pixels.
+# The visible display is 20x18 tiles, or 160x144 pixels. Each point here uses an
+# 8x8 sprite. Its x/y position describes the upper-left corner, not its center.
+#
+# rows and old_y are mutable module arrays shared by these helper functions.
+# Changing an array element updates that shared array; no global declaration is
+# needed for element assignment. These arrays are software bookkeeping, not extra
+# images. They remain valid because reset and point updates keep them in sync.
+#
+# The hardware allows 40 sprites in total but only 10 on any scanline. Merely
+# staying below 40 does not prevent flicker or missing points. We conservatively
+# limit occupied 8-pixel-high bands to eight points, leaving headroom. A point
+# crossing a band boundary contributes to both bands. This can reject a point
+# even when the precise per-scanline hardware count would still permit it.
+
 # Prepared background imagery and live sprite geometry have separate jobs.
+# art declares compile-time clip/sprite assets; palettes contains authored
+# color steps; motion supplies a ROM sine table. These helpers keep asset
+# definitions, color choices and CPU geometry separate from timeline control.
 import includes.art as art
 import includes.motion as motion
 import includes.palettes as palettes
 
+# One counter per visible tile row (18 total). old_y stores the previous
+# visible y for each of our 32 managed points; -1 means it is not reserved.
+# Only y is needed because the scanline limit applies across the whole width.
 rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
+# One-time setup before the first clip. Slot 0 is the base palette and the
+# point sprite palette. Sprite color 0 is transparent in hardware. The image
+# clips use their own background slots, selected by colors() for each act.
 def initialize():
     bg_palette(0, "#03050E", "#27334F", "#7793C8", "#DFFAFF")
     sprite_palette(0, "#000000", "#E8FFFF", "#92D5EA", "#E8FFFF")
@@ -13,6 +38,9 @@ def initialize():
     reset_points()
     colors(0, 0)
 
+# Clear both visible state and software reservations as one operation.
+# Call at scene changes and dissolve entry, not every geometry pass: the
+# round-robin update depends on keeping other points between iterations.
 def reset_points():
     for slot in range(40):
         hide_sprite(slot)
@@ -21,9 +49,16 @@ def reset_points():
     for slot in range(32):
         old_y[slot] = -1
 
+# Delegate literal palette selection. step 0 holds the scene's own scheme;
+# steps 1..16 progress toward the following scene's palette, including the
+# last scene's return to the first. See palettes.pysn for the actual colors.
 def colors(scene, step):
     palettes.apply(scene, step)
 
+# Pick one of seven background_clip handles and its zero-based picture.
+# (0, 0) is the top-left background tile, so a 160x144 picture fills the screen.
+# The runtime streams tile patterns into the inactive buffer, rather than
+# keeping all 294 pictures resident. main decides when to present the result.
 def draw(scene, frame):
     if scene == 0:
         draw_background(art.pulse, frame, 0, 0)
@@ -42,64 +77,110 @@ def draw(scene, frame):
 
 def point(slot, x, y, frame):
     # Count both tile rows touched by each component; keep margin below ten.
+    # Release this slot's previous reservation before trying its new position.
+    # This matters when only four slots are updated: the other 28 points remain
+    # visible and must retain their reservations. Release both bands if needed.
     previous_y = old_y[slot]
     if previous_y >= 0:
         rows[previous_y // 8] -= 1
         if (previous_y + 7) // 8 != previous_y // 8:
             rows[(previous_y + 7) // 8] -= 1
+    # Clear the reservation before any early return. If this point is clipped
+    # or rejected by the budget, future updates must not subtract it a second time.
     old_y[slot] = -1
+    # Keep all eight sprite pixels horizontally on screen (160 - 8 = 152).
+    # The vertical range is an artistic inset, also avoiding the text edges.
+    # Clipping first keeps later array indices inside the 18-row occupancy array.
     if x < 0 or x > 152 or y < 12 or y > 124:
         hide_sprite(slot)
         return
+    # An 8-pixel sprite at y=16 touches band 2 only; at y=17 it touches bands
+    # 2 and 3. Using y+7 tests its last pixel. A band-aligned sprite must be counted
+    # once, which is why the later bottom increment is conditional.
     top = y // 8
     bottom = (y + 7) // 8
+    # Reject the point if either band is already full. hide_sprite removes its
+    # old visual position too; clearing bookkeeping alone would leave it visible.
     if rows[top] >= 8 or rows[bottom] >= 8:
         hide_sprite(slot)
         return
     rows[top] += 1
     if bottom != top:
         rows[bottom] += 1
+    # Save only a successfully placed point's position. sprite() updates the
+    # runtime's sprite state, which the main loop presents with refresh_screen.
+    # frame is the sprite-sheet cell index; small bright marks suggest depth.
     old_y[slot] = y
     sprite(slot, art.photons, frame, x, y)
 
 def geometry(scene, tick, updates):
     # Let the dissolves stand on their own, without a second layer of clutter.
+    # The final quarter of each movement is a prepared dissolve. main clears
+    # points at entry; returning here prevents new points covering that morph.
     if tick >= 768:
         return
+    # The eye passage deliberately has no live points; its quiet composition
+    # and sparse accent sound provide contrast with the surrounding movements.
     if scene == 4:
         return
+    # The face uses just two eye glints, bypassing the 32-point allocator.
+    # They share y=52, so only two sprites meet any scanline. The sine gives a
+    # small sideways drift, roughly four pixels; resetting on entry/exit keeps
+    # these directly managed slots separate from the allocator's reservations.
     if scene == 5:
         phase = (tick // 3) & 63
         offset = motion.sine[phase] // 8
         sprite(0, art.photons, 0, 61 + offset, 52)
         sprite(1, art.photons, 0, 91 + offset, 52)
         return
+    # Spread 32 points over eight iterations: slots 0..3, then 4..7, and so on.
+    # Unvisited slots keep their last positions. This reduces arithmetic per pass
+    # at the cost of points not all moving at the same instant. It is not 32 new
+    # sprites per pass, nor a promise that each point updates every eight frames.
     first = (updates % 8) * 4
     phase = (tick // 3) & 63
     for slot in range(first, first + 4):
         a = (phase + slot * 2) & 63
+        # The table approximates sine with integers in -32..32. Adding 16 to a
+        # 64-step phase gives a quarter-turn, so the same table supplies cosine.
+        # & 63 wraps nonnegative phase indices into 0..63 without floating point.
         s = motion.sine[a]
         c = motion.sine[(a + 16) & 63]
+        # A live waveform trace answers the prepared waveform image. Slot number
+        # sets horizontal spacing; sine sets height. It is generated from numbers at
+        # runtime, independently of the current background frame.
         if scene == 0:
             # A second live trace answers the prepared waveform.
             x = 12 + slot * 4
             y = 68 + s // 3
             point(slot, x, y, 0)
+        # Equal sine/cosine scales form a circular ring. A brighter sheet cell every
+        # eighth slot makes four orbit accents without allocating additional sprites.
         elif scene == 1:
             x = 76 + c
             y = 68 + s
             point(slot, x, y, slot % 8 == 0)
+        # Counter-rotate depth relative to phase, then apply a perspective divide.
+        # 90+z stays between 58 and 122, avoiding division by zero. Smaller divisors
+        # place a point farther from the center. This affects sprites only: shaded
+        # background geometry is still authored imagery. z>0 picks a depth-cue mark.
         elif scene == 2:
             # Perspective division and this counter-rotation happen on the GB CPU.
             z = motion.sine[(a * 3 - phase) & 63]
             x = 76 + c * 130 // (90 + z)
             y = 68 + s * 100 // (90 + z)
             point(slot, x, y, z > 0)
+        # Four columns of falling points. Modulo wraps vertical travel within a
+        # 104-pixel corridor; slot*13 staggers the points so they do not fall in rows.
+        # The point helper can suppress crowded positions instead of exceeding limits.
         elif scene == 3:
             x = 24 + (slot % 4) * 34
             y = 18 + ((tick // 2 + slot * 13) % 104)
             point(slot, x, y, slot % 4 == 0)
         else:
+            # The signature scene keeps particles at the left and right edges, leaving
+            # the central lettering unobstructed. Integer division pairs slot phases;
+            # modulo wraps motion rather than allocating or destroying new objects.
             x = 8 + (slot % 2) * 144
             y = 16 + ((tick // 2 + (slot // 2) * 7) % 112)
             point(slot, x, y, slot % 8 == 0)

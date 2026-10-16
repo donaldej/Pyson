@@ -1,4 +1,23 @@
+# VISUAL PIPELINE AND COORDINATE GUIDE
+# Background map positions use 8x8-tile coordinates; sprite positions use pixels.
+# The visible display is 20x18 tiles, or 160x144 pixels. Each point here uses an
+# 8x8 sprite. Its x/y position describes the upper-left corner, not its center.
+#
+# rows and old_y are mutable module arrays shared by these helper functions.
+# Changing an array element updates that shared array; no global declaration is
+# needed for element assignment. These arrays are software bookkeeping, not extra
+# images. They remain valid because reset and point updates keep them in sync.
+#
+# The hardware allows 40 sprites in total but only 10 on any scanline. Merely
+# staying below 40 does not prevent flicker or missing points. We conservatively
+# limit occupied 8-pixel-high bands to eight points, leaving headroom. A point
+# crossing a band boundary contributes to both bands. This can reject a point
+# even when the precise per-scanline hardware count would still permit it.
+
 # Image layouts are ROM data. Sprite transforms below run on the Game Boy CPU.
+# Each frames module owns 24 static tilemaps for one act. Import aliases
+# give those modules readable scene names. motion supplies only numeric data;
+# the orbital position calculations below still execute on the console.
 import includes.frames0 as facet
 import includes.frames1 as fold
 import includes.frames2 as knot
@@ -7,9 +26,16 @@ import includes.frames4 as mask
 import includes.motion as motion
 
 sparks = sprite_sheet("../assets/sparks.bmp")
+# One counter per visible tile row (18 total). old_y stores the previous
+# visible y for each of our 32 managed points; -1 means it is not reserved.
+# Only y is needed because the scanline limit applies across the whole width.
 rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
 
+# Act-entry work, called once through main's prepared flag. Clear the old
+# background, hide every hardware sprite slot (including unused 32..39), then
+# reset counters before any new points are placed. Text occupies rows 0 and 17;
+# the 20x16 image is drawn between them at tile position (0, 1).
 def prepare(scene):
     clear_screen()
     for slot in range(40):
@@ -36,6 +62,9 @@ def prepare(scene):
     colors(scene, 0)
     field(scene, 0)
 
+# Route the scene number to its tilemap module. Each draw(frame) selects a
+# ROM-resident layout and copies its tile references to the buffered map.
+# The 112 shared pixel patterns remain reusable across all acts and frames.
 def field(scene, frame):
     if scene == 0:
         facet.draw(frame)
@@ -48,6 +77,10 @@ def field(scene, frame):
     else:
         mask.draw(frame)
 
+# Palette 0 serves the text/base colors; palette 1 serves the image tiles.
+# Sprite palette 0 colors the point sheet. Changing a palette recolors its
+# users without replacing their shapes. Alternate schemes in acts 1 and 3
+# use integer division and modulo to switch at deliberately slower intervals.
 def colors(scene, tick):
     bg_palette(0, "#040814", "#294858", "#8EC9D2", "#F4F1DC")
     sprite_palette(0, "#000000", "#FFFFFF", "#8CE8F0", "#FFFFFF")
@@ -70,50 +103,86 @@ def colors(scene, tick):
 
 def point(slot, x, y, frame):
     # Remove this point's old contribution before testing its new position.
+    # Release this slot's previous reservation before trying its new position.
+    # This matters when only four slots are updated: the other 28 points remain
+    # visible and must retain their reservations. Release both bands if needed.
     previous_y = old_y[slot]
     if previous_y >= 0:
         rows[previous_y // 8] -= 1
         if (previous_y + 7) // 8 != previous_y // 8:
             rows[(previous_y + 7) // 8] -= 1
+    # Clear the reservation before any early return. If this point is clipped
+    # or rejected by the budget, future updates must not subtract it a second time.
     old_y[slot] = -1
+    # Keep all eight sprite pixels horizontally on screen (160 - 8 = 152).
+    # The vertical range is an artistic inset, also avoiding the text edges.
+    # Clipping first keeps later array indices inside the 18-row occupancy array.
     if x < 0 or x > 152 or y < 12 or y > 124:
         hide_sprite(slot)
         return
+    # An 8-pixel sprite at y=16 touches band 2 only; at y=17 it touches bands
+    # 2 and 3. Using y+7 tests its last pixel. A band-aligned sprite must be counted
+    # once, which is why the later bottom increment is conditional.
     top = y // 8
     bottom = (y + 7) // 8
     # Reserve at most eight points per tile row: below the hardware limit of ten.
+    # Reject the point if either band is already full. hide_sprite removes its
+    # old visual position too; clearing bookkeeping alone would leave it visible.
     if rows[top] >= 8 or rows[bottom] >= 8:
         hide_sprite(slot)
         return
     rows[top] += 1
     if bottom != top:
         rows[bottom] += 1
+    # Save only a successfully placed point's position. sprite() updates the
+    # runtime's sprite state, which the main loop presents with refresh_screen.
+    # frame is the sprite-sheet cell index; small bright marks suggest depth.
     old_y[slot] = y
     sprite(slot, sparks, frame, x, y)
 
 def geometry(scene, tick, updates):
     # The ribbon/corona acts need no sprite work; spend their budget on the field.
+    # Those acts rely on their backgrounds alone. prepare() has already hidden
+    # the old points; returning here therefore leaves no previous act's debris.
     if scene == 1 or scene == 3:
         return
     # Update four of 32 points per iteration, keeping arithmetic bounded.
+    # Spread 32 points over eight iterations: slots 0..3, then 4..7, and so on.
+    # Unvisited slots keep their last positions. This reduces arithmetic per pass
+    # at the cost of points not all moving at the same instant. It is not 32 new
+    # sprites per pass, nor a promise that each point updates every eight frames.
     first = (updates % 8) * 4
     phase = (tick // 6) & 63
     tilt = (tick // 12) & 63
     for slot in range(first, first + 4):
         a = (slot * 2 + phase) & 63
+        # The table approximates sine with integers in -32..32. Adding 16 to a
+        # 64-step phase gives a quarter-turn, so the same table supplies cosine.
+        # & 63 wraps nonnegative phase indices into 0..63 without floating point.
         s = motion.sine[a]
         c = motion.sine[(a + 16) & 63]
+        # The knot background is prepared artwork, while these orbiting points are
+        # live. z changes the divisor: nearer points spread farther from the center.
+        # 100+z stays in 68..132, so it never reaches zero. Products are deliberately
+        # small enough for Pyson's signed integer arithmetic. z>0 selects sheet frame
+        # 0 or 1 as an extra depth cue; it is not background occlusion testing.
         if scene == 2:
             # Live counter-rotating projection surrounds the precomputed knot.
             z = motion.sine[(a * 3 + tilt) & 63]
             x = 76 + c * 160 // (100 + z)
             y = 68 + s * 110 // (100 + z)
             point(slot, x, y, z > 0)
+        # A horizontal orbit of radius about 64 pixels is tilted by a second sine.
+        # Dividing by 32 removes the lookup table's scale after multiplying. Sparse
+        # larger marks (frame 2 every eighth slot) accent the halo around the mask.
         elif scene == 4:
             # Two orbiting halos frame the face without filling it with debris.
             x = 76 + c * 2
             y = 68 + s * motion.sine[(tilt + 16) & 63] // 32
             point(slot, x, y, (slot % 8 == 0) * 2)
+        # An ellipse uses the same sine/cosine pair with different axis scales:
+        # about 64 pixels horizontally and 16 vertically. The center uses 76/68
+        # because coordinates describe the 8x8 sprite's corner, not its center.
         elif scene == 0:
             x = 76 + c * 2
             y = 68 + s // 2

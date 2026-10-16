@@ -1,2 +1,15 @@
+# NUMERIC LOOKUP DATA, NOT AN ANIMATION
+# There are 64 evenly spaced samples around one circle. Index 0 is zero,
+# 16 is the positive peak, 32 returns to zero, and 48 is the negative peak.
+# Values are rounded integers scaled by 32, so a unit sine becomes -32..32.
+# constant_table stores these immutable values in ROM instead of a mutable RAM
+# array. Reading one sample is runtime work; the table itself is compiled data.
+#
+# Example: sine[phase] * 2 produces an approximately 64-pixel displacement.
+# sine[(phase + 16) & 63] supplies cosine using the same table. Masking with
+# 63 wraps this power-of-two table. This avoids a trigonometry dependency or
+# floating-point calculations. You can author a table with a spreadsheet or
+# script; ordinary games can instead use simple x += speed movement.
+
 # Sine lookup used for live sprite geometry. Scale: 32.
 sine = constant_table([0,3,6,9,12,15,18,20,23,25,27,28,30,31,31,32,32,32,31,31,30,28,27,25,23,20,18,15,12,9,6,3,0,-3,-6,-9,-12,-15,-18,-20,-23,-25,-27,-28,-30,-31,-31,-32,-32,-32,-31,-31,-30,-28,-27,-25,-23,-20,-18,-15,-12,-9,-6,-3])

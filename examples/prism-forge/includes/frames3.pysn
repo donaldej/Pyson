@@ -1,3 +1,20 @@
+# PREPARED CORONA LAYOUTS: HOW TO READ THIS DATA
+# This module holds 24 pictures, f0 through f23. Each tilemap is a nested list:
+# 16 rows of 20 tile handles, read left-to-right and then top-to-bottom.
+# 20 * 8 = 160 pixels wide; 16 * 8 = 128 pixels high. draw_map places it at
+# tile row 1, leaving the first and last screen rows for the main scene labels.
+#
+# A list item such as tiles.t43 refers to a pattern in tiles.pysn. It is not a
+# new sprite and does not run a drawing command by itself. tilemap() converts
+# this static arrangement into ROM asset data during compilation. Repeated
+# handles reuse pixel patterns. Runtime draw() chooses one of these layouts;
+# the console does not recompute the original shaded corona image.
+#
+# The long rows are authored asset data. To change motion, change the frame
+# sequence or timing; to redesign the images, edit the layouts and/or atlas.
+# You do not need to hand-enter lists like these for normal movement: a BMP
+# tilemap or a handful of sprites can be much easier for a basic game.
+
 # CORONA / 04. Precomputed frames; shared 112-pattern atlas.
 import includes.tiles as tiles
 
@@ -434,6 +451,10 @@ f23 = tilemap([
     [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t0,tiles.t0,tiles.t25,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
 ])
 
+# Dispatch a zero-based frame number to its fixed asset handle. main keeps
+# frame in 0..23, so one branch matches. There is no fallback for invalid
+# indices here. The coordinates are tile units, not sprite/pixel units.
+# draw_map changes the buffered background; main later calls refresh_screen.
 def draw(frame):
     if frame == 0:
         draw_map(f0, 0, 1)

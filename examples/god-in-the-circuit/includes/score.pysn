@@ -1,3 +1,20 @@
+# AUDIO READING GUIDE
+# music_file is a compile-time asset declaration: JSON notes become ROM music
+# data. The default part is the first JSON part (index 0); part=1 selects the
+# second. These scores use a pulse lead and a custom-wave bass. Calling
+# play_music starts the runtime sequencer for that part; it does not parse JSON
+# on the console. The remaining pulse/noise channels supply short percussion.
+#
+# sound_effect steps are [pitch, duration, volume]. Pulse pitch is frequency in
+# Hz; noise pitch is a hardware noise setting, not a musical Hz frequency.
+# Duration is in sequencer ticks; volume is 0..15. duty selects the pulse shape.
+# Priority arbitrates competing short effects on a shared channel: the snare
+# should take precedence over the quiet hat. No sample-audio file is streamed.
+#
+# The main loop supplies elapsed-frame position. Music progresses through the
+# audio runtime, while rhythm() requests appropriate percussion at update time.
+# It intentionally does not replay every missed drum hit after a slow draw.
+
 # One original industrial motif develops across seven eight-bar arrangements.
 lead0 = music_file("../assets/score-0.json")
 bass0 = music_file("../assets/score-0.json", part=1)
@@ -17,13 +34,27 @@ kick = sound_effect("pulse", [[190,1,13],[102,2,11],[65,5,7]], duty=1, priority=
 snare = sound_effect("noise", [[35,1,12],[51,2,8],[79,4,4]], priority=3)
 hat = sound_effect("noise", [[8,1,4]], priority=1)
 accent = sound_effect("pulse", [[659,2,6],[784,2,5],[988,4,4]], duty=0, priority=2)
+# Remember the last percussion subdivision already visited. -1 ensures
+# the first subdivision can trigger. This is shared module state, unlike a
+# local temporary calculated fresh on each function call.
 last_beat = -1
 
+# A movement boundary clears short effects, resets the hit cache and starts
+# the next two music parts. Unlike Prism, there is no explicit stop_music:
+# the new play_music calls replace the tracks on their assigned voices.
 def begin(scene):
+    # global is needed because this function rebinds the module variable.
+    # Without shared last_beat, repeated calls at the same tick could retrigger
+    # the same drum and erase its natural decay.
     global last_beat
     last_beat = -1
     stop_sound()
+    # Set left/right master levels (0..7). Six leaves a little headroom while
+    # per-note volume and each effect's envelope control the internal balance.
     set_sound_volume(6, 6)
+    # Select both parts of the same movement and explicitly restart them.
+    # Each branch starts the matching lead/bass pair; it does not layer every
+    # score on top of the previous one. Arrangement choice follows scene choice.
     if scene == 0:
         play_music(lead0, restart=True)
         play_music(bass0, restart=True)
@@ -49,10 +80,17 @@ def begin(scene):
 
 def rhythm(scene, tick):
     global last_beat
+    # One percussion subdivision is eight hardware display frames. Return early
+    # if it has already been handled. A slow drawing pass may skip subdivisions;
+    # the code requests the current hit rather than playing a backlog all at once.
     beat = tick // 8
     if beat == last_beat:
         return
     last_beat = beat
+    # The eye passage uses a sparse pitched accent every 16 subdivisions.
+    # The opening movement begins with kick alone for its first 256 frames.
+    # Other passages use the full repeating eight-subdivision groove: kick on
+    # 0, snare on 4, and hats on odd positions. Modulo repeats it indefinitely.
     if scene == 4:
         if beat % 16 == 0:
             play_sound(accent)

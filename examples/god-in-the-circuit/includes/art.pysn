@@ -1,3 +1,23 @@
+# CLIP ASSETS: LARGE ROM LIBRARY, SMALL REUSED DISPLAY BUFFERS
+# Each movement BMP is a sheet of 6 columns by 7 rows of 160x144 pictures.
+# background_clip(..., 160, 144) describes those picture dimensions in pixels.
+# The compiler slices the sheet left-to-right, then top-to-bottom: frame 0 is
+# top-left, frame 5 top-right, and frame 6 begins the next row. There are 42
+# frames per movement, seven movements, and 294 prepared pictures overall.
+#
+# Frames 0..27 loop the main image; 28..41 dissolve toward the next movement.
+# These full-screen pictures are prepared art, not live ray tracing. Each was
+# authored with at most 72 distinct 8x8 patterns; repeated cells share patterns.
+# The compiler converts the BMPs into ROM clip data and handles bank placement.
+# At runtime draw_background uploads a chosen picture into a reusable inactive
+# VRAM buffer. refresh_screen presents completed work safely. The entire sheet
+# does not have to fit in VRAM, and no full-screen RAM pixel buffer is allocated.
+#
+# Paths are relative to this source file. The supplied assets are sufficient:
+# building the demo does not require an asset generator. photons is different:
+# sprite_sheet divides its small BMP into sprite cells for the live points.
+# The clip and point sheet are separate layers with separate responsibilities.
+
 # Frames run left-to-right, then top-to-bottom in each 6x7 BMP atlas.
 # They reuse VRAM buffers at runtime; the whole animation need not fit in VRAM.
 pulse = background_clip("../assets/movement-0.bmp", 160, 144)
