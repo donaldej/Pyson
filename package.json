@@ -14,6 +14,7 @@
     "test:tables": "node --test tests/constant-tables.test.js tests/constant-tables-runtime.test.js",
     "test:toolchain": "node scripts/dev.js smoke",
     "build": "node src/cli.js",
+    "build:project": "node scripts/build-project.js",
     "profile": "node scripts/profile.js",
     "build:asm": "node scripts/dev.js assemble",
     "convert:bmp": "node scripts/convert-bmp.js",
