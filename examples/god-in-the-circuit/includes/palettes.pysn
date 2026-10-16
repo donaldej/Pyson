@@ -1,3 +1,23 @@
+# AUTHORED COLOR TRANSITIONS
+# apply(scene, step) is a lookup expressed as branches with literal colors.
+# scene chooses one of seven movements. step 0 is its own palette; steps 1..16
+# walk toward the next movement's colors. The final movement returns to the
+# opening scheme. main selects those steps during its last 256 display frames.
+#
+# bg_palette(slot, color0, color1, color2, color3) overwrites four colors in a
+# Color background palette slot. Here each scene uses its corresponding slot
+# 1..7, matching the clip's palette assignment. Slot 0 is reserved separately
+# in visuals.initialize(). Hex colors are converted to the console's available
+# color precision, so not every desktop RGB shade remains distinct.
+#
+# These branches execute at runtime, but the interpolation was authored ahead
+# of time. No RGB interpolation loop runs per pixel or frame. A palette change
+# recolors existing pattern indices; it cannot move an edge or morph a shape.
+# The prepared transition pictures supply shape changes at the same time.
+# On monochrome Game Boy the demo uses grayscale; these Color palette steps
+# do not turn monochrome hardware into a color display. Replacing this data is
+# optional artistic work, not something a basic Pyson game must implement.
+
 # Literal palette steps keep hardware color details out of the timeline.
 def apply(scene, step):
     if scene == 0:

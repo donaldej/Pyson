@@ -1,5 +1,23 @@
+# READING GUIDE
+# Start here, then follow visuals and score into includes/. This is compiled
+# Pyson: Python-like syntax, with game-specific built-ins supplied by Pyson.
+# Imports connect reusable modules; they do not copy the module's state for
+# every caller. Header assignments and asset declarations configure compilation;
+# the while loop, arithmetic, branches and function calls execute on the console.
+#
+# Two clocks matter: the display keeps refreshing at the hardware rate, whereas
+# one pass through this loop can take several display frames. tick follows elapsed
+# display frames; updates counts completed visual iterations. Keeping those apart
+# lets animation skip ahead rather than making the music timeline crawl.
+# Comments are not executable. Moving code to later lines can update the ROM's
+# embedded error-location text, so a comment-only edit can change ROM bytes.
+
 # GOD IN THE CIRCUIT: a seven-movement audiovisual loop.
 # A advances to the next movement. Start pauses/resumes the entire timeline.
+# Cartridge settings, read by the compiler rather than assigned every frame.
+# dual builds one ROM for monochrome Game Boy and Game Boy Color. double requests
+# the Color CPU's faster mode; monochrome hardware still runs at normal speed.
+# MBC5 permits banked ROM assets. Pyson places data and handles bank access.
 header.title = "GOD IN CIRCUIT"
 header.target = "dual"
 header.cpu_speed = "double"
@@ -8,6 +26,10 @@ header.controller = "mbc5"
 import includes.visuals as visuals
 import includes.score as score
 
+# Persistent show state. scene is a zero-based movement index; tick is the
+# position within that movement, measured in hardware display frames.
+# cycles counts complete shows. updates is used to spread point updates over
+# successive iterations; neither counter is a requested frames-per-second rate.
 scene = 0
 tick = 0
 cycles = 0
@@ -16,6 +38,9 @@ paused = False
 last_frame = 0
 last_color = 0
 
+# Establish palette slots and clear old sprite state once. Upload the first
+# background and present it before starting the music. previous is sampled
+# after setup so initial upload time does not advance the musical timeline.
 visuals.initialize()
 visuals.draw(0, 0)
 refresh_screen()
@@ -23,20 +48,35 @@ score.begin(0)
 previous = frame_count()
 
 while True:
+    # Poll once per iteration. button_pressed detects a newly pressed button,
+    # so holding Start does not toggle pause repeatedly. Input is still polled
+    # while paused, which is how the same button can resume the show.
     read_buttons()
     delta = elapsed_frames(previous)
+    # Advance our saved clock by the measured delta and wrap to its 15-bit range.
+    # elapsed_frames handles the clock wrapping. Updating previous even during
+    # pause prevents paused time being added to tick when playback resumes.
     previous = (previous + delta) & 32767
     if button_pressed("start"):
         paused = not paused
+        # Pause the music sequencer and stop any short effects still sounding.
+        # Resuming continues the music; the next rhythm check schedules later effects.
+        # This does not stop the console's display clock or the input loop.
         if paused:
             pause_music()
             stop_sound()
         else:
             resume_music()
+    # Skipping reuses the normal movement-end branch rather than duplicating
+    # scene setup. If paused, this request is processed after the show resumes.
     if button_pressed("a"):
         tick = 1024
     if not paused:
         tick += delta
+        # One movement occupies 1024 display frames, about 17.1 seconds. Seven
+        # movements take about two minutes. Subtraction preserves a small overshoot,
+        # keeping scene boundaries tied to elapsed time. This is a single boundary
+        # check, not a general loop for catching up after arbitrarily long stalls.
         if tick >= 1024:
             # Carry excess time into the next movement instead of accumulating drift.
             tick -= 1024
@@ -44,27 +84,54 @@ while True:
             if scene == 7:
                 scene = 0
                 cycles += 1
+            # Old points belong to the outgoing composition. Hide them and clear their
+            # occupancy records together; otherwise hidden points would still consume the
+            # software budget. -1 caches force the first image and palette of the new act.
             visuals.reset_points()
             score.begin(scene)
             last_frame = -1
             last_color = -1
         # The last two musical bars morph into the following movement's image.
+        # Each clip contains 42 pictures: indices 0..27 form the main animation;
+        # 28..41 morph into the next act. The last 256 of 1024 display frames are
+        # reserved for that transition. Palette step 0 is the starting color scheme.
         color_step = 0
         if tick < 768:
+            # Map the repeating 192-frame phase to picture indices 0..27 using integer
+            # arithmetic: 191 * 7 // 48 is 27. No floating point is needed. This chooses
+            # prepared pictures; it does not calculate their shaded surfaces on the CPU.
             frame = (tick % 192) * 7 // 48
         else:
+            # Map the transition interval onto 14 pictures, clamping its offset to 13.
+            # The independent palette progression runs from step 1 through step 16.
+            # Both are selected from elapsed time, so a costly upload can skip an old
+            # picture without stretching the whole transition.
             frame = 28 + min(13, (tick - 768) * 7 // 128)
             color_step = 1 + min(15, (tick - 768) // 16)
         score.rhythm(scene, tick)
+        # Remove live points exactly when entering the dissolve. geometry() also
+        # stops adding points during that interval, leaving the morph unobstructed.
         if frame >= 28 and last_frame < 28:
             visuals.reset_points()
         if frame != last_frame:
             # The runtime uploads into unused VRAM; refresh commits the finished frame.
+            # Select and upload a prepared frame. Pyson uses the inactive clip buffer
+            # so the image currently visible is not overwritten piecemeal. The later
+            # refresh_screen commits completed display work; the upload can span several
+            # hardware frames. last_frame caches the requested clip-frame index.
             visuals.draw(scene, frame)
             last_frame = frame
+        # Only send palette changes when the transition step changes. The palette
+        # helper contains literal authored colors, avoiding per-frame RGB blending.
+        # It colors the prepared image; it does not regenerate its tile patterns.
         if color_step != last_color:
             visuals.colors(scene, color_step)
             last_color = color_step
         visuals.geometry(scene, tick, updates)
+        # Count actual geometry passes, not elapsed display frames. The geometry
+        # helper uses this count for round-robin work even when a drawing pass is slow.
         updates += 1
+    # Present pending background, palette and sprite work through the runtime's
+    # safe display path. Keep doing this while paused so controls remain usable.
+    # The console refreshes normally even if new animation pictures arrive slower.
     refresh_screen()

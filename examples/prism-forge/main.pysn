@@ -1,5 +1,23 @@
+# READING GUIDE
+# Start here, then follow visuals and score into includes/. This is compiled
+# Pyson: Python-like syntax, with game-specific built-ins supplied by Pyson.
+# Imports connect reusable modules; they do not copy the module's state for
+# every caller. Header assignments and asset declarations configure compilation;
+# the while loop, arithmetic, branches and function calls execute on the console.
+#
+# Two clocks matter: the display keeps refreshing at the hardware rate, whereas
+# one pass through this loop can take several display frames. tick follows elapsed
+# display frames; updates counts completed visual iterations. Keeping those apart
+# lets animation skip ahead rather than making the music timeline crawl.
+# Comments are not executable. Moving code to later lines can update the ROM's
+# embedded error-location text, so a comment-only edit can change ROM bytes.
+
 # Prism Forge: abstract imagery, live geometry, and an original electronic score.
 # A skips to the next act. Start pauses the show. The sequence loops.
+# Cartridge settings, read by the compiler rather than assigned every frame.
+# dual builds one ROM for monochrome Game Boy and Game Boy Color. double requests
+# the Color CPU's faster mode; monochrome hardware still runs at normal speed.
+# MBC5 permits banked ROM assets. Pyson places data and handles bank access.
 header.title = "PRISM FORGE"
 header.target = "dual"
 header.controller = "mbc5"
@@ -8,10 +26,17 @@ header.cpu_speed = "double"
 import includes.visuals as visuals
 import includes.score as score
 
+# Persistent show state. scene is a zero-based movement index; tick is the
+# position within that movement, measured in hardware display frames.
+# cycles counts complete shows. updates is used to spread point updates over
+# successive iterations; neither counter is a requested frames-per-second rate.
 scene = 0
 tick = 0
 cycles = 0
 updates = 0
+# prepared marks whether the current act has had its one-time setup.
+# last_frame and last_color cache the last submitted choices. Their -1 values
+# force the first update even when the desired frame or palette step is zero.
 prepared = False
 paused = False
 previous = 0
@@ -21,6 +46,9 @@ last_color = -1
 while True:
     # Prepare artwork once when entering an act, then start its arrangement.
     if not prepared:
+        # Clear the old scene, hide its sprites, write the two text rows, and draw
+        # the opening tilemap. Present that setup before starting the new score.
+        # Take the clock snapshot afterward so setup time is not charged to the act.
         visuals.prepare(scene)
         refresh_screen()
         score.begin(scene)
@@ -28,21 +56,35 @@ while True:
         last_frame = -1
         last_color = -1
         prepared = True
+    # Poll once per iteration. button_pressed detects a newly pressed button,
+    # so holding Start does not toggle pause repeatedly. Input is still polled
+    # while paused, which is how the same button can resume the show.
     read_buttons()
     # Measure actual display frames so slower updates do not slow the timeline.
     delta = elapsed_frames(previous)
+    # Advance our saved clock by the measured delta and wrap to its 15-bit range.
+    # elapsed_frames handles the clock wrapping. Updating previous even during
+    # pause prevents paused time being added to tick when playback resumes.
     previous = (previous + delta) & 32767
     if button_pressed("start"):
         paused = not paused
+        # Pause the music sequencer and stop any short effects still sounding.
+        # Resuming continues the music; the next rhythm check schedules later effects.
+        # This does not stop the console's display clock or the input loop.
         if paused:
             pause_music()
             stop_sound()
         else:
             resume_music()
+    # Skipping reuses the normal movement-end branch rather than duplicating
+    # scene setup. If paused, this request is processed after the show resumes.
     if button_pressed("a"):
         tick = 768
     if not paused:
         tick += delta
+        # Each act lasts 768 display frames, about 12.9 seconds. Five acts make
+        # roughly 64 seconds plus setup costs. This demo resets tick to zero at a
+        # boundary, so any overshoot is discarded; Circuit instead carries it forward.
         if tick >= 768:
             scene += 1
             if scene == 5:
@@ -52,15 +94,28 @@ while True:
             prepared = False
         else:
             # The background is a short loop of ROM layouts, not a video file.
+            # Choose one of 24 prepared layouts. Integer division holds each choice
+            # for six display frames; modulo wraps the animation every 144 frames.
+            # If drawing is slower than that cadence, obsolete choices are skipped.
+            # The cache avoids redrawing an identical layout on consecutive iterations.
             frame = (tick // 6) % 24
             if frame != last_frame:
                 visuals.field(scene, frame)
                 last_frame = frame
+            # Palette updates are less frequent than geometry. Every 24 display frames
+            # we reconsider colors; colors() may choose the same palette again. On DMG,
+            # the artwork remains monochrome rather than acquiring Color-only colors.
             if tick // 24 != last_color:
                 visuals.colors(scene, tick)
                 last_color = tick // 24
             # Sprite geometry is calculated live, separately from the layouts.
             visuals.geometry(scene, tick, updates)
             score.rhythm(tick)
+            # Count actual geometry passes, not elapsed display frames. The geometry
+            # helper uses this count for round-robin work even when a drawing pass is slow.
             updates += 1
+    # Commit buffered display work through Pyson's display runtime. This is
+    # also the common presentation point while paused. It does not mean every
+    # iteration finishes within one hardware frame. See the earlier call too:
+    # the setup branch presents once before starting that act's audio.
     refresh_screen()
