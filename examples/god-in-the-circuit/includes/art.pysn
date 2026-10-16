@@ -1,0 +1,10 @@
+# Frames run left-to-right, then top-to-bottom in each 6x7 BMP atlas.
+# They reuse VRAM buffers at runtime; the whole animation need not fit in VRAM.
+pulse = background_clip("../assets/movement-0.bmp", 160, 144)
+iris = background_clip("../assets/movement-1.bmp", 160, 144)
+inversion = background_clip("../assets/movement-2.bmp", 160, 144)
+cathedral = background_clip("../assets/movement-3.bmp", 160, 144)
+eye = background_clip("../assets/movement-4.bmp", 160, 144)
+face = background_clip("../assets/movement-5.bmp", 160, 144)
+signature = background_clip("../assets/movement-6.bmp", 160, 144)
+photons = sprite_sheet("../assets/photons.bmp")

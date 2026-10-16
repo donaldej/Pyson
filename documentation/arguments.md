@@ -119,6 +119,8 @@ keywords. Feature references describe ranges, return values, and hardware limits
 | `sprite(slot, sheet, frame, x, y, flip_x, flip_y)` | `flip_x=False`, `flip_y=False` |
 | `sprite_animation(sheet, steps, loop)` | `loop=True` |
 | `sprite_palette(index, color0, color1, color2, color3)` | None |
+| `background_clip(path, width, height)` | None |
+| `draw_background(clip, frame, x, y)` | `x=0`, `y=0` |
 | `sprite_sheet(path, width, height)` | `width=8`, `height=8` |
 | `start_choices(labels, palette, selected_palette, default, cancel)` | `palette=0`, `selected_palette=0`, `default=0`, `cancel=True` |
 | `start_dialogue(text, speed, palette)` | `speed=2`, `palette=0` |

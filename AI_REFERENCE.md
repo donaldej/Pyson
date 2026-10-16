@@ -354,6 +354,23 @@ right/bottom edges; ordinary print does not wrap or scroll automatically.
 `clear_screen(palette=0)` clears background, not sprite objects. Queue graphics,
 then refresh. No current `present()` API: the canonical name is `refresh_screen()`.
 
+### Prepared animated backgrounds
+
+`background_clip("assets/intro.bmp",160,128)` imports a grid of 1..255 equal
+frames, left-to-right then top-to-bottom. Frame dimensions are multiples of 8,
+at most 160x144; the sheet fits 1024x1024. `draw_background(clip,frame,x=0,y=0)`
+queues a frame at tile coordinates. `refresh_screen()` commits it. Two reserved
+VRAM buffers keep uploads off the displayed picture; the frame clock is enabled
+automatically. Budget: resident patterns + 2 * largest frame pattern count <=256.
+All clips share those buffers; there is one clip layer. Movement/resizing clears
+old dynamic cells to blank palette 0; static text/maps are preserved elsewhere.
+A second call before refresh first commits the pending frame. Clips cannot
+currently coexist with world cameras, streaming, or fixed window/HUD routines.
+Uploads service cooperative audio but may take multiple display frames; do not
+promise 60 picture updates per second. The compiler does not simplify tile
+patterns. See [background clips](documentation/background-clips.md) and the
+[God in the Circuit example](examples/god-in-the-circuit/README.md).
+
 ## 7. Maps, cameras, collision, and movement
 
 `tilemap([[wall,floor], [floor,wall]])` is a compile-time rectangular nested list
@@ -888,6 +905,8 @@ not write `None`. `randrange(stop)` is the supported one-argument overload.
 | `tile_at(map, x, y)` |
 | `map_width(map)` |
 | `map_height(map)` |
+| `background_clip(path, width, height)` |
+| `draw_background(clip, frame, x=0, y=0)` |
 | `sprite_sheet(path, width=8, height=8)` |
 | `tile(path, solid=False, terrain=0, x=0, y=0)` |
 | `tilemap(source)` |

@@ -927,3 +927,15 @@ projection, palettes, sequencing and score run in Pyson. Atlas tile selection is
 implemented: tile(path, solid=False, terrain=0, x=0, y=0). Coordinates are literal
 8x8 tile indices; explicit x/y permits a larger BMP, selections share its palette.
 See documentation/tilemaps.md and npm.cmd run test:prism for full-loop checks.
+
+God in the Circuit is a separate seven-movement, original ~120-second dual-target
+audiovisual demo (examples/god-in-the-circuit). Prepared background frames are
+not runtime ray tracing; live geometry, palettes, score and timeline use Pyson.
+New background_clip(path,width,height) / draw_background(clip,frame,x=0,y=0)
+APIs reserve two shared VRAM pattern buffers. Resident tiles + twice peak frame
+patterns must fit 256 slots. No RAM framebuffer; frame blobs and indices are
+automatically banked. LCD remains on; guarded writes and clip-buffer flips
+keep the currently displayed frame intact. Frame clock/audio servicing enabled.
+Clips currently reject world cameras, streaming and window/HUD use. See
+documentation/background-clips.md, tests/background-clips*, test:circuit and
+dev-tools/recordings/god-in-the-circuit.py. Existing demos remain unchanged.

@@ -14,6 +14,9 @@ Monochrome fallback uses fixed grayscale mapping; custom RGB colors are ignored.
 Use [sprite animation helpers](animation.md) to define frame sequences and
 timing, then draw their current frames with `animated_sprite()` or
 `world_animated_sprite()`.
+For a changing background illustration or cutscene, use
+[background clips](background-clips.md). They keep frame artwork in ROM and
+reuse two VRAM buffers instead of keeping every frame resident.
 
 ## Routines
 
