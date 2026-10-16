@@ -939,3 +939,13 @@ keep the currently displayed frame intact. Frame clock/audio servicing enabled.
 Clips currently reject world cameras, streaming and window/HUD use. See
 documentation/background-clips.md, tests/background-clips*, test:circuit and
 dev-tools/recordings/god-in-the-circuit.py. Existing demos remain unchanged.
+
+Phase Heart (examples/phase-heart) is a separate original live-field demo. No
+prepared image frames: static dither tiles + numeric tables, live column/row
+profiles, palette morphs, sprite projections and a new score. Reusable APIs:
+draw_tile_grid(cells,columns,x=0,y=0) draws tile() handle arrays; draw_tile_field
+(columns,rows,tiles,x=0,y=0) composes additive offsets through a 2..64 power-of-two
+tile list. RAM/ROM arrays and helper parameters work. Native composition avoids
+per-cell Pyson loops; no new dependencies. See documentation/tile-fields.md and
+test:phase-heart. Existing demos are unchanged. Physical hardware untested for
+this new example; user reports about prior demos must not be extended to it.

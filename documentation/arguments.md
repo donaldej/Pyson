@@ -120,6 +120,8 @@ keywords. Feature references describe ranges, return values, and hardware limits
 | `sprite_animation(sheet, steps, loop)` | `loop=True` |
 | `sprite_palette(index, color0, color1, color2, color3)` | None |
 | `background_clip(path, width, height)` | None |
+| `draw_tile_grid(cells, columns, x, y)` | `x=0`, `y=0` |
+| `draw_tile_field(columns, rows, tiles, x, y)` | `x=0`, `y=0` |
 | `draw_background(clip, frame, x, y)` | `x=0`, `y=0` |
 | `sprite_sheet(path, width, height)` | `width=8`, `height=8` |
 | `start_choices(labels, palette, selected_palette, default, cancel)` | `palette=0`, `selected_palette=0`, `default=0`, `cancel=True` |

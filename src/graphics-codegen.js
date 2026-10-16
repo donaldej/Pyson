@@ -2,7 +2,7 @@
 const { parseColor } = require('./assets');
 const { evaluateArguments } = require('./builtin-arguments');
 
-const procedures = ['refresh_screen', 'bg_palette', 'sprite_palette', 'clear_screen', 'sprite', 'hide_sprite', 'draw_map', 'draw_background', 'draw_world', 'set_camera', 'world_sprite', 'show_window', 'hide_window', 'window_position', 'clear_window', 'print_window'];
+const procedures = ['refresh_screen', 'bg_palette', 'sprite_palette', 'clear_screen', 'sprite', 'hide_sprite', 'draw_map', 'draw_background', 'draw_tile_grid', 'draw_tile_field', 'draw_world', 'set_camera', 'world_sprite', 'show_window', 'hide_window', 'window_position', 'clear_window', 'print_window'];
 const names = [...procedures, 'background_clip', 'sprite_sheet', 'tile', 'tilemap', 'mutable_map', 'set_map_tile', 'reset_map', 'collision_map', 'worldmap', 'tile_terrain', 'tile_is_solid', 'rect_is_solid', 'tile_at', 'map_width', 'map_height', 'camera_x', 'camera_y'];
 
 function emitGraphics(node, context, helpers, graphics) {
@@ -32,6 +32,44 @@ function emitGraphics(node, context, helpers, graphics) {
     const name = label('palette');
     graphics.paletteLiterals.push({ label: name, bytes: colors.flatMap(color => [color & 255, color >> 8]) });
     return [`    ld hl, ${name}`, `    ld a, ${index}`, `    call ${node.name === 'bg_palette' ? 'SetBGPalette' : 'SetSpritePalette'}`, '    ld hl, 0'];
+  }
+  if (node.name === 'draw_tile_grid') {
+    if (node.args.length < 2 || node.args.length > 4) fail(node, 'draw_tile_grid expects (cells, columns, x=0, y=0)');
+    const symbol = helpers.arraySymbol(node.args[0], context);
+    if (symbol.type !== 'array') fail(node.args[0], 'draw_tile_grid requires an integer array');
+    const args = [node.args[0], node.args[1], node.args[2] || {type:'number',value:0}, node.args[3] || {type:'number',value:0}];
+    for (let i = 1; i < 4; i++) {
+      numeric(args[i], context);
+      const value = literalNumber(args[i]);
+      if (value !== null && (value < (i === 1 ? 1 : 0) || value > (i === 1 ? 32 : i === 2 ? 19 : 17))) fail(args[i], 'Grid columns must be 1..32 and starting coordinates must fit the screen');
+    }
+    graphics.tileGrid = true;
+    const code = evaluateArguments(node, args, context, expression);
+    for (let i = 3; i >= 0; i--) code.push('    pop hl','    ld a, l',`    ld [wArg${i}], a`,'    ld a, h',`    ld [wArg${i} + 1], a`);
+    code.push(...helpers.arrayLength(symbol),'    ld a, l','    ld [wGridLength], a','    ld a, h','    ld [wGridLength + 1], a',
+      ...helpers.arrayBank(symbol),'    ld a, l','    ld [wGridBank], a','    ld a, h','    ld [wGridBank + 1], a',
+      '    call DrawTileGrid','    ld hl, 0');
+    return code;
+  }
+  if (node.name === 'draw_tile_field') {
+    if (node.args.length < 3 || node.args.length > 5) fail(node, 'draw_tile_field expects (columns, rows, tiles, x=0, y=0)');
+    const arrays = node.args.slice(0, 3).map(arg => helpers.arraySymbol(arg, context));
+    if (arrays.some(symbol => symbol.type !== 'array')) fail(node, 'Field inputs must be integer arrays');
+    const length = arrays[2].length;
+    if (length !== undefined && (length < 2 || length > 64 || (length & (length - 1)))) fail(node, 'Field tile list length must be a power of two from 2 to 64');
+    const args = [...node.args.slice(0, 3), node.args[3] || {type:'number',value:0}, node.args[4] || {type:'number',value:0}];
+    for (let i = 3; i < 5; i++) {
+      numeric(args[i], context);
+      const value = literalNumber(args[i]);
+      if (value !== null && (value < 0 || value > (i === 3 ? 19 : 17))) fail(args[i], 'Field starting coordinates must fit the screen');
+    }
+    graphics.tileGrid = true;
+    graphics.tileField = true;
+    const code = evaluateArguments(node, args, context, expression);
+    for (let i = 4; i >= 0; i--) code.push('    pop hl','    ld a, l',`    ld [wArg${i}], a`,'    ld a, h',`    ld [wArg${i} + 1], a`);
+    for (let i = 0; i < 3; i++) code.push(...helpers.arrayLength(arrays[i]),'    ld a, l',`    ld [wFieldLength${i}], a`,'    ld a, h',`    ld [wFieldLength${i} + 1], a`,
+      ...helpers.arrayBank(arrays[i]),'    ld a, l',`    ld [wFieldBank${i}], a`,'    ld a, h',`    ld [wFieldBank${i} + 1], a`);
+    return [...code,'    call DrawTileField','    ld hl, 0'];
   }
   const queries = { set_map_tile: [4, 'SetMapTile'], reset_map: [1, 'ResetMutableMap'], rect_is_solid: [5, 'RectIsSolid'], tile_terrain: [3, 'TileTerrain'], tile_is_solid: [3, 'TileIsSolid'], tile_at: [3, 'TileAt'], map_width: [1, 'MapWidth'], map_height: [1, 'MapHeight'] };
   if (queries[node.name]) {

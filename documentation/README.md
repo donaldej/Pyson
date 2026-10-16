@@ -36,6 +36,7 @@ assembled in the test suite, and its API catalog is checked against the compiler
 
 - [Graphics, palettes, and sprites](graphics.md)
 - [BMP formats and conversion](assets.md)
+- [Runtime tile fields and grids](tile-fields.md)
 - [Animated backgrounds and frame sheets](background-clips.md)
 - [Nested tile maps and terrain](tilemaps.md)
 - [Editable maps](mutable-maps.md)

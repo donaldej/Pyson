@@ -1,0 +1,134 @@
+# Authored color morphs. These are colors, not prepared animation frames.
+def apply(scene, blend):
+    if scene == 0:
+        if blend == 0:
+            bg_palette(1, "#fff0d0", "#f3a05c", "#7a355d", "#080c20")
+        elif blend == 1:
+            bg_palette(1, "#fdf1d3", "#e9a362", "#743860", "#080c20")
+        elif blend == 2:
+            bg_palette(1, "#fbf2d5", "#e0a767", "#6f3b62", "#080d21")
+        elif blend == 3:
+            bg_palette(1, "#f9f3d8", "#d6aa6d", "#693d65", "#080d21")
+        elif blend == 4:
+            bg_palette(1, "#f6f4da", "#ccae73", "#634068", "#080e21")
+        elif blend == 5:
+            bg_palette(1, "#f4f5dd", "#c2b178", "#5d436b", "#080e22")
+        elif blend == 6:
+            bg_palette(1, "#f2f6df", "#b9b47e", "#58466d", "#080e22")
+        elif blend == 7:
+            bg_palette(1, "#f0f7e2", "#afb884", "#524970", "#080f22")
+        elif blend == 8:
+            bg_palette(1, "#eef8e4", "#a5bb89", "#4c4b73", "#070f23")
+        elif blend == 9:
+            bg_palette(1, "#ecf9e7", "#9bbf8f", "#464e76", "#071023")
+        elif blend == 10:
+            bg_palette(1, "#eafae9", "#92c295", "#415178", "#071023")
+        elif blend == 11:
+            bg_palette(1, "#e8fbec", "#88c59a", "#3b547b", "#071024")
+        elif blend == 12:
+            bg_palette(1, "#e5fcee", "#7ec9a0", "#35577e", "#071124")
+        elif blend == 13:
+            bg_palette(1, "#e3fdf1", "#74cca6", "#2f5981", "#071124")
+        elif blend == 14:
+            bg_palette(1, "#e1fef3", "#6bd0ab", "#2a5c83", "#071225")
+        elif blend == 15:
+            bg_palette(1, "#dffff6", "#61d3b1", "#245f86", "#071225")
+    elif scene == 1:
+        if blend == 0:
+            bg_palette(1, "#dffff6", "#61d3b1", "#245f86", "#071225")
+        elif blend == 1:
+            bg_palette(1, "#e1fef4", "#6ad1ac", "#2b5d85", "#081225")
+        elif blend == 2:
+            bg_palette(1, "#e3fef2", "#73d0a6", "#315b83", "#081125")
+        elif blend == 3:
+            bg_palette(1, "#e5fdf1", "#7bcea1", "#385982", "#091125")
+        elif blend == 4:
+            bg_palette(1, "#e8fcef", "#84cd9b", "#3e5781", "#0a1126")
+        elif blend == 5:
+            bg_palette(1, "#eafbed", "#8dcb96", "#45557f", "#0b1026")
+        elif blend == 6:
+            bg_palette(1, "#ecfbeb", "#96c991", "#4c537e", "#0b1026")
+        elif blend == 7:
+            bg_palette(1, "#eefae9", "#9fc88b", "#52517d", "#0c1026")
+        elif blend == 8:
+            bg_palette(1, "#f0f9e8", "#a7c686", "#594f7b", "#0d0f26")
+        elif blend == 9:
+            bg_palette(1, "#f2f8e6", "#b0c580", "#5f4d7a", "#0e0f26")
+        elif blend == 10:
+            bg_palette(1, "#f4f8e4", "#b9c37b", "#664b79", "#0e0f26")
+        elif blend == 11:
+            bg_palette(1, "#f6f7e2", "#c2c176", "#6d4977", "#0f0e26")
+        elif blend == 12:
+            bg_palette(1, "#f9f6e0", "#cbc070", "#734776", "#100e27")
+        elif blend == 13:
+            bg_palette(1, "#fbf5df", "#d3be6b", "#7a4575", "#110e27")
+        elif blend == 14:
+            bg_palette(1, "#fdf5dd", "#dcbd65", "#804373", "#110d27")
+        elif blend == 15:
+            bg_palette(1, "#fff4db", "#e5bb60", "#874172", "#120d27")
+    elif scene == 2:
+        if blend == 0:
+            bg_palette(1, "#fff4db", "#e5bb60", "#874172", "#120d27")
+        elif blend == 1:
+            bg_palette(1, "#fef5dd", "#e0bd69", "#834374", "#110d27")
+        elif blend == 2:
+            bg_palette(1, "#fdf5e0", "#dbc071", "#7f4677", "#110d26")
+        elif blend == 3:
+            bg_palette(1, "#fdf6e2", "#d6c27a", "#7b4879", "#100d26")
+        elif blend == 4:
+            bg_palette(1, "#fcf7e5", "#d2c482", "#774b7b", "#0f0d25")
+        elif blend == 5:
+            bg_palette(1, "#fbf8e7", "#cdc68b", "#734d7d", "#0f0d25")
+        elif blend == 6:
+            bg_palette(1, "#faf8e9", "#c8c993", "#6f4f80", "#0e0d24")
+        elif blend == 7:
+            bg_palette(1, "#f9f9ec", "#c3cb9c", "#6b5282", "#0d0d24")
+        elif blend == 8:
+            bg_palette(1, "#f9faee", "#becda4", "#685484", "#0d0c23")
+        elif blend == 9:
+            bg_palette(1, "#f8fbf1", "#b9cfad", "#645786", "#0c0c23")
+        elif blend == 10:
+            bg_palette(1, "#f7fbf3", "#b4d2b5", "#605989", "#0b0c22")
+        elif blend == 11:
+            bg_palette(1, "#f6fcf5", "#afd4be", "#5c5b8b", "#0b0c22")
+        elif blend == 12:
+            bg_palette(1, "#f5fdf8", "#abd6c6", "#585e8d", "#0a0c21")
+        elif blend == 13:
+            bg_palette(1, "#f5fefa", "#a6d8cf", "#54608f", "#090c21")
+        elif blend == 14:
+            bg_palette(1, "#f4fefd", "#a1dbd7", "#506392", "#090c20")
+        elif blend == 15:
+            bg_palette(1, "#f3ffff", "#9cdde0", "#4c6594", "#080c20")
+    elif scene == 3:
+        if blend == 0:
+            bg_palette(1, "#f3ffff", "#9cdde0", "#4c6594", "#080c20")
+        elif blend == 1:
+            bg_palette(1, "#f4fefc", "#a2d9d7", "#4f6290", "#080c20")
+        elif blend == 2:
+            bg_palette(1, "#f5fdf9", "#a8d5ce", "#525f8d", "#080c20")
+        elif blend == 3:
+            bg_palette(1, "#f5fcf6", "#add1c6", "#555b89", "#080c20")
+        elif blend == 4:
+            bg_palette(1, "#f6fbf2", "#b3cdbd", "#585885", "#080c20")
+        elif blend == 5:
+            bg_palette(1, "#f7faef", "#b9c9b4", "#5b5582", "#080c20")
+        elif blend == 6:
+            bg_palette(1, "#f8f9ec", "#bfc5ab", "#5e527e", "#080c20")
+        elif blend == 7:
+            bg_palette(1, "#f9f8e9", "#c5c1a2", "#614f7a", "#080c20")
+        elif blend == 8:
+            bg_palette(1, "#f9f7e6", "#cabc9a", "#654b77", "#080c20")
+        elif blend == 9:
+            bg_palette(1, "#faf6e3", "#d0b891", "#684873", "#080c20")
+        elif blend == 10:
+            bg_palette(1, "#fbf5e0", "#d6b488", "#6b456f", "#080c20")
+        elif blend == 11:
+            bg_palette(1, "#fcf4dd", "#dcb07f", "#6e426c", "#080c20")
+        elif blend == 12:
+            bg_palette(1, "#fdf3d9", "#e2ac76", "#713f68", "#080c20")
+        elif blend == 13:
+            bg_palette(1, "#fdf2d6", "#e7a86e", "#743b64", "#080c20")
+        elif blend == 14:
+            bg_palette(1, "#fef1d3", "#eda465", "#773861", "#080c20")
+        elif blend == 15:
+            bg_palette(1, "#fff0d0", "#f3a05c", "#7a355d", "#080c20")
