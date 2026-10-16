@@ -291,6 +291,16 @@ ENDC
     xor 1
     ld [wFrontMap], a
 .flipDone:
+IF CLIP_ENABLED
+    ld a, [wClipPending]
+    and a
+    jr z, .clipDone
+    ld a, [wClipTarget]
+    ld [wClipFront], a
+    xor a
+    ld [wClipPending], a
+.clipDone:
+ENDC
     ld a, [wCameraX]
     ldh [$FF43], a
     ld a, [wCameraY]

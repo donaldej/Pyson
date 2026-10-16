@@ -8,12 +8,18 @@ function makeGraphicsReport(assets) {
   let residentTiles = font.bytes.length / 16;
   if (worlds.length) residentTiles = worlds[0].streaming.tileBase;
   else for (const asset of assets) {
-    if (asset.kind === 'collision') continue;
+    if (['collision', 'clip'].includes(asset.kind)) continue;
     for (const map of asset.maps || []) for (const id of map) residentTiles = Math.max(residentTiles, id + 1);
   }
+  const clipSlots = assets.some(asset => asset.clip)
+    ? 2 * Math.max(...assets.filter(asset => asset.clip).map(asset => asset.clip.patternsPerBuffer)) : 0;
   return {
     tileBytes: 16, tileCapacity: 256, residentTiles, residentTileBytes: residentTiles * 16,
-    streamingTileCapacity: 256 - residentTiles,
+    streamingTileCapacity: 256 - residentTiles - clipSlots,
+    ...(assets.some(asset => asset.clip) ? { backgroundClips: {
+      patternsPerBuffer: Math.max(...assets.filter(asset => asset.clip).map(asset => asset.clip.patternsPerBuffer)),
+      reservedSlots: 2 * Math.max(...assets.filter(asset => asset.clip).map(asset => asset.clip.patternsPerBuffer))
+    } } : {}),
     spriteComponentCapacity: 40, spriteComponentsPerScanline: 10,
     importedBackgroundPalettes: new Set(assets.filter(asset => asset.file && asset.kind !== 'sprite' && asset.kind !== 'collision').map(asset => asset.paletteIndex)).size,
     importedSpritePalettes: new Set(assets.filter(asset => asset.kind === 'sprite').map(asset => asset.paletteIndex)).size,
@@ -26,6 +32,7 @@ function makeGraphicsReport(assets) {
         uniqueTiles, tilePatternBytes: uniqueTiles * 16,
         spriteComponentsPerFrame: asset.kind === 'sprite' ? asset.columns * asset.rows : 0,
         paletteIndex: asset.file ? asset.paletteIndex : undefined, quantized: Boolean(asset.quantized), sourceColors: asset.sourceColors,
+        ...(asset.clip ? { clip: asset.clip } : {}),
         ...(asset.streaming ? { streaming: {
           allocatedSlots: asset.streaming.slotCount, localPeakTiles: asset.streaming.peakTiles,
           availableSlots: asset.streaming.capacity, allocatedTileBytes: asset.streaming.slotCount * 16
@@ -43,6 +50,8 @@ function formatReport(report) {
     `Hardware sprites: ${report.graphics.spriteComponentCapacity} components total, ${report.graphics.spriteComponentsPerScanline} per horizontal scanline`,
     'Sprite costs below are per frame drawn, not per sheet or per game.',
     'Asset tile counts describe each asset; shared patterns mean they must not be added together.', ''];
+  if (report.graphics.backgroundClips) lines.push(
+    `Background clip buffers: ${report.graphics.backgroundClips.reservedSlots} additional slots; ${report.graphics.residentTiles + report.graphics.backgroundClips.reservedSlots}/256 slots reserved in total.`, '');
   for (const asset of report.graphics.assets) {
     lines.push(`${asset.name} (${asset.kind})`,
       `  ${asset.mapPositions} tile positions -> ${asset.uniqueTiles} unique tile patterns`,
@@ -54,6 +63,7 @@ function formatReport(report) {
     if (asset.streaming) lines.push(
       `  Streaming VRAM slots: ${asset.streaming.allocatedSlots}/${asset.streaming.availableSlots} available (${asset.streaming.allocatedTileBytes} bytes)`,
       `  Largest local tile set: ${asset.streaming.localPeakTiles}; full world dictionary: ${asset.uniqueTiles}`);
+    if (asset.clip) lines.push(`  Background clip: ${asset.clip.peakFramePatterns} patterns in its largest frame; two shared buffers reserve ${asset.clip.patternsPerBuffer * 2} VRAM slots in addition to resident tiles.`);
     if (asset.quantized) lines.push(`  Colors reduced during import from ${asset.sourceColors} source colors to the hardware palette limit.`);
     lines.push('');
   }

@@ -80,11 +80,11 @@ function reduceColors(colors, limit) {
 }
 
 function convertBMP(data, kind = 'sprite', frameWidth = 8, frameHeight = 8) {
-  if (!['sprite', 'background', 'world'].includes(kind)) throw new Error('Asset kind must be sprite or background');
+  if (!['sprite', 'background', 'world', 'clip'].includes(kind)) throw new Error('Asset kind must be sprite or background');
   const image = decodeBMP(data);
   if (image.width % 8 || image.height % 8) throw new Error('BMP dimensions must be multiples of 8');
   if (kind === 'background' && (image.width > 256 || image.height > 256)) throw new Error('Background maps must fit 32x32 tiles');
-  if (kind !== 'sprite') { frameWidth = image.width; frameHeight = image.height; }
+  if (!['sprite', 'clip'].includes(kind)) { frameWidth = image.width; frameHeight = image.height; }
   if (!Number.isInteger(frameWidth) || !Number.isInteger(frameHeight) || frameWidth < 8 || frameHeight < 8 || frameWidth % 8 || frameHeight % 8 || image.width % frameWidth || image.height % frameHeight) throw new Error('Frame dimensions must be positive multiples of 8 and divide the BMP dimensions');
   const columns = frameWidth / 8;
   const rows = frameHeight / 8;
@@ -140,7 +140,7 @@ function convertBMP(data, kind = 'sprite', frameWidth = 8, frameHeight = 8) {
     }
     maps.push(map);
   }
-  if (kind !== 'world' && tiles.length > 256) throw new Error('Converted image exceeds 256 unique tiles');
+  if (!['world', 'clip'].includes(kind) && tiles.length > 256) throw new Error('Converted image exceeds 256 unique tiles');
   return { kind, width: image.width, height: image.height, frameWidth, frameHeight, columns, rows, frames,
     palette: palette.map(word), sourceColors: colors.size, quantized: colors.size > (kind === 'sprite' ? 3 : 4), tiles, maps };
 }
@@ -155,7 +155,7 @@ function collectAssets(ast, filename) {
   const base = filename === '<source>' ? process.cwd() : path.dirname(path.resolve(filename));
   function visit(nodes, top = true) {
     for (const node of nodes) {
-      if (node.type === 'assign' && node.expression.type === 'call' && ['sprite_sheet', 'tile', 'tilemap', 'mutable_map', 'collision_map', 'worldmap'].includes(node.expression.name)) {
+      if (node.type === 'assign' && node.expression.type === 'call' && ['sprite_sheet', 'background_clip', 'tile', 'tilemap', 'mutable_map', 'collision_map', 'worldmap'].includes(node.expression.name)) {
         const location = `${node.filename ? node.filename + ': ' : ''}Line ${node.line}`;
         if (!top) throw new Error(`${location}: asset declarations must be top-level assignments`);
         const call = node.expression;
@@ -189,6 +189,7 @@ function collectAssets(ast, filename) {
         const streamed = call.name === 'worldmap';
         if (call.name === 'mutable_map') throw new Error(`${location}: mutable_map requires nested tile rows`);
         const sprite = call.name === 'sprite_sheet';
+        const clip = call.name === 'background_clip';
         const singleTile = call.name === 'tile';
         let solid = false; let terrain = 0; let tileX = 0; let tileY = 0; let atlas = false;
         if (singleTile) {
@@ -210,19 +211,20 @@ function collectAssets(ast, filename) {
             }
           }
         }
-        if (call.args.length < 1 || call.args.length > (singleTile ? 5 : sprite ? 3 : streamed ? 2 : 1) || call.args[0].type !== 'string' || (!singleTile && !streamed && call.args.slice(1).some(arg => arg.type !== 'number'))) throw new Error(`${location}: use sprite_sheet("file.bmp", width, height), tilemap("file.bmp"), or tile("file.bmp", solid=True, terrain=1) with literal arguments`);
+        if (call.args.length < 1 || call.args.length > (singleTile ? 5 : sprite || clip ? 3 : streamed ? 2 : 1) || call.args[0].type !== 'string' || (!singleTile && !streamed && call.args.slice(1).some(arg => arg.type !== 'number'))) throw new Error(`${location}: use sprite_sheet("file.bmp", width, height), background_clip("file.bmp", width, height), tilemap("file.bmp"), or tile("file.bmp", solid=True, terrain=1) with literal arguments`);
         const sourceBase = node.filename && node.filename !== '<source>' ? path.dirname(path.resolve(node.filename)) : base;
         const file = path.resolve(sourceBase, call.args[0].value);
         const width = singleTile ? 8 : call.args[1]?.value ?? 8;
         const height = singleTile ? 8 : call.args[2]?.value ?? 8;
-        const signature = JSON.stringify([file, sprite, width, height, singleTile, solid, terrain, streamed, streamed ? call.args[1] : null, tileX, tileY, atlas]);
+        if (clip && (call.args.length !== 3 || width > 160 || height > 144)) throw new Error(`${location}: background_clip requires literal width/height fitting 160x144 pixels`);
+        const signature = JSON.stringify([file, sprite, clip, width, height, singleTile, solid, terrain, streamed, streamed ? call.args[1] : null, tileX, tileY, atlas]);
         if (!cache.has(signature)) {
           const paletteKey = JSON.stringify([file, sprite]);
           if (!palettes.has(paletteKey)) palettes.set(paletteKey, sprite ? obj++ : bg++);
           const paletteIndex = palettes.get(paletteKey);
           if (paletteIndex > 7) throw new Error(`${location}: at most 8 sprite palettes and 7 imported background palettes are available`);
           let converted;
-          try { converted = convertBMP(fs.readFileSync(file), sprite ? 'sprite' : streamed ? 'world' : 'background', width, height); }
+          try { converted = convertBMP(fs.readFileSync(file), sprite ? 'sprite' : clip ? 'clip' : streamed ? 'world' : 'background', width, height); }
           catch (error) { throw new Error(`${location}: ${file}: ${error.message}`); }
           if (singleTile) {
             if (!atlas && (converted.width !== 8 || converted.height !== 8)) throw new Error(`${location}: tile BMP must be exactly 8x8 pixels; select an atlas tile with x= and y=`);
@@ -258,7 +260,7 @@ function collectAssets(ast, filename) {
   const globalTiles = new Map();
   for (let i = 0; i < tileData.length / 16; i++) globalTiles.set(tileData.slice(i * 16, i * 16 + 16).join(','), i);
   for (const asset of assets) {
-    if (['collision', 'manual', 'world'].includes(asset.kind) || (streamedTiles.has(asset) && !residentTiles.has(asset))) continue;
+    if (['collision', 'manual', 'world', 'clip'].includes(asset.kind) || (streamedTiles.has(asset) && !residentTiles.has(asset))) continue;
     const ids = asset.tiles.map(tile => {
       const signature = tile.join(',');
       if (!globalTiles.has(signature)) {
@@ -279,7 +281,10 @@ function collectAssets(ast, filename) {
   }
   if (assets.length > 255) throw new Error('At most 255 asset handles are supported');
   const worldObjects = prepareWorlds(assets, tileData.length / 16);
-  return { assets, calls, tileData, worldObjects, streaming: assets.some(asset => asset.kind === 'world'), scrolling: assets.some(asset => asset.kind === 'world') };
+  const clips = require('./background-clips').prepareClips(assets, tileData.length / 16);
+  if (clips.enabled && assets.some(asset => asset.kind === 'world')) throw new Error('Background clips and streamed worlds cannot share a ROM yet');
+  return { assets, calls, tileData, worldObjects: [...worldObjects, ...clips.objects], clips,
+    streaming: assets.some(asset => asset.kind === 'world'), scrolling: assets.some(asset => asset.kind === 'world') };
 }
 
 function parseColor(node) {

@@ -1,0 +1,247 @@
+# Literal palette steps keep hardware color details out of the timeline.
+def apply(scene, step):
+    if scene == 0:
+        if step == 0:
+            bg_palette(1, "#dffaff", "#7793c8", "#27334f", "#03050e")
+        elif step == 1:
+            bg_palette(1, "#e1fafb", "#7d94c1", "#2b3450", "#03050e")
+        elif step == 2:
+            bg_palette(1, "#e3f9f7", "#8395ba", "#2f3552", "#03050f")
+        elif step == 3:
+            bg_palette(1, "#e5f9f3", "#8996b4", "#323653", "#03050f")
+        elif step == 4:
+            bg_palette(1, "#e7f9ef", "#8f97ad", "#363754", "#04060f")
+        elif step == 5:
+            bg_palette(1, "#e9f8eb", "#9498a6", "#3a3855", "#040610")
+        elif step == 6:
+            bg_palette(1, "#ebf8e7", "#9a999f", "#3e3957", "#040610")
+        elif step == 7:
+            bg_palette(1, "#edf7e3", "#a09a98", "#413a58", "#040610")
+        elif step == 8:
+            bg_palette(1, "#eff7e0", "#a69c92", "#453c59", "#040611")
+        elif step == 9:
+            bg_palette(1, "#f1f7dc", "#ac9d8b", "#493d5a", "#040611")
+        elif step == 10:
+            bg_palette(1, "#f3f6d8", "#b29e84", "#4d3e5c", "#040611")
+        elif step == 11:
+            bg_palette(1, "#f5f6d4", "#b89f7d", "#503f5d", "#040611")
+        elif step == 12:
+            bg_palette(1, "#f7f6d0", "#bea076", "#54405e", "#050712")
+        elif step == 13:
+            bg_palette(1, "#f9f5cc", "#c3a16f", "#58415f", "#050712")
+        elif step == 14:
+            bg_palette(1, "#fbf5c8", "#c9a269", "#5c4261", "#050712")
+        elif step == 15:
+            bg_palette(1, "#fdf4c4", "#cfa362", "#5f4362", "#050713")
+        elif step == 16:
+            bg_palette(1, "#fff4c0", "#d5a45b", "#634463", "#050713")
+    elif scene == 1:
+        if step == 0:
+            bg_palette(2, "#fff4c0", "#d5a45b", "#634463", "#050713")
+        elif step == 1:
+            bg_palette(2, "#fff3c4", "#d4a263", "#624465", "#050713")
+        elif step == 2:
+            bg_palette(2, "#fff2c8", "#d2a16b", "#604367", "#050713")
+        elif step == 3:
+            bg_palette(2, "#fff1cc", "#d19f73", "#5f4369", "#050713")
+        elif step == 4:
+            bg_palette(2, "#fff0d0", "#cf9d7b", "#5e436b", "#050713")
+        elif step == 5:
+            bg_palette(2, "#ffefd4", "#ce9b82", "#5c426d", "#050713")
+        elif step == 6:
+            bg_palette(2, "#ffeed8", "#cc9a8a", "#5b426f", "#050713")
+        elif step == 7:
+            bg_palette(2, "#ffeddc", "#cb9892", "#5a4271", "#050713")
+        elif step == 8:
+            bg_palette(2, "#ffede0", "#ca969a", "#594273", "#050713")
+        elif step == 9:
+            bg_palette(2, "#ffece3", "#c894a2", "#574174", "#050713")
+        elif step == 10:
+            bg_palette(2, "#ffebe7", "#c793aa", "#564176", "#050713")
+        elif step == 11:
+            bg_palette(2, "#ffeaeb", "#c591b2", "#554178", "#050713")
+        elif step == 12:
+            bg_palette(2, "#ffe9ef", "#c48fba", "#53407a", "#050713")
+        elif step == 13:
+            bg_palette(2, "#ffe8f3", "#c28dc1", "#52407c", "#050713")
+        elif step == 14:
+            bg_palette(2, "#ffe7f7", "#c18cc9", "#51407e", "#050713")
+        elif step == 15:
+            bg_palette(2, "#ffe6fb", "#bf8ad1", "#4f3f80", "#050713")
+        elif step == 16:
+            bg_palette(2, "#ffe5ff", "#be88d9", "#4e3f82", "#050713")
+    elif scene == 2:
+        if step == 0:
+            bg_palette(3, "#ffe5ff", "#be88d9", "#4e3f82", "#050713")
+        elif step == 1:
+            bg_palette(3, "#fee7ff", "#ba8cd9", "#4b4081", "#050713")
+        elif step == 2:
+            bg_palette(3, "#fce8ff", "#b590d8", "#49427f", "#050713")
+        elif step == 3:
+            bg_palette(3, "#fbeaff", "#b194d8", "#46437e", "#050712")
+        elif step == 4:
+            bg_palette(3, "#f9ecff", "#ac98d7", "#44447c", "#050712")
+        elif step == 5:
+            bg_palette(3, "#f8edff", "#a89cd7", "#41467b", "#050712")
+        elif step == 6:
+            bg_palette(3, "#f6efff", "#a3a0d6", "#3e4779", "#050712")
+        elif step == 7:
+            bg_palette(3, "#f5f0ff", "#9fa4d6", "#3c4878", "#050711")
+        elif step == 8:
+            bg_palette(3, "#f4f2ff", "#9ba9d5", "#394a76", "#050711")
+        elif step == 9:
+            bg_palette(3, "#f2f4ff", "#96add5", "#364b75", "#040711")
+        elif step == 10:
+            bg_palette(3, "#f1f5ff", "#92b1d4", "#344c73", "#040711")
+        elif step == 11:
+            bg_palette(3, "#eff7ff", "#8db5d4", "#314d72", "#040710")
+        elif step == 12:
+            bg_palette(3, "#eef9ff", "#89b9d3", "#2f4f70", "#040710")
+        elif step == 13:
+            bg_palette(3, "#ecfaff", "#84bdd3", "#2c506f", "#040710")
+        elif step == 14:
+            bg_palette(3, "#ebfcff", "#80c1d2", "#29516d", "#040710")
+        elif step == 15:
+            bg_palette(3, "#e9fdff", "#7bc5d2", "#27536c", "#04070f")
+        elif step == 16:
+            bg_palette(3, "#e8ffff", "#77c9d1", "#24546a", "#04070f")
+    elif scene == 3:
+        if step == 0:
+            bg_palette(4, "#e8ffff", "#77c9d1", "#24546a", "#04070f")
+        elif step == 1:
+            bg_palette(4, "#e9fefd", "#7ac9d1", "#26546a", "#04070f")
+        elif step == 2:
+            bg_palette(4, "#ebfdfb", "#7dc8d1", "#27536a", "#04070f")
+        elif step == 3:
+            bg_palette(4, "#ecfdf9", "#80c8d1", "#29536a", "#04070f")
+        elif step == 4:
+            bg_palette(4, "#eefcf8", "#83c8d1", "#2b536a", "#04070f")
+        elif step == 5:
+            bg_palette(4, "#effbf6", "#86c7d0", "#2c526a", "#04070f")
+        elif step == 6:
+            bg_palette(4, "#f1faf4", "#89c7d0", "#2e526a", "#04070f")
+        elif step == 7:
+            bg_palette(4, "#f2f9f2", "#8cc7d0", "#2f516a", "#04070f")
+        elif step == 8:
+            bg_palette(4, "#f4f9f0", "#90c7d0", "#31516a", "#04070f")
+        elif step == 9:
+            bg_palette(4, "#f5f8ee", "#93c6d0", "#33516a", "#04070f")
+        elif step == 10:
+            bg_palette(4, "#f6f7ec", "#96c6d0", "#34506a", "#04070f")
+        elif step == 11:
+            bg_palette(4, "#f8f6ea", "#99c6d0", "#36506a", "#04070f")
+        elif step == 12:
+            bg_palette(4, "#f9f5e9", "#9cc5d0", "#38506a", "#04070f")
+        elif step == 13:
+            bg_palette(4, "#fbf4e7", "#9fc5cf", "#394f6a", "#04070f")
+        elif step == 14:
+            bg_palette(4, "#fcf4e5", "#a2c5cf", "#3b4f6a", "#04070f")
+        elif step == 15:
+            bg_palette(4, "#fef3e3", "#a5c4cf", "#3c4e6a", "#04070f")
+        elif step == 16:
+            bg_palette(4, "#fff2e1", "#a8c4cf", "#3e4e6a", "#04070f")
+    elif scene == 4:
+        if step == 0:
+            bg_palette(5, "#fff2e1", "#a8c4cf", "#3e4e6a", "#04070f")
+        elif step == 1:
+            bg_palette(5, "#fff2e0", "#abc2ca", "#414e69", "#04070f")
+        elif step == 2:
+            bg_palette(5, "#fff2de", "#aec0c4", "#434d68", "#04070f")
+        elif step == 3:
+            bg_palette(5, "#fff2dd", "#b1bdbf", "#464d67", "#04070f")
+        elif step == 4:
+            bg_palette(5, "#fff2dc", "#b4bbb9", "#484c66", "#04070f")
+        elif step == 5:
+            bg_palette(5, "#fff1da", "#b7b9b4", "#4b4c65", "#04070f")
+        elif step == 6:
+            bg_palette(5, "#fff1d9", "#bab7ae", "#4d4b64", "#04070f")
+        elif step == 7:
+            bg_palette(5, "#fff1d7", "#bdb5a9", "#504b63", "#04070f")
+        elif step == 8:
+            bg_palette(5, "#fff1d6", "#c1b3a4", "#534a63", "#050710")
+        elif step == 9:
+            bg_palette(5, "#fff1d5", "#c4b09e", "#554a62", "#050610")
+        elif step == 10:
+            bg_palette(5, "#fff1d3", "#c7ae99", "#584961", "#050610")
+        elif step == 11:
+            bg_palette(5, "#fff1d2", "#caac93", "#5a4960", "#050610")
+        elif step == 12:
+            bg_palette(5, "#fff1d1", "#cdaa8e", "#5d485f", "#050610")
+        elif step == 13:
+            bg_palette(5, "#fff0cf", "#d0a888", "#5f485e", "#050610")
+        elif step == 14:
+            bg_palette(5, "#fff0ce", "#d3a583", "#62475d", "#050610")
+        elif step == 15:
+            bg_palette(5, "#fff0cc", "#d6a37d", "#64475c", "#050610")
+        elif step == 16:
+            bg_palette(5, "#fff0cb", "#d9a178", "#67465b", "#050610")
+    elif scene == 5:
+        if step == 0:
+            bg_palette(6, "#fff0cb", "#d9a178", "#67465b", "#050610")
+        elif step == 1:
+            bg_palette(6, "#fef1ce", "#d4a47e", "#65485e", "#050610")
+        elif step == 2:
+            bg_palette(6, "#fcf2d2", "#d0a784", "#624b62", "#050610")
+        elif step == 3:
+            bg_palette(6, "#fbf3d5", "#cbaa89", "#604d65", "#050610")
+        elif step == 4:
+            bg_palette(6, "#f9f4d8", "#c6ad8f", "#5d4f69", "#050610")
+        elif step == 5:
+            bg_palette(6, "#f8f5db", "#c1af95", "#5b516c", "#04060f")
+        elif step == 6:
+            bg_palette(6, "#f6f6df", "#bdb29b", "#585470", "#04060f")
+        elif step == 7:
+            bg_palette(6, "#f5f7e2", "#b8b5a1", "#565673", "#04060f")
+        elif step == 8:
+            bg_palette(6, "#f4f8e5", "#b3b8a7", "#545877", "#04060f")
+        elif step == 9:
+            bg_palette(6, "#f2f8e8", "#aebbac", "#515a7a", "#04050f")
+        elif step == 10:
+            bg_palette(6, "#f1f9ec", "#aabeb2", "#4f5d7d", "#04050f")
+        elif step == 11:
+            bg_palette(6, "#effaef", "#a5c1b8", "#4c5f81", "#04050f")
+        elif step == 12:
+            bg_palette(6, "#eefbf2", "#a0c4be", "#4a6184", "#04050f")
+        elif step == 13:
+            bg_palette(6, "#ecfcf5", "#9bc6c4", "#476388", "#03050e")
+        elif step == 14:
+            bg_palette(6, "#ebfdf9", "#97c9c9", "#45668b", "#03050e")
+        elif step == 15:
+            bg_palette(6, "#e9fefc", "#92cccf", "#42688f", "#03050e")
+        elif step == 16:
+            bg_palette(6, "#e8ffff", "#8dcfd5", "#406a92", "#03050e")
+    elif scene == 6:
+        if step == 0:
+            bg_palette(7, "#e8ffff", "#8dcfd5", "#406a92", "#03050e")
+        elif step == 1:
+            bg_palette(7, "#e7ffff", "#8ccbd4", "#3e678e", "#03050e")
+        elif step == 2:
+            bg_palette(7, "#e7feff", "#8ac8d3", "#3d638a", "#03050e")
+        elif step == 3:
+            bg_palette(7, "#e6feff", "#89c4d3", "#3b6085", "#03050e")
+        elif step == 4:
+            bg_palette(7, "#e6feff", "#88c0d2", "#3a5c81", "#03050e")
+        elif step == 5:
+            bg_palette(7, "#e5fdff", "#86bcd1", "#38597d", "#03050e")
+        elif step == 6:
+            bg_palette(7, "#e5fdff", "#85b9d0", "#375579", "#03050e")
+        elif step == 7:
+            bg_palette(7, "#e4fdff", "#83b5cf", "#355275", "#03050e")
+        elif step == 8:
+            bg_palette(7, "#e4fdff", "#82b1cf", "#344f71", "#03050e")
+        elif step == 9:
+            bg_palette(7, "#e3fcff", "#81adce", "#324b6c", "#03050e")
+        elif step == 10:
+            bg_palette(7, "#e2fcff", "#7faacd", "#304868", "#03050e")
+        elif step == 11:
+            bg_palette(7, "#e2fcff", "#7ea6cc", "#2f4464", "#03050e")
+        elif step == 12:
+            bg_palette(7, "#e1fbff", "#7da2cb", "#2d4160", "#03050e")
+        elif step == 13:
+            bg_palette(7, "#e1fbff", "#7b9eca", "#2c3d5c", "#03050e")
+        elif step == 14:
+            bg_palette(7, "#e0fbff", "#7a9bca", "#2a3a57", "#03050e")
+        elif step == 15:
+            bg_palette(7, "#e0faff", "#7897c9", "#293653", "#03050e")
+        elif step == 16:
+            bg_palette(7, "#dffaff", "#7793c8", "#27334f", "#03050e")

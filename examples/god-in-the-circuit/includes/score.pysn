@@ -1,0 +1,68 @@
+# One original industrial motif develops across seven eight-bar arrangements.
+lead0 = music_file("../assets/score-0.json")
+bass0 = music_file("../assets/score-0.json", part=1)
+lead1 = music_file("../assets/score-1.json")
+bass1 = music_file("../assets/score-1.json", part=1)
+lead2 = music_file("../assets/score-2.json")
+bass2 = music_file("../assets/score-2.json", part=1)
+lead3 = music_file("../assets/score-3.json")
+bass3 = music_file("../assets/score-3.json", part=1)
+lead4 = music_file("../assets/score-4.json")
+bass4 = music_file("../assets/score-4.json", part=1)
+lead5 = music_file("../assets/score-5.json")
+bass5 = music_file("../assets/score-5.json", part=1)
+lead6 = music_file("../assets/score-6.json")
+bass6 = music_file("../assets/score-6.json", part=1)
+kick = sound_effect("pulse", [[190,1,13],[102,2,11],[65,5,7]], duty=1, priority=4)
+snare = sound_effect("noise", [[35,1,12],[51,2,8],[79,4,4]], priority=3)
+hat = sound_effect("noise", [[8,1,4]], priority=1)
+accent = sound_effect("pulse", [[659,2,6],[784,2,5],[988,4,4]], duty=0, priority=2)
+last_beat = -1
+
+def begin(scene):
+    global last_beat
+    last_beat = -1
+    stop_sound()
+    set_sound_volume(6, 6)
+    if scene == 0:
+        play_music(lead0, restart=True)
+        play_music(bass0, restart=True)
+    elif scene == 1:
+        play_music(lead1, restart=True)
+        play_music(bass1, restart=True)
+    elif scene == 2:
+        play_music(lead2, restart=True)
+        play_music(bass2, restart=True)
+    elif scene == 3:
+        play_music(lead3, restart=True)
+        play_music(bass3, restart=True)
+    elif scene == 4:
+        # A restrained passage makes the return of percussion feel earned.
+        play_music(lead4, restart=True)
+        play_music(bass4, restart=True)
+    elif scene == 5:
+        play_music(lead5, restart=True)
+        play_music(bass5, restart=True)
+    else:
+        play_music(lead6, restart=True)
+        play_music(bass6, restart=True)
+
+def rhythm(scene, tick):
+    global last_beat
+    beat = tick // 8
+    if beat == last_beat:
+        return
+    last_beat = beat
+    if scene == 4:
+        if beat % 16 == 0:
+            play_sound(accent)
+    elif scene == 0 and tick < 256:
+        if beat % 8 == 0:
+            play_sound(kick)
+    else:
+        if beat % 8 == 0:
+            play_sound(kick)
+        elif beat % 8 == 4:
+            play_sound(snare)
+        elif beat % 2 == 1:
+            play_sound(hat)

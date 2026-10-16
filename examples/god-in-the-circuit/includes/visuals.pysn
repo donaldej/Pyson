@@ -1,0 +1,105 @@
+# Prepared background imagery and live sprite geometry have separate jobs.
+import includes.art as art
+import includes.motion as motion
+import includes.palettes as palettes
+
+rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+
+def initialize():
+    bg_palette(0, "#03050E", "#27334F", "#7793C8", "#DFFAFF")
+    sprite_palette(0, "#000000", "#E8FFFF", "#92D5EA", "#E8FFFF")
+    clear_screen()
+    reset_points()
+    colors(0, 0)
+
+def reset_points():
+    for slot in range(40):
+        hide_sprite(slot)
+    for row in range(18):
+        rows[row] = 0
+    for slot in range(32):
+        old_y[slot] = -1
+
+def colors(scene, step):
+    palettes.apply(scene, step)
+
+def draw(scene, frame):
+    if scene == 0:
+        draw_background(art.pulse, frame, 0, 0)
+    elif scene == 1:
+        draw_background(art.iris, frame, 0, 0)
+    elif scene == 2:
+        draw_background(art.inversion, frame, 0, 0)
+    elif scene == 3:
+        draw_background(art.cathedral, frame, 0, 0)
+    elif scene == 4:
+        draw_background(art.eye, frame, 0, 0)
+    elif scene == 5:
+        draw_background(art.face, frame, 0, 0)
+    else:
+        draw_background(art.signature, frame, 0, 0)
+
+def point(slot, x, y, frame):
+    # Count both tile rows touched by each component; keep margin below ten.
+    previous_y = old_y[slot]
+    if previous_y >= 0:
+        rows[previous_y // 8] -= 1
+        if (previous_y + 7) // 8 != previous_y // 8:
+            rows[(previous_y + 7) // 8] -= 1
+    old_y[slot] = -1
+    if x < 0 or x > 152 or y < 12 or y > 124:
+        hide_sprite(slot)
+        return
+    top = y // 8
+    bottom = (y + 7) // 8
+    if rows[top] >= 8 or rows[bottom] >= 8:
+        hide_sprite(slot)
+        return
+    rows[top] += 1
+    if bottom != top:
+        rows[bottom] += 1
+    old_y[slot] = y
+    sprite(slot, art.photons, frame, x, y)
+
+def geometry(scene, tick, updates):
+    # Let the dissolves stand on their own, without a second layer of clutter.
+    if tick >= 768:
+        return
+    if scene == 4:
+        return
+    if scene == 5:
+        phase = (tick // 3) & 63
+        offset = motion.sine[phase] // 8
+        sprite(0, art.photons, 0, 61 + offset, 52)
+        sprite(1, art.photons, 0, 91 + offset, 52)
+        return
+    first = (updates % 8) * 4
+    phase = (tick // 3) & 63
+    for slot in range(first, first + 4):
+        a = (phase + slot * 2) & 63
+        s = motion.sine[a]
+        c = motion.sine[(a + 16) & 63]
+        if scene == 0:
+            # A second live trace answers the prepared waveform.
+            x = 12 + slot * 4
+            y = 68 + s // 3
+            point(slot, x, y, 0)
+        elif scene == 1:
+            x = 76 + c
+            y = 68 + s
+            point(slot, x, y, slot % 8 == 0)
+        elif scene == 2:
+            # Perspective division and this counter-rotation happen on the GB CPU.
+            z = motion.sine[(a * 3 - phase) & 63]
+            x = 76 + c * 130 // (90 + z)
+            y = 68 + s * 100 // (90 + z)
+            point(slot, x, y, z > 0)
+        elif scene == 3:
+            x = 24 + (slot % 4) * 34
+            y = 18 + ((tick // 2 + slot * 13) % 104)
+            point(slot, x, y, slot % 4 == 0)
+        else:
+            x = 8 + (slot % 2) * 144
+            y = 16 + ((tick // 2 + (slot // 2) * 7) % 112)
+            point(slot, x, y, slot % 8 == 0)

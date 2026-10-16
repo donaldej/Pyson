@@ -2,13 +2,13 @@
 const { parseColor } = require('./assets');
 const { evaluateArguments } = require('./builtin-arguments');
 
-const procedures = ['refresh_screen', 'bg_palette', 'sprite_palette', 'clear_screen', 'sprite', 'hide_sprite', 'draw_map', 'draw_world', 'set_camera', 'world_sprite', 'show_window', 'hide_window', 'window_position', 'clear_window', 'print_window'];
-const names = [...procedures, 'sprite_sheet', 'tile', 'tilemap', 'mutable_map', 'set_map_tile', 'reset_map', 'collision_map', 'worldmap', 'tile_terrain', 'tile_is_solid', 'rect_is_solid', 'tile_at', 'map_width', 'map_height', 'camera_x', 'camera_y'];
+const procedures = ['refresh_screen', 'bg_palette', 'sprite_palette', 'clear_screen', 'sprite', 'hide_sprite', 'draw_map', 'draw_background', 'draw_world', 'set_camera', 'world_sprite', 'show_window', 'hide_window', 'window_position', 'clear_window', 'print_window'];
+const names = [...procedures, 'background_clip', 'sprite_sheet', 'tile', 'tilemap', 'mutable_map', 'set_map_tile', 'reset_map', 'collision_map', 'worldmap', 'tile_terrain', 'tile_is_solid', 'rect_is_solid', 'tile_at', 'map_width', 'map_height', 'camera_x', 'camera_y'];
 
 function emitGraphics(node, context, helpers, graphics) {
   const { fail, expression, numeric, literalNumber, label } = helpers;
   if (!names.includes(node.name)) return null;
-  if (['sprite_sheet', 'tile', 'tilemap', 'mutable_map', 'collision_map', 'worldmap'].includes(node.name)) {
+  if (['background_clip', 'sprite_sheet', 'tile', 'tilemap', 'mutable_map', 'collision_map', 'worldmap'].includes(node.name)) {
     const asset = graphics.calls.get(node);
     if (!asset) fail(node, 'Asset imports must be top-level assignments with literal arguments');
     return [`    ld hl, ${asset.id}`];
@@ -45,6 +45,7 @@ function emitGraphics(node, context, helpers, graphics) {
     return [...code, `    call ${routine}`];
   }
   const signatures = {
+    draw_background: { min: 2, max: 4, defaults: [0, 0, 0, 0], routine: 'DrawBackground' },
     show_window: { min: 0, max: 0, defaults: [], routine: 'ShowWindow' },
     hide_window: { min: 0, max: 0, defaults: [], routine: 'HideWindow' },
     window_position: { min: 2, max: 2, defaults: [0, 0], routine: 'WindowPosition' },
@@ -62,7 +63,8 @@ function emitGraphics(node, context, helpers, graphics) {
   const args = signature.defaults.map((value, i) => node.args[i] || { type: 'number', value, line: node.line });
   const bounded = ['clear_screen', 'clear_window'].includes(node.name) ? [[0, 7]]
     : node.name === 'window_position' ? [[0, 159], [1, 143]]
-    : ['sprite', 'world_sprite', 'hide_sprite'].includes(node.name) ? [[0, 39]] : node.name === 'draw_map' ? [[1, 19], [2, 17]] : [];
+    : ['sprite', 'world_sprite', 'hide_sprite'].includes(node.name) ? [[0, 39]] : node.name === 'draw_map' ? [[1, 19], [2, 17]]
+    : node.name === 'draw_background' ? [[2, 19], [3, 17]] : [];
   for (const [index, maximum] of bounded) {
     const value = literalNumber(args[index]);
     if (value !== null && (value < 0 || value > maximum)) fail(node, `${node.name} argument ${index + 1} must be 0..${maximum}`);

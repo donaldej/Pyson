@@ -1,0 +1,70 @@
+# GOD IN THE CIRCUIT: a seven-movement audiovisual loop.
+# A advances to the next movement. Start pauses/resumes the entire timeline.
+header.title = "GOD IN CIRCUIT"
+header.target = "dual"
+header.cpu_speed = "double"
+header.controller = "mbc5"
+
+import includes.visuals as visuals
+import includes.score as score
+
+scene = 0
+tick = 0
+cycles = 0
+updates = 0
+paused = False
+last_frame = 0
+last_color = 0
+
+visuals.initialize()
+visuals.draw(0, 0)
+refresh_screen()
+score.begin(0)
+previous = frame_count()
+
+while True:
+    read_buttons()
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    if button_pressed("start"):
+        paused = not paused
+        if paused:
+            pause_music()
+            stop_sound()
+        else:
+            resume_music()
+    if button_pressed("a"):
+        tick = 1024
+    if not paused:
+        tick += delta
+        if tick >= 1024:
+            # Carry excess time into the next movement instead of accumulating drift.
+            tick -= 1024
+            scene += 1
+            if scene == 7:
+                scene = 0
+                cycles += 1
+            visuals.reset_points()
+            score.begin(scene)
+            last_frame = -1
+            last_color = -1
+        # The last two musical bars morph into the following movement's image.
+        color_step = 0
+        if tick < 768:
+            frame = (tick % 192) * 7 // 48
+        else:
+            frame = 28 + min(13, (tick - 768) * 7 // 128)
+            color_step = 1 + min(15, (tick - 768) // 16)
+        score.rhythm(scene, tick)
+        if frame >= 28 and last_frame < 28:
+            visuals.reset_points()
+        if frame != last_frame:
+            # The runtime uploads into unused VRAM; refresh commits the finished frame.
+            visuals.draw(scene, frame)
+            last_frame = frame
+        if color_step != last_color:
+            visuals.colors(scene, color_step)
+            last_color = color_step
+        visuals.geometry(scene, tick, updates)
+        updates += 1
+    refresh_screen()

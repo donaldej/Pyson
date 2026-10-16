@@ -7,6 +7,11 @@ hero = sprite_sheet("assets/hero.bmp", 16, 16)
 level = tilemap("assets/level.bmp")
 ```
 
+For prepared background frame sheets, use
+`intro = background_clip("assets/intro.bmp", 160, 128)`. The larger sheet is
+split into equal frames; see [animated backgrounds](background-clips.md) for
+layout, playback, and the per-frame pattern budget.
+
 Compilation reads paths relative to the `.pysn` file, converts pixels into
 Game Boy 2bpp tiles, deduplicates tiles, and embeds maps and palettes in the ROM.
 No manual conversion is required. Asset handles can be passed to `sprite` and

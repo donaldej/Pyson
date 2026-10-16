@@ -48,7 +48,7 @@ function walk(statements, visit) {
 function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
   const usesFrameClock = node => node && typeof node === 'object' &&
     ((node.type === 'call' && frameCodegen.names.includes(node.name)) || Object.values(node).some(usesFrameClock));
-  graphics.frameClock = Boolean(usesFrameClock(ast));
+  graphics.frameClock = Boolean(usesFrameClock(ast) || graphics.clips?.enabled);
   graphics.paletteLiterals = [];
   const music = musicCodegen.collectMusic(ast);
   const sound = soundCodegen.collectSounds(ast);
@@ -749,6 +749,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
   for (const fn of functions.values()) resolve(fn);
   for (const call of mainCalls) for (const name of call.fn.required) if (!call.assigned.has(name)) fail(call.node, `Function "${call.fn.name}" reads global "${name}" before assignment`);
 
+  if (graphics.clips?.enabled && (graphics.window || graphics.scrolling)) throw new Error('Background clips currently require a fixed background without window or world-camera routines');
   const codeBanking = bankFunctions(emittedFunctions);
   headerBytes = finalizeBanks(codeBanking.objects);
   const zeroError = stringLabel('Division by zero', { line: 0 });
@@ -767,7 +768,8 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
     + '\n' + (dialogue.portraits ? fs.readFileSync(path.join(root, 'include', 'dialogue-portraits.asm'), 'utf8') : '')
     + '\n' + (graphics.terrainRectangles ? fs.readFileSync(path.join(root, 'include', 'terrain-rectangles.asm'), 'utf8') : '');
   graphics.sourceDiagnostics = sourceDiagnostics;
-  const assembly = generateROM({ rectangleEnabled: rectangle.enabled, rectangleRuntime, choicesEnabled: dialogue.choicesEnabled, choicesRuntime, choiceTables: dialogue.choiceTables || [], dialogueEnabled: dialogue.enabled, dialogueRuntime, poolEnabled: pool.enabled, poolRuntime, poolData: pool.data(), poolError, music, musicRuntime, animation, animationRuntime, save, saveRuntime, sound, soundRuntime, header, headerBytes, mainCode, codeBanking, runtime, strings, graphics, symbols, zeroError, indexError, arrayLiterals });
+  const clipRuntime = fs.readFileSync(path.join(root, 'include', 'background-clips.asm'), 'utf8');
+  const assembly = generateROM({ rectangleEnabled: rectangle.enabled, rectangleRuntime, choicesEnabled: dialogue.choicesEnabled, choicesRuntime, choiceTables: dialogue.choiceTables || [], dialogueEnabled: dialogue.enabled, dialogueRuntime, poolEnabled: pool.enabled, poolRuntime, poolData: pool.data(), poolError, music, musicRuntime, animation, animationRuntime, save, saveRuntime, sound, soundRuntime, header, headerBytes, mainCode, codeBanking, runtime: runtime + '\n' + clipRuntime, strings, graphics, symbols, zeroError, indexError, arrayLiterals });
   return { assembly, sourceLocations, musicEnabled: music.enabled, music: [...music.used.values()].map(({ label, ...track }) => track), animationEnabled: animation.enabled, animations: [...animation.used.values()].map(({ label, ...definition }) => ({ ...definition })), soundEnabled: sound.enabled, sounds: [...sound.used.values()].map(({ bytes, label, ...effect }) => ({ ...effect, bytes: [...bytes] })), symbols: symbols.filter(symbol => symbol.name).map(symbol => ({ ...symbol })) };
 }
 

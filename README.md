@@ -103,6 +103,7 @@ pitfalls. [CONTEXT.MF](CONTEXT.MF) covers project workflow and development conte
 - [Input and frame timing](documentation/input.md): buttons and interactive game loops.
 - [Hardware frame timing](documentation/frame-timing.md): elapsed-time movement, animation, waits, and audio pacing.
 - [Graphics](documentation/graphics.md): buffered drawing, palettes, and sprites.
+- [Animated backgrounds](documentation/background-clips.md): banked frame sheets with safe double-buffered uploads.
 - [BMP assets](documentation/assets.md): automatic imports and conversion tools.
 - [Nested tile maps and terrain](documentation/tilemaps.md): reusable tiles, static layouts, and gameplay properties.
 - [Fixed HUD and window text](documentation/window.md): stationary status bars, dialogue panels, and window visibility.
@@ -118,6 +119,11 @@ pitfalls. [CONTEXT.MF](CONTEXT.MF) covers project workflow and development conte
 - [Star Chase](documentation/star-chase.md): a playable game using the current language.
 
 ## Example projects
+
+[God in the Circuit](examples/god-in-the-circuit/README.md) is a two-minute
+original DMG/Color audiovisual demo: mechanical iris, shaded inversion, moving
+cathedral, eye, turning synthetic face and a Pyson signature. Prepared background
+clips and live geometry follow an original industrial chiptune score.
 
 [Prism Forge](examples/prism-forge/README.md) is an abstract DMG/Color music demo:
 faceted geometry, folding ribbons, a luminous knot, an eclipse and a machine-mask
