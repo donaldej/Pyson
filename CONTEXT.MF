@@ -4,6 +4,14 @@ Last verified: 2026-10-15. This is a Markdown-formatted handoff despite its
 `.MF` extension. Read it before planning or changing this project. It records
 project intent, current implementation, user preferences, and navigation to
 the detailed references. It is not a replacement for reading relevant code.
+
+For agents writing Pyson games, read AI_REFERENCE.md first: it consolidates the
+implemented language, exact API signatures/defaults, setup, graphics/timing/memory
+limits, complete programs, and common failure patterns. This context file records
+project intent/workflow; it is not the language manual. tests/ai-reference.test.js
+checks the signature catalog against src/builtin-arguments.js and compiles and
+assembles all seven complete programs, including the three-file import example.
+Update the manual and its tested examples whenever public behavior changes.
 Update it when architecture, public APIs, workflow, or accepted priorities change.
 
 Current development priority: improve compiler/tooling without complicating

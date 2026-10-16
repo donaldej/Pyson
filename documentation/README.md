@@ -5,6 +5,10 @@ explained, runnable examples. This directory provides precise API contracts,
 limits, and implementation behavior. The [project README](../README.md) has
 the development setup and compiler overview.
 
+AI coding agents can start with the self-contained
+[AI reference manual](../AI_REFERENCE.md). Its complete programs are compiled and
+assembled in the test suite, and its API catalog is checked against the compiler.
+
 ## Getting started
 
 - [Windows setup and commands](development.md)

@@ -16,11 +16,65 @@ disclosure does not imply that every line received human code review or that
 correctness is guaranteed. Third-party dependencies, including Jison and RGBDS,
 are independently developed projects.
 
+## Windows setup
+
+1. Install [64-bit Node.js](https://nodejs.org/) version 18 or newer, including npm.
+2. [Download Pyson as a ZIP](https://github.com/donaldej/Pyson/archive/refs/heads/main.zip) and extract it, or clone it with Git:
+
+   ```powershell
+   git clone https://github.com/donaldej/Pyson.git
+   ```
+
+3. Open PowerShell in the extracted or cloned project folder (the folder containing
+   `package.json`). If you just cloned it, run `cd Pyson`.
+4. Install the dependencies, set up the assembler, and build Hello World:
+
+```powershell
+npm.cmd ci
+npm.cmd run setup
+npm.cmd run build -- examples/hello-world/main.pysn hello-world
+```
+
+Your ROM is `binary/hello-world.gb`. Open it in a Game Boy emulator when you
+want to play it. Setup installs the pinned
+RGBDS 1.0.4 tools locally and verifies the official download checksum. Jison
+0.4.18 is installed from the npm lockfile. No administrator rights, PATH changes,
+or PowerShell execution-policy changes are required.
+
+**Only Node.js/npm and the automatically installed build tools are needed to
+compile ROMs.** Docker, Python, PyBoy, BGB, FFmpeg, an editor extension, and a
+C/C++ compiler are not required. Git is optional if you download the repository
+as a ZIP. Pyson converts BMPs itself; the bundled `rgbgfx` utility is optional.
+
+`npm.cmd run doctor` checks the required build tools. Optional testing and
+recording tools do not make this check fail, even if an old Python environment
+is present. Tests are a separate developer step: `npm.cmd run test:compiler`.
+
+Setup reports existing dependency versions and locations before installing,
+explains mismatches, and repairs project-local RGBDS tools without changing
+system installations. See [installer checks](documentation/development.md#understanding-installer-checks).
+
+For optional emulator tests, install 64-bit Python 3.10-3.13, then run:
+
+```powershell
+npm.cmd run setup:emulator
+npm.cmd run test:emulator
+```
+
+`npm.cmd test` runs the full suite, skipping emulator cases if their environment
+is absent. `test:emulator` requires that environment. See the
+[Windows setup guide](documentation/development.md) for prerequisites, offline
+RGBDS installation, troubleshooting, and all commands.
+
 ## Getting started
 
 Start with the [tutorial learning path](tutorials/README.md) for explained,
 runnable examples. Use the [grouped feature reference](documentation/README.md)
 when you need exact API behavior and limits.
+
+For AI coding agents, [AI_REFERENCE.md](AI_REFERENCE.md) is the self-contained
+language/API manual, with exact signatures, limits, working examples, and common
+pitfalls. [CONTEXT.MF](CONTEXT.MF) covers project workflow and development context.
 
 ## Feature documentation
 
@@ -63,49 +117,7 @@ when you need exact API behavior and limits.
 - [Rectangle collision](documentation/rectangles.md): sprite hitboxes, overlap queries, and coordinate bounds.
 - [Star Chase](documentation/star-chase.md): a playable game using the current language.
 
-## Windows development environment
-
-Install 64-bit Node.js 18 or newer with npm, then run these commands in PowerShell
-from a fresh clone:
-
-```powershell
-npm.cmd ci
-npm.cmd run setup
-npm.cmd run build -- examples/hello-world/main.pysn hello-world
-```
-
-Your ROM is `binary/hello-world.gb`. Open it in a Game Boy emulator when you
-want to play it. Setup installs the pinned
-RGBDS 1.0.4 tools locally and verifies the official download checksum. Jison
-0.4.18 is installed from the npm lockfile. No administrator rights, PATH changes,
-or PowerShell execution-policy changes are required.
-
-**Only Node.js/npm and the automatically installed build tools are needed to
-compile ROMs.** Docker, Python, PyBoy, BGB, FFmpeg, an editor extension, and a
-C/C++ compiler are not required. Git is optional if you download the repository
-as a ZIP. Pyson converts BMPs itself; the bundled `rgbgfx` utility is optional.
-
-`npm.cmd run doctor` checks the required build tools. Optional testing and
-recording tools do not make this check fail, even if an old Python environment
-is present. Tests are a separate developer step: `npm.cmd run test:compiler`.
-
-Setup reports existing dependency versions and locations before installing,
-explains mismatches, and repairs project-local RGBDS tools without changing
-system installations. See [installer checks](documentation/development.md#understanding-installer-checks).
-
-For optional emulator tests, install 64-bit Python 3.10-3.13, then run:
-
-```powershell
-npm.cmd run setup:emulator
-npm.cmd run test:emulator
-```
-
-`npm.cmd test` runs the full suite, skipping emulator cases if their environment
-is absent. `test:emulator` requires that environment. See the
-[Windows setup guide](documentation/development.md) for prerequisites, offline
-RGBDS installation, troubleshooting, and all commands.
-
-Other useful examples:
+## Example projects
 
 Two larger examples combine several language features into playable games:
 [Vault Run](examples/vault-run/README.md), an exploration puzzle with mutable

@@ -90,7 +90,7 @@ The result of `-32768 // -1` wraps to `-32768` under the 16-bit integer rules.
 Augmented assignments are supported for `+=`, `-=`, `*=`, `//=`, `%=`, `&=`,
 `|=`, and `^=`. They require the variable to have already been assigned.
 
-String concatenation, string comparison, string indexing, `/`, powers, shifts,
+String concatenation, string comparison, string indexing, integer-only `/`, powers, shifts,
 dictionaries, resizable collections, and multiple assignment are not supported yet.
 
 ## Assignment checks
