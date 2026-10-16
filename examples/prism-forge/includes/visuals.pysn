@@ -1,0 +1,122 @@
+# Image layouts are ROM data. Sprite transforms below run on the Game Boy CPU.
+import includes.frames0 as facet
+import includes.frames1 as fold
+import includes.frames2 as knot
+import includes.frames3 as corona
+import includes.frames4 as mask
+import includes.motion as motion
+
+sparks = sprite_sheet("../assets/sparks.bmp")
+rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+
+def prepare(scene):
+    clear_screen()
+    for slot in range(40):
+        hide_sprite(slot)
+    for row in range(18):
+        rows[row] = 0
+    for slot in range(32):
+        old_y[slot] = -1
+    if scene == 0:
+        print("P R I S M  F O R G E", 0, 0)
+        print("01 / CRYSTAL ENGINE", 0, 17)
+    elif scene == 1:
+        print("FOLDING THE SIGNAL", 1, 0)
+        print("02 / LIQUID RIBBONS", 0, 17)
+    elif scene == 2:
+        print("KNOTS IN THE LIGHT", 1, 0)
+        print("03 / IMPOSSIBLE FORM", 0, 17)
+    elif scene == 3:
+        print("THE SILENT CORONA", 1, 0)
+        print("04 / ECLIPSE CHOIR", 1, 17)
+    else:
+        print("P Y S O N", 5, 0)
+        print("THE MACHINE DREAMS", 1, 17)
+    colors(scene, 0)
+    field(scene, 0)
+
+def field(scene, frame):
+    if scene == 0:
+        facet.draw(frame)
+    elif scene == 1:
+        fold.draw(frame)
+    elif scene == 2:
+        knot.draw(frame)
+    elif scene == 3:
+        corona.draw(frame)
+    else:
+        mask.draw(frame)
+
+def colors(scene, tick):
+    bg_palette(0, "#040814", "#294858", "#8EC9D2", "#F4F1DC")
+    sprite_palette(0, "#000000", "#FFFFFF", "#8CE8F0", "#FFFFFF")
+    if scene == 0:
+        bg_palette(1, "#FFF1D6", "#FFA65A", "#9B3D74", "#100D26")
+    elif scene == 1:
+        if tick // 96 % 2 == 0:
+            bg_palette(1, "#D8FFF0", "#63D8BD", "#216C7E", "#050F27")
+        else:
+            bg_palette(1, "#F2FFE3", "#73DBC8", "#315D93", "#080D26")
+    elif scene == 2:
+        bg_palette(1, "#FFF1FF", "#EE93D4", "#6D4CA6", "#100D26")
+    elif scene == 3:
+        if tick // 48 % 2 == 0:
+            bg_palette(1, "#FFFFDC", "#FFCD68", "#AE553C", "#0C1020")
+        else:
+            bg_palette(1, "#FFFFEB", "#FFDA8A", "#B86B50", "#0C1020")
+    else:
+        bg_palette(1, "#E9FFFF", "#8FDCE5", "#406991", "#090C20")
+
+def point(slot, x, y, frame):
+    # Remove this point's old contribution before testing its new position.
+    previous_y = old_y[slot]
+    if previous_y >= 0:
+        rows[previous_y // 8] -= 1
+        if (previous_y + 7) // 8 != previous_y // 8:
+            rows[(previous_y + 7) // 8] -= 1
+    old_y[slot] = -1
+    if x < 0 or x > 152 or y < 12 or y > 124:
+        hide_sprite(slot)
+        return
+    top = y // 8
+    bottom = (y + 7) // 8
+    # Reserve at most eight points per tile row: below the hardware limit of ten.
+    if rows[top] >= 8 or rows[bottom] >= 8:
+        hide_sprite(slot)
+        return
+    rows[top] += 1
+    if bottom != top:
+        rows[bottom] += 1
+    old_y[slot] = y
+    sprite(slot, sparks, frame, x, y)
+
+def geometry(scene, tick, updates):
+    # The ribbon/corona acts need no sprite work; spend their budget on the field.
+    if scene == 1 or scene == 3:
+        return
+    # Update four of 32 points per iteration, keeping arithmetic bounded.
+    first = (updates % 8) * 4
+    phase = (tick // 6) & 63
+    tilt = (tick // 12) & 63
+    for slot in range(first, first + 4):
+        a = (slot * 2 + phase) & 63
+        s = motion.sine[a]
+        c = motion.sine[(a + 16) & 63]
+        if scene == 2:
+            # Live counter-rotating projection surrounds the precomputed knot.
+            z = motion.sine[(a * 3 + tilt) & 63]
+            x = 76 + c * 160 // (100 + z)
+            y = 68 + s * 110 // (100 + z)
+            point(slot, x, y, z > 0)
+        elif scene == 4:
+            # Two orbiting halos frame the face without filling it with debris.
+            x = 76 + c * 2
+            y = 68 + s * motion.sine[(tilt + 16) & 63] // 32
+            point(slot, x, y, (slot % 8 == 0) * 2)
+        elif scene == 0:
+            x = 76 + c * 2
+            y = 68 + s // 2
+            point(slot, x, y, slot % 4 == 0)
+        else:
+            hide_sprite(slot)

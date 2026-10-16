@@ -14,6 +14,10 @@ No manual conversion is required. Asset handles can be passed to `sprite` and
 
 Use [nested tile maps](tilemaps.md) to assemble maps from individual 8x8 BMP
 tiles with per-tile palettes, solidity, and terrain labels.
+You can also select tiles from one shared BMP atlas with
+`tile("assets/tileset.bmp", x=2, y=1)`. Coordinates count 8x8 tiles from the
+top-left; selections share the image palette. See
+[atlas selection](tilemaps.md#taking-tiles-from-one-image).
 
 ## Formats and layout
 

@@ -1,0 +1,49 @@
+# Five original related arrangements; two music voices plus two effect channels.
+lead0 = music_file("../assets/score-0.json")
+bass0 = music_file("../assets/score-0.json", part=1)
+lead1 = music_file("../assets/score-1.json")
+bass1 = music_file("../assets/score-1.json", part=1)
+lead2 = music_file("../assets/score-2.json")
+bass2 = music_file("../assets/score-2.json", part=1)
+lead3 = music_file("../assets/score-3.json")
+bass3 = music_file("../assets/score-3.json", part=1)
+lead4 = music_file("../assets/score-4.json")
+bass4 = music_file("../assets/score-4.json", part=1)
+kick = sound_effect("pulse", [[180,1,12],[94,2,10],[65,3,7]], duty=1, priority=3)
+snare = sound_effect("noise", [[35,1,11],[51,2,7],[79,3,3]], priority=3)
+hat = sound_effect("noise", [[8,1,4]], priority=1)
+last_beat = -1
+
+def begin(scene):
+    global last_beat
+    stop_music()
+    stop_sound()
+    last_beat = -1
+    set_sound_volume(6, 6)
+    if scene == 0:
+        play_music(lead0, restart=True)
+        play_music(bass0, restart=True)
+    elif scene == 1:
+        play_music(lead1, restart=True)
+        play_music(bass1, restart=True)
+    elif scene == 2:
+        play_music(lead2, restart=True)
+        play_music(bass2, restart=True)
+    elif scene == 3:
+        play_music(lead3, restart=True)
+        play_music(bass3, restart=True)
+    else:
+        play_music(lead4, restart=True)
+        play_music(bass4, restart=True)
+
+def rhythm(tick):
+    global last_beat
+    beat = tick // 6
+    if beat != last_beat:
+        last_beat = beat
+        if beat % 8 == 0:
+            play_sound(kick)
+        elif beat % 8 == 4:
+            play_sound(snare)
+        elif beat % 2 == 1:
+            play_sound(hat)

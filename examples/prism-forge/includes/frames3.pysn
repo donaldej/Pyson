@@ -1,0 +1,485 @@
+# CORONA / 04. Precomputed frames; shared 112-pattern atlas.
+import includes.tiles as tiles
+
+f0 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t102,tiles.t57,tiles.t0,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t2,tiles.t37,tiles.t0,tiles.t39,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t57,tiles.t3,tiles.t27,tiles.t16,tiles.t16,tiles.t27,tiles.t26,tiles.t0,tiles.t24,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t4,tiles.t13,tiles.t1,tiles.t4,tiles.t4,tiles.t4,tiles.t4,tiles.t1,tiles.t37,tiles.t15,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t40,tiles.t27,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t90,tiles.t50,tiles.t45,tiles.t78,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t45,tiles.t41,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t5,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t111,tiles.t37,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t1,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t1,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t88,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t82,tiles.t43,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t42,tiles.t1,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t1,tiles.t29,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t15,tiles.t110,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t102,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t2,tiles.t29,tiles.t1,tiles.t27,tiles.t71,tiles.t18,tiles.t27,tiles.t1,tiles.t2,tiles.t27,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t26,tiles.t0,tiles.t67,tiles.t25,tiles.t39,tiles.t2,tiles.t25,tiles.t109,tiles.t42,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t38,tiles.t0,tiles.t15,tiles.t2,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f1 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t83,tiles.t0,tiles.t0,tiles.t33,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t2,tiles.t57,tiles.t42,tiles.t2,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t0,tiles.t16,tiles.t67,tiles.t16,tiles.t16,tiles.t1,tiles.t63,tiles.t0,tiles.t2,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t29,tiles.t13,tiles.t41,tiles.t29,tiles.t101,tiles.t98,tiles.t15,tiles.t1,tiles.t37,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t16,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t2,tiles.t2,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t16,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t50,tiles.t24,tiles.t50,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t106,tiles.t2,tiles.t39,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t2,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t25,tiles.t109,tiles.t51,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t1,tiles.t33,tiles.t3,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t88,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t98,tiles.t2,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t49,tiles.t26,tiles.t15,tiles.t2,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t1,tiles.t4,tiles.t98,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t67,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t102,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t2,tiles.t29,tiles.t1,tiles.t27,tiles.t99,tiles.t97,tiles.t43,tiles.t41,tiles.t39,tiles.t27,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t0,tiles.t15,tiles.t103,tiles.t39,tiles.t1,tiles.t101,tiles.t109,tiles.t0,tiles.t25,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t2,tiles.t57,tiles.t42,tiles.t2,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t32,tiles.t0,tiles.t0,tiles.t103,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f2 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t2,tiles.t27,tiles.t0,tiles.t75,tiles.t2,tiles.t57,tiles.t0,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t67,tiles.t27,tiles.t27,tiles.t1,tiles.t109,tiles.t42,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t2,tiles.t51,tiles.t41,tiles.t29,tiles.t4,tiles.t98,tiles.t15,tiles.t27,tiles.t16,tiles.t2,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t106,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t39,tiles.t91,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t97,tiles.t1,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t0,tiles.t2,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t39,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t39,tiles.t27,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t17,tiles.t15,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t1,tiles.t18,tiles.t26,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t98,tiles.t2,tiles.t17,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t4,tiles.t2,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t57,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t79,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t92,tiles.t41,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t91,tiles.t4,tiles.t91,tiles.t16,tiles.t16,tiles.t3,tiles.t97,tiles.t41,tiles.t29,tiles.t2,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t50,tiles.t4,tiles.t63,tiles.t39,tiles.t29,tiles.t1,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t42,tiles.t2,tiles.t71,tiles.t0,tiles.t29,tiles.t2,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f3 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t27,tiles.t3,tiles.t0,tiles.t4,tiles.t2,tiles.t0,tiles.t33,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t67,tiles.t25,tiles.t92,tiles.t27,tiles.t77,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t2,tiles.t43,tiles.t41,tiles.t29,tiles.t98,tiles.t25,tiles.t88,tiles.t27,tiles.t27,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t25,tiles.t15,tiles.t41,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t84,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t92,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t33,tiles.t2,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t39,tiles.t27,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t45,tiles.t26,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t27,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t22,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t29,tiles.t2,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t0,tiles.t15,tiles.t1,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t29,tiles.t66,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t15,tiles.t91,tiles.t16,tiles.t16,tiles.t16,tiles.t106,tiles.t41,tiles.t4,tiles.t2,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t101,tiles.t2,tiles.t29,tiles.t101,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t0,tiles.t2,tiles.t3,tiles.t0,tiles.t15,tiles.t2,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f4 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t27,tiles.t57,tiles.t0,tiles.t29,tiles.t26,tiles.t0,tiles.t18,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t66,tiles.t1,tiles.t38,tiles.t91,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t16,tiles.t16,tiles.t1,tiles.t29,tiles.t32,tiles.t4,tiles.t39,tiles.t27,tiles.t1,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t4,tiles.t15,tiles.t82,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t33,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t1,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t43,tiles.t92,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t39,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t24,tiles.t29,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t0,tiles.t3,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t15,tiles.t110,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t63,tiles.t43,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t43,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t29,tiles.t29,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t29,tiles.t1,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t32,tiles.t39,tiles.t27,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t2,tiles.t66,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t42,tiles.t91,tiles.t16,tiles.t3,tiles.t16,tiles.t18,tiles.t1,tiles.t63,tiles.t4,tiles.t4,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t26,tiles.t4,tiles.t2,tiles.t41,tiles.t4,tiles.t2,tiles.t66,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t0,tiles.t24,tiles.t38,tiles.t0,tiles.t42,tiles.t29,tiles.t29,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f5 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t16,tiles.t57,tiles.t42,tiles.t2,tiles.t37,tiles.t0,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t4,tiles.t3,tiles.t1,tiles.t84,tiles.t66,tiles.t57,tiles.t24,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t3,tiles.t16,tiles.t77,tiles.t29,tiles.t32,tiles.t100,tiles.t29,tiles.t1,tiles.t1,tiles.t17,tiles.t0,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t29,tiles.t111,tiles.t63,tiles.t25,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t50,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t75,tiles.t1,tiles.t27,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t106,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t106,tiles.t2,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t41,tiles.t33,tiles.t3,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t4,tiles.t32,tiles.t88,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t63,tiles.t92,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t26,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t1,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t2,tiles.t27,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t2,tiles.t27,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t6,tiles.t1,tiles.t16,tiles.t97,tiles.t16,tiles.t16,tiles.t27,tiles.t5,tiles.t42,tiles.t4,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t103,tiles.t39,tiles.t41,tiles.t4,tiles.t29,tiles.t2,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t0,tiles.t15,tiles.t2,tiles.t57,tiles.t0,tiles.t4,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f6 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t16,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t3,tiles.t0,tiles.t100,tiles.t2,tiles.t57,tiles.t79,tiles.t38,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t4,tiles.t29,tiles.t27,tiles.t1,tiles.t20,tiles.t97,tiles.t99,tiles.t2,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t33,tiles.t16,tiles.t92,tiles.t4,tiles.t25,tiles.t101,tiles.t101,tiles.t1,tiles.t77,tiles.t109,tiles.t33,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t43,tiles.t29,tiles.t2,tiles.t41,tiles.t25,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t50,tiles.t15,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t49,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t75,tiles.t39,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t18,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t18,tiles.t26,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t24,tiles.t17,tiles.t24,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t84,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t91,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t26,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t1,tiles.t32,tiles.t102,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t2,tiles.t27,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t2,tiles.t27,tiles.t41,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t0,tiles.t2,tiles.t1,tiles.t20,tiles.t33,tiles.t16,tiles.t27,tiles.t27,tiles.t5,tiles.t0,tiles.t25,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t91,tiles.t0,tiles.t39,tiles.t41,tiles.t101,tiles.t4,tiles.t2,tiles.t66,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t78,tiles.t42,tiles.t2,tiles.t99,tiles.t0,tiles.t25,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f7 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t57,tiles.t0,tiles.t4,tiles.t91,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t29,tiles.t2,tiles.t27,tiles.t16,tiles.t16,tiles.t16,tiles.t27,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t16,tiles.t92,tiles.t25,tiles.t4,tiles.t101,tiles.t4,tiles.t39,tiles.t67,tiles.t0,tiles.t45,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t2,tiles.t27,tiles.t41,tiles.t98,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t75,tiles.t1,tiles.t37,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t15,tiles.t41,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t75,tiles.t39,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t63,tiles.t0,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t24,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t92,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t2,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t39,tiles.t84,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t26,tiles.t92,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t41,tiles.t32,tiles.t16,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t24,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t23,tiles.t2,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t0,tiles.t2,tiles.t2,tiles.t20,tiles.t3,tiles.t3,tiles.t27,tiles.t27,tiles.t82,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t57,tiles.t88,tiles.t1,tiles.t29,tiles.t32,tiles.t24,tiles.t27,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t0,tiles.t2,tiles.t3,tiles.t0,tiles.t0,tiles.t25,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f8 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t102,tiles.t0,tiles.t42,tiles.t29,tiles.t26,tiles.t0,tiles.t24,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t2,tiles.t27,tiles.t27,tiles.t16,tiles.t77,tiles.t16,tiles.t2,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t1,tiles.t25,tiles.t101,tiles.t4,tiles.t4,tiles.t2,tiles.t102,tiles.t0,tiles.t24,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t27,tiles.t16,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t75,tiles.t39,tiles.t84,tiles.t92,tiles.t78,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t15,tiles.t41,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t39,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t33,tiles.t71,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t16,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t84,tiles.t24,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t106,tiles.t26,tiles.t92,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t1,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t32,tiles.t39,tiles.t20,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t90,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t41,tiles.t66,tiles.t27,tiles.t50,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t48,tiles.t15,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t43,tiles.t26,tiles.t29,tiles.t98,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t26,tiles.t0,tiles.t2,tiles.t2,tiles.t38,tiles.t3,tiles.t33,tiles.t27,tiles.t1,tiles.t41,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t57,tiles.t100,tiles.t2,tiles.t1,tiles.t17,tiles.t15,tiles.t27,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t15,tiles.t91,tiles.t57,tiles.t0,tiles.t103,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f9 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t3,tiles.t0,tiles.t0,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t2,tiles.t37,tiles.t0,tiles.t2,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t2,tiles.t3,tiles.t16,tiles.t3,tiles.t1,tiles.t16,tiles.t2,tiles.t63,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t1,tiles.t4,tiles.t101,tiles.t25,tiles.t4,tiles.t1,tiles.t102,tiles.t57,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t16,tiles.t77,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t75,tiles.t29,tiles.t91,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t29,tiles.t41,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t1,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t78,tiles.t18,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t15,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t92,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t43,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t1,tiles.t25,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t17,tiles.t39,tiles.t20,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t106,tiles.t1,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t41,tiles.t18,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t100,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t26,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t0,tiles.t2,tiles.t2,tiles.t27,tiles.t16,tiles.t33,tiles.t27,tiles.t1,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t15,tiles.t37,tiles.t4,tiles.t101,tiles.t1,tiles.t98,tiles.t25,tiles.t2,tiles.t2,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t0,tiles.t15,tiles.t2,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t0,tiles.t25,tiles.t4,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f10 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t57,tiles.t0,tiles.t33,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t2,tiles.t0,tiles.t42,tiles.t2,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t27,tiles.t27,tiles.t102,tiles.t16,tiles.t3,tiles.t1,tiles.t84,tiles.t24,tiles.t17,tiles.t0,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t24,tiles.t2,tiles.t29,tiles.t101,tiles.t32,tiles.t39,tiles.t1,tiles.t3,tiles.t18,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t3,tiles.t77,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t75,tiles.t101,tiles.t1,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t2,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t91,tiles.t57,tiles.t0,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t25,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t24,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t2,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t51,tiles.t26,tiles.t24,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t78,tiles.t3,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t27,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t103,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t16,tiles.t26,tiles.t25,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t78,tiles.t24,tiles.t1,tiles.t16,tiles.t16,tiles.t33,tiles.t16,tiles.t2,tiles.t25,tiles.t66,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t109,tiles.t18,tiles.t2,tiles.t4,tiles.t100,tiles.t1,tiles.t101,tiles.t32,tiles.t29,tiles.t29,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t57,tiles.t0,tiles.t2,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t0,tiles.t0,tiles.t4,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f11 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t0,tiles.t0,tiles.t3,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t26,tiles.t0,tiles.t15,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t3,tiles.t57,tiles.t97,tiles.t16,tiles.t1,tiles.t110,tiles.t4,tiles.t0,tiles.t18,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t25,tiles.t92,tiles.t29,tiles.t29,tiles.t4,tiles.t109,tiles.t39,tiles.t1,tiles.t16,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t1,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t43,tiles.t26,tiles.t92,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t91,tiles.t0,tiles.t33,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t4,tiles.t1,tiles.t98,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t88,tiles.t26,tiles.t24,tiles.t17,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t88,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t1,tiles.t29,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t24,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t41,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t18,tiles.t26,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t78,tiles.t3,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t15,tiles.t38,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t2,tiles.t29,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t45,tiles.t6,tiles.t1,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t43,tiles.t82,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t4,tiles.t1,tiles.t3,tiles.t16,tiles.t3,tiles.t3,tiles.t2,tiles.t25,tiles.t3,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t17,tiles.t0,tiles.t92,tiles.t101,tiles.t4,tiles.t2,tiles.t29,tiles.t63,tiles.t4,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t0,tiles.t24,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t0,tiles.t0,tiles.t25,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f12 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t102,tiles.t57,tiles.t0,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t2,tiles.t37,tiles.t0,tiles.t39,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t3,tiles.t0,tiles.t18,tiles.t69,tiles.t69,tiles.t37,tiles.t4,tiles.t0,tiles.t24,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t4,tiles.t2,tiles.t2,tiles.t41,tiles.t25,tiles.t25,tiles.t39,tiles.t2,tiles.t91,tiles.t15,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t41,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t39,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t40,tiles.t63,tiles.t92,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t91,tiles.t57,tiles.t45,tiles.t78,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t45,tiles.t41,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t26,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t92,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t79,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t78,tiles.t43,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t51,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t43,tiles.t2,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t91,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t25,tiles.t2,tiles.t3,tiles.t16,tiles.t16,tiles.t3,tiles.t2,tiles.t25,tiles.t16,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t26,tiles.t0,tiles.t24,tiles.t41,tiles.t101,tiles.t101,tiles.t101,tiles.t63,tiles.t42,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t38,tiles.t0,tiles.t15,tiles.t2,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f13 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t83,tiles.t0,tiles.t0,tiles.t33,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t2,tiles.t57,tiles.t42,tiles.t2,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t24,tiles.t1,tiles.t16,tiles.t67,tiles.t63,tiles.t57,tiles.t2,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t2,tiles.t2,tiles.t1,tiles.t41,tiles.t103,tiles.t4,tiles.t29,tiles.t29,tiles.t26,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t1,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t3,tiles.t92,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t57,tiles.t24,tiles.t50,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t106,tiles.t2,tiles.t24,tiles.t82,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t1,tiles.t2,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t25,tiles.t109,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t82,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t33,tiles.t3,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t13,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t2,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t49,tiles.t26,tiles.t15,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t43,tiles.t41,tiles.t98,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t38,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t25,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t25,tiles.t2,tiles.t3,tiles.t3,tiles.t16,tiles.t3,tiles.t1,tiles.t91,tiles.t27,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t0,tiles.t15,tiles.t29,tiles.t29,tiles.t4,tiles.t89,tiles.t63,tiles.t0,tiles.t25,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t2,tiles.t57,tiles.t42,tiles.t2,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t32,tiles.t0,tiles.t0,tiles.t103,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f14 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t2,tiles.t27,tiles.t0,tiles.t75,tiles.t2,tiles.t57,tiles.t0,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t1,tiles.t3,tiles.t43,tiles.t102,tiles.t42,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t2,tiles.t3,tiles.t1,tiles.t41,tiles.t42,tiles.t101,tiles.t29,tiles.t2,tiles.t26,tiles.t2,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t101,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t3,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t57,tiles.t92,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t37,tiles.t2,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t2,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t17,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t84,tiles.t18,tiles.t26,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t13,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t91,tiles.t2,tiles.t17,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t42,tiles.t1,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t63,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t24,tiles.t16,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t25,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t2,tiles.t25,tiles.t2,tiles.t16,tiles.t57,tiles.t16,tiles.t16,tiles.t1,tiles.t91,tiles.t27,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t50,tiles.t15,tiles.t2,tiles.t1,tiles.t98,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t42,tiles.t2,tiles.t71,tiles.t0,tiles.t29,tiles.t2,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f15 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t27,tiles.t3,tiles.t0,tiles.t4,tiles.t2,tiles.t0,tiles.t33,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t67,tiles.t77,tiles.t91,tiles.t3,tiles.t77,tiles.t99,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t2,tiles.t102,tiles.t1,tiles.t4,tiles.t25,tiles.t101,tiles.t4,tiles.t1,tiles.t26,tiles.t29,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t25,tiles.t92,tiles.t29,tiles.t98,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t16,tiles.t57,tiles.t3,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t1,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t39,tiles.t23,tiles.t2,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t13,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t43,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t45,tiles.t26,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t22,tiles.t84,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t40,tiles.t2,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t32,tiles.t39,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t0,tiles.t24,tiles.t16,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t90,tiles.t32,tiles.t3,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t4,tiles.t1,tiles.t27,tiles.t57,tiles.t16,tiles.t27,tiles.t2,tiles.t2,tiles.t2,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t0,tiles.t2,tiles.t1,tiles.t101,tiles.t2,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t0,tiles.t2,tiles.t26,tiles.t0,tiles.t15,tiles.t2,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f16 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t27,tiles.t57,tiles.t0,tiles.t29,tiles.t26,tiles.t0,tiles.t18,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t77,tiles.t16,tiles.t16,tiles.t69,tiles.t37,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t3,tiles.t3,tiles.t2,tiles.t4,tiles.t4,tiles.t101,tiles.t25,tiles.t1,tiles.t27,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t4,tiles.t92,tiles.t41,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t1,tiles.t16,tiles.t33,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t41,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t39,tiles.t23,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t43,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t6,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t24,tiles.t26,tiles.t40,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t3,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t92,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t43,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t110,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t40,tiles.t29,tiles.t29,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t39,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t32,tiles.t24,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t91,tiles.t3,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t2,tiles.t1,tiles.t27,tiles.t57,tiles.t3,tiles.t94,tiles.t2,tiles.t2,tiles.t4,tiles.t4,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t26,tiles.t103,tiles.t15,tiles.t1,tiles.t29,tiles.t91,tiles.t3,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t0,tiles.t24,tiles.t91,tiles.t0,tiles.t42,tiles.t29,tiles.t29,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f17 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t16,tiles.t57,tiles.t42,tiles.t2,tiles.t37,tiles.t0,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t2,tiles.t16,tiles.t16,tiles.t16,tiles.t69,tiles.t37,tiles.t24,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t57,tiles.t97,tiles.t41,tiles.t4,tiles.t101,tiles.t4,tiles.t25,tiles.t91,tiles.t67,tiles.t17,tiles.t0,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t29,tiles.t66,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t39,tiles.t84,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t41,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t39,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t15,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t106,tiles.t2,tiles.t24,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t33,tiles.t3,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t4,tiles.t32,tiles.t24,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t91,tiles.t92,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t40,tiles.t41,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t39,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t49,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t15,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t91,tiles.t27,tiles.t26,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t27,tiles.t27,tiles.t3,tiles.t102,tiles.t40,tiles.t2,tiles.t41,tiles.t25,tiles.t4,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t25,tiles.t15,tiles.t2,tiles.t1,tiles.t91,tiles.t16,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t0,tiles.t15,tiles.t2,tiles.t57,tiles.t0,tiles.t4,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f18 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t16,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t3,tiles.t0,tiles.t100,tiles.t2,tiles.t57,tiles.t79,tiles.t38,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t4,tiles.t2,tiles.t99,tiles.t40,tiles.t1,tiles.t27,tiles.t57,tiles.t2,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t57,tiles.t43,tiles.t1,tiles.t101,tiles.t101,tiles.t25,tiles.t4,tiles.t91,tiles.t43,tiles.t57,tiles.t33,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t43,tiles.t29,tiles.t32,tiles.t2,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t39,tiles.t84,tiles.t15,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t106,tiles.t41,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t2,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t24,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t18,tiles.t26,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t24,tiles.t17,tiles.t51,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t91,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t63,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t1,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t0,tiles.t102,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t4,tiles.t1,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t1,tiles.t27,tiles.t41,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t0,tiles.t92,tiles.t27,tiles.t27,tiles.t16,tiles.t99,tiles.t40,tiles.t1,tiles.t98,tiles.t0,tiles.t25,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t2,tiles.t25,tiles.t4,tiles.t101,tiles.t39,tiles.t41,tiles.t16,tiles.t16,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t78,tiles.t42,tiles.t2,tiles.t99,tiles.t0,tiles.t25,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f19 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t57,tiles.t0,tiles.t4,tiles.t91,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t29,tiles.t26,tiles.t3,tiles.t43,tiles.t1,tiles.t3,tiles.t57,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t52,tiles.t1,tiles.t29,tiles.t98,tiles.t42,tiles.t29,tiles.t91,tiles.t77,tiles.t57,tiles.t45,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t2,tiles.t33,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t15,tiles.t5,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t18,tiles.t1,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t0,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t2,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t27,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t15,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t82,tiles.t2,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t110,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t1,tiles.t32,tiles.t16,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t101,tiles.t1,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t2,tiles.t2,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t63,tiles.t0,tiles.t24,tiles.t69,tiles.t16,tiles.t16,tiles.t99,tiles.t16,tiles.t1,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t25,tiles.t29,tiles.t4,tiles.t39,tiles.t41,tiles.t24,tiles.t27,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t63,tiles.t0,tiles.t2,tiles.t3,tiles.t0,tiles.t0,tiles.t25,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f20 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t102,tiles.t0,tiles.t42,tiles.t29,tiles.t26,tiles.t0,tiles.t24,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t2,tiles.t63,tiles.t16,tiles.t43,tiles.t1,tiles.t102,tiles.t18,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t27,tiles.t41,tiles.t4,tiles.t42,tiles.t29,tiles.t1,tiles.t77,tiles.t57,tiles.t24,tiles.t57,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t97,tiles.t27,tiles.t106,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t88,tiles.t5,tiles.t92,tiles.t78,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t29,tiles.t32,tiles.t1,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t91,tiles.t7,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t43,tiles.t41,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t26,tiles.t33,tiles.t71,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t43,tiles.t1,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t1,tiles.t43,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t106,tiles.t26,tiles.t15,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t63,tiles.t4,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t32,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t111,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t66,tiles.t27,tiles.t50,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t2,tiles.t29,tiles.t1,tiles.t71,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t41,tiles.t29,tiles.t98,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t26,tiles.t0,tiles.t15,tiles.t1,tiles.t102,tiles.t16,tiles.t3,tiles.t16,tiles.t77,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t6,tiles.t2,tiles.t4,tiles.t39,tiles.t101,tiles.t4,tiles.t27,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t15,tiles.t38,tiles.t57,tiles.t0,tiles.t103,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f21 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t3,tiles.t0,tiles.t0,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t2,tiles.t37,tiles.t0,tiles.t2,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t2,tiles.t50,tiles.t43,tiles.t27,tiles.t91,tiles.t57,tiles.t24,tiles.t63,tiles.t0,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t27,tiles.t82,tiles.t25,tiles.t100,tiles.t29,tiles.t39,tiles.t91,tiles.t57,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t16,tiles.t43,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t39,tiles.t63,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t17,tiles.t1,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t91,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t16,tiles.t41,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t18,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t1,tiles.t50,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t91,tiles.t92,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t24,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t51,tiles.t63,tiles.t25,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t17,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t110,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t2,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t29,tiles.t1,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t1,tiles.t63,tiles.t4,tiles.t32,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t2,tiles.t0,tiles.t4,tiles.t39,tiles.t37,tiles.t16,tiles.t16,tiles.t16,tiles.t92,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t15,tiles.t6,tiles.t1,tiles.t101,tiles.t29,tiles.t4,tiles.t101,tiles.t2,tiles.t2,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t0,tiles.t15,tiles.t2,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t25,tiles.t0,tiles.t0,tiles.t25,tiles.t4,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f22 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t57,tiles.t0,tiles.t33,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t29,tiles.t2,tiles.t0,tiles.t42,tiles.t2,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t27,tiles.t27,tiles.t0,tiles.t92,tiles.t69,tiles.t27,tiles.t102,tiles.t92,tiles.t78,tiles.t0,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t103,tiles.t92,tiles.t27,tiles.t5,tiles.t100,tiles.t4,tiles.t29,tiles.t39,tiles.t110,tiles.t79,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t3,tiles.t27,tiles.t41,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t37,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t4,tiles.t2,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t1,tiles.t99,tiles.t0,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t25,tiles.t18,tiles.t41,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t24,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t92,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t110,tiles.t2,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t2,tiles.t1,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t51,tiles.t26,tiles.t100,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t3,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t91,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t2,tiles.t2,tiles.t32,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t39,tiles.t91,tiles.t3,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t78,tiles.t25,tiles.t109,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t6,tiles.t101,tiles.t39,tiles.t37,tiles.t3,tiles.t16,tiles.t16,tiles.t92,tiles.t26,tiles.t102,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t109,tiles.t18,tiles.t20,tiles.t29,tiles.t29,tiles.t41,tiles.t103,tiles.t4,tiles.t29,tiles.t29,tiles.t17,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t57,tiles.t0,tiles.t2,tiles.t27,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t0,tiles.t0,tiles.t4,tiles.t109,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+f23 = tilemap([
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t3,tiles.t0,tiles.t0,tiles.t3,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t2,tiles.t26,tiles.t0,tiles.t15,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t3,tiles.t33,tiles.t92,tiles.t91,tiles.t16,tiles.t16,tiles.t2,tiles.t57,tiles.t18,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t100,tiles.t25,tiles.t24,tiles.t1,tiles.t63,tiles.t100,tiles.t101,tiles.t29,tiles.t39,tiles.t37,tiles.t15,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t27,tiles.t2,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t27,tiles.t63,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t33,tiles.t43,tiles.t63,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t42,tiles.t1,tiles.t37,tiles.t33,tiles.t57,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t15,tiles.t4,tiles.t51,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t24,tiles.t17,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t5,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t111,tiles.t37,tiles.t29,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t27,tiles.t1,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t79,tiles.t91,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t18,tiles.t26,tiles.t100,tiles.t26,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t26,tiles.t3,tiles.t63,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t42,tiles.t32,tiles.t49,tiles.t1,tiles.t37,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t18,tiles.t2,tiles.t2,tiles.t29,tiles.t109,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t45,tiles.t22,tiles.t84,tiles.t102,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t33,tiles.t92,tiles.t78,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t6,tiles.t29,tiles.t39,tiles.t38,tiles.t99,tiles.t97,tiles.t27,tiles.t1,tiles.t2,tiles.t3,tiles.t99,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t15,tiles.t17,tiles.t0,tiles.t27,tiles.t101,tiles.t2,tiles.t41,tiles.t103,tiles.t25,tiles.t4,tiles.t29,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t24,tiles.t37,tiles.t0,tiles.t24,tiles.t27,tiles.t57,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+    [tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t4,tiles.t0,tiles.t0,tiles.t25,tiles.t32,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0,tiles.t0],
+])
+
+def draw(frame):
+    if frame == 0:
+        draw_map(f0, 0, 1)
+    elif frame == 1:
+        draw_map(f1, 0, 1)
+    elif frame == 2:
+        draw_map(f2, 0, 1)
+    elif frame == 3:
+        draw_map(f3, 0, 1)
+    elif frame == 4:
+        draw_map(f4, 0, 1)
+    elif frame == 5:
+        draw_map(f5, 0, 1)
+    elif frame == 6:
+        draw_map(f6, 0, 1)
+    elif frame == 7:
+        draw_map(f7, 0, 1)
+    elif frame == 8:
+        draw_map(f8, 0, 1)
+    elif frame == 9:
+        draw_map(f9, 0, 1)
+    elif frame == 10:
+        draw_map(f10, 0, 1)
+    elif frame == 11:
+        draw_map(f11, 0, 1)
+    elif frame == 12:
+        draw_map(f12, 0, 1)
+    elif frame == 13:
+        draw_map(f13, 0, 1)
+    elif frame == 14:
+        draw_map(f14, 0, 1)
+    elif frame == 15:
+        draw_map(f15, 0, 1)
+    elif frame == 16:
+        draw_map(f16, 0, 1)
+    elif frame == 17:
+        draw_map(f17, 0, 1)
+    elif frame == 18:
+        draw_map(f18, 0, 1)
+    elif frame == 19:
+        draw_map(f19, 0, 1)
+    elif frame == 20:
+        draw_map(f20, 0, 1)
+    elif frame == 21:
+        draw_map(f21, 0, 1)
+    elif frame == 22:
+        draw_map(f22, 0, 1)
+    elif frame == 23:
+        draw_map(f23, 0, 1)

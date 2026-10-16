@@ -26,8 +26,8 @@ Use `map_width(board)` and `map_height(board)` for its dimensions.
 
 ## Declaring tiles
 
-`tile(path, solid=False, terrain=0)` requires a top-level assignment. The path
-must be a literal string and the BMP must be exactly 8x8 pixels. Paths resolve
+`tile(path, solid=False, terrain=0, x=0, y=0)` requires a top-level assignment. The path
+must be a literal string. Without `x` or `y`, the BMP must be exactly 8x8 pixels. Paths resolve
 relative to the source file declaring the tile, including imported modules.
 The existing BMP formats, color conversion, and shared tile deduplication apply.
 
@@ -35,12 +35,38 @@ The existing BMP formats, color conversion, and shared tile deduplication apply.
 | --- | --- | --- | --- |
 | `solid` | Literal `True` or `False` | `False` | Whether this tile blocks terrain movement |
 | `terrain` | Literal integer 0..255 | `0` | A game-defined label for the kind of ground |
+| `x`, `y` | Literal integers 0..31, inside the image | `0` | Select one 8x8 tile from a larger BMP |
 
 Options use Python keyword syntax and may appear in either order. Repeated or
 unknown options are rejected. Fixed-parameter built-ins and user-defined
 functions support [named arguments](arguments.md). Field constructors and
 variable-length APIs retain their documented special rules.
 Tiles must be declared before maps that reference them.
+
+### Taking tiles from one image
+
+A tileset, also called an atlas, is simply a BMP with several tiles next to one
+another. You can keep your floor, wall and water artwork in one image:
+
+```python
+floor = tile("assets/tileset.bmp", x=0, y=0)
+wall = tile("assets/tileset.bmp", x=1, y=0, solid=True)
+water = tile("assets/tileset.bmp", x=0, y=1, terrain=2)
+```
+
+Coordinates count **tiles, not pixels**, starting at the top-left corner. Thus
+`x=1` selects the tile eight pixels to the right. Omit one coordinate to use zero
+for that axis. The source dimensions must be multiples of eight and at most
+256x256 pixels, with at most 256 distinct patterns in the source image.
+
+Selections from the same BMP share one background palette. Its four colors are
+chosen from the whole image, so each selected tile keeps consistent colors.
+Only selected patterns enter the resident tile pool. Solidity and terrain still
+belong to each declaration; two selections of the same artwork can have different
+gameplay properties. Out-of-range coordinates are compile errors.
+
+[Prism Forge](../examples/prism-forge/README.md) uses an atlas and nested maps
+to create animated full-screen imagery from a small reusable pattern set.
 
 Terrain labels do not automatically implement behavior. For example, terrain 2
 could mean water in your game; another game could use it for ladders.

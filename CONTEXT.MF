@@ -920,3 +920,10 @@ not a promise of one update per hardware frame. Existing examples were kept.
 Tests cover signs, rounding, raw representation, large intermediates, helpers,
 imports/defaults/nesting, integer-only compatibility, zero division diagnostics,
 and example bouncing/reset on DMG and Color.
+
+Prism Forge (examples/prism-forge) is an original dual-hardware abstract demo.
+Its full-screen layouts are precomputed art data, not runtime ray tracing; sprite
+projection, palettes, sequencing and score run in Pyson. Atlas tile selection is
+implemented: tile(path, solid=False, terrain=0, x=0, y=0). Coordinates are literal
+8x8 tile indices; explicit x/y permits a larger BMP, selections share its palette.
+See documentation/tilemaps.md and npm.cmd run test:prism for full-loop checks.

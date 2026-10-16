@@ -125,7 +125,7 @@ keywords. Feature references describe ranges, return values, and hardware limits
 | `stop_animation(slot)` | None |
 | `stop_music()` | None |
 | `stop_sound()` | None |
-| `tile(path, solid, terrain)` | `solid=False`, `terrain=0` |
+| `tile(path, solid, terrain, x, y)` | `solid=False`, `terrain=0`, `x=0`, `y=0` |
 | `tile_at(map, x, y)` | None |
 | `tile_is_solid(map, x, y)` | None |
 | `tile_terrain(map, x, y)` | None |

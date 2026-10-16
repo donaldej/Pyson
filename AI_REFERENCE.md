@@ -295,6 +295,9 @@ simulation, use small steps or sweep movement rather than large delta jumps.
 Declare imports at module top level using literal paths/dimensions:
 `sprite_sheet("assets/hero.bmp",16,16)`, `tilemap("assets/room.bmp")`,
 `worldmap("assets/world.bmp")`, or `tile("assets/wall.bmp",solid=True,terrain=1)`.
+For an atlas, `tile("assets/tiles.bmp", x=2, y=1)` selects one 8x8 tile;
+coordinates are literal tile indices 0..31, inside the image. Atlas selections
+share one palette for the source BMP; only selected patterns become resident.
 No external generator or `rgbgfx` call is needed. Runtime loops remain runtime
 assembly; the compiler does not generally execute drawing loops at compile time.
 
@@ -886,7 +889,7 @@ not write `None`. `randrange(stop)` is the supported one-argument overload.
 | `map_width(map)` |
 | `map_height(map)` |
 | `sprite_sheet(path, width=8, height=8)` |
-| `tile(path, solid=False, terrain=0)` |
+| `tile(path, solid=False, terrain=0, x=0, y=0)` |
 | `tilemap(source)` |
 | `mutable_map(rows)` |
 | `collision_map(rows)` |
