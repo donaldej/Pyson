@@ -1,0 +1,72 @@
+# PHASE HEART: all moving field imagery is calculated while the ROM runs.
+# A advances; B perturbs phase; arrows move the lens; Start pauses/resumes.
+header.title = "PHASE HEART"
+header.target = "dual"
+header.cpu_speed = "double"
+header.controller = "mbc5"
+import includes.field as field
+import includes.palettes as palettes
+import includes.score as score
+import includes.geometry as geometry
+
+scene = 0
+tick = 0
+cycles = 0
+updates = 0
+bias = 0
+clock = 0
+paused = False
+last_color = -1
+field.initialize()
+field.draw(0, 0, 0)
+refresh_screen()
+score.begin(0)
+previous = frame_count()
+
+while True:
+    read_buttons()
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    if button_pressed("start"):
+        paused = not paused
+        if paused:
+            pause_music()
+            stop_sound()
+        else:
+            resume_music()
+    if button_pressed("a"):
+        tick = 1152
+    if button_pressed("b"):
+        bias = (bias + 23) & 63
+    if button("left"):
+        field.center_x = max(3, field.center_x - 1)
+    if button("right"):
+        field.center_x = min(16, field.center_x + 1)
+    if button("up"):
+        field.center_y = max(3, field.center_y - 1)
+    if button("down"):
+        field.center_y = min(12, field.center_y + 1)
+    if not paused:
+        tick += delta
+        clock = (clock + delta) & 32767
+        if tick >= 1152:
+            tick -= 1152
+            scene += 1
+            if scene == 4:
+                scene = 0
+                cycles += 1
+            score.begin(scene)
+            geometry.reset()
+            last_color = -1
+        blend = 0
+        if tick >= 960:
+            blend = min(15, (tick - 960) // 12)
+        score.rhythm(tick)
+        phase = ((clock // 2) + bias) & 63
+        field.draw(scene, phase, blend)
+        if blend != last_color:
+            palettes.apply(scene, blend)
+            last_color = blend
+        geometry.draw(scene, clock, updates)
+        updates += 1
+    refresh_screen()

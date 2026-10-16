@@ -12,6 +12,8 @@ const signatures = {
   world_sprite: ['slot', 'sheet', 'frame', 'x', 'y', ['flip_x', false], ['flip_y', false]],
   hide_sprite: ['slot'], draw_map: ['map', 'x', 'y'], draw_world: ['map'],
   background_clip: ['path', 'width', 'height'], draw_background: ['clip', 'frame', ['x', 0], ['y', 0]],
+  draw_tile_grid: ['cells', 'columns', ['x', 0], ['y', 0]],
+  draw_tile_field: ['columns', 'rows', 'tiles', ['x', 0], ['y', 0]],
   set_camera: ['x', 'y'], window_position: ['x', 'y'],
   set_map_tile: ['map', 'x', 'y', 'tile'], reset_map: ['map'],
   rect_is_solid: ['map', 'x', 'y', 'width', 'height'],

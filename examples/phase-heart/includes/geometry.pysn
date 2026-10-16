@@ -1,0 +1,51 @@
+# Sparse live orbit points; field calculations get most of the frame budget.
+import includes.art as art
+import includes.tables as tables
+rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+old_y = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+
+def reset():
+    for slot in range(40):
+        hide_sprite(slot)
+    for slot in range(16):
+        old_y[slot] = -1
+    for row in range(18):
+        rows[row] = 0
+
+def point(slot, x, y):
+    old = old_y[slot]
+    if old >= 0:
+        rows[old // 8] -= 1
+        if (old + 7) // 8 != old // 8:
+            rows[(old + 7) // 8] -= 1
+    old_y[slot] = -1
+    if x < 0 or x > 152 or y < 12 or y > 124:
+        hide_sprite(slot)
+        return
+    top = y // 8
+    bottom = (y + 7) // 8
+    if rows[top] >= 8 or rows[bottom] >= 8:
+        hide_sprite(slot)
+        return
+    rows[top] += 1
+    if bottom != top:
+        rows[bottom] += 1
+    old_y[slot] = y
+    sprite(slot, art.points, slot % 2, x, y)
+
+def draw(scene, clock, updates):
+    first = (updates % 8) * 2
+    angle = (clock // 12) & 63
+    for slot in range(first, first + 2):
+        a = (angle + slot * 4) & 63
+        s = tables.sine[a]
+        c = tables.sine[(a + 16) & 63]
+        if scene == 0:
+            point(slot, 76 + c * 2, 68 + s)
+        elif scene == 1:
+            point(slot, 76 + c, 68 + s)
+        elif scene == 2:
+            z = tables.sine[(a * 2 - angle) & 63]
+            point(slot, 76 + c * 125 // (90 + z), 68 + s * 100 // (90 + z))
+        else:
+            point(slot, 12 + (slot % 2) * 128, 16 + ((clock // 2 + slot * 7) % 112))

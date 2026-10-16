@@ -354,6 +354,21 @@ right/bottom edges; ordinary print does not wrap or scroll automatically.
 `clear_screen(palette=0)` clears background, not sprite objects. Queue graphics,
 then refresh. No current `present()` API: the canonical name is `refresh_screen()`.
 
+### Runtime grids and additive fields
+
+`draw_tile_grid(cells,columns,x=0,y=0)` draws a flat integer array of tile()
+handles, row-major; width 1..32, partial last rows allowed. Invalid entries skip
+their cells. `draw_tile_field(columns,rows,tiles,x=0,y=0)` draws each cell using
+`tiles[(columns[x]+rows[y]) % len(tiles)]`. The tile list must have a power-of-two
+length 2..64; invalid entries draw blank tile/palette 0. Axes use at most 32
+elements each. Both accept RAM arrays, ROM integer tables and helper parameters;
+starting coordinates are tile x=0..19/y=0..17 and output clips to screen. Empty
+inputs draw nothing. Invalid dynamic configurations draw nothing, invalid
+literals are compile errors. Inputs are not modified; collision/terrain is not
+updated. Use refresh_screen() to display the result. These use resident tile
+patterns, not background-clip uploads. See [runtime tile fields](documentation/tile-fields.md)
+and [Phase Heart](examples/phase-heart/README.md).
+
 ### Prepared animated backgrounds
 
 `background_clip("assets/intro.bmp",160,128)` imports a grid of 1..255 equal
@@ -906,6 +921,8 @@ not write `None`. `randrange(stop)` is the supported one-argument overload.
 | `map_width(map)` |
 | `map_height(map)` |
 | `background_clip(path, width, height)` |
+| `draw_tile_grid(cells, columns, x=0, y=0)` |
+| `draw_tile_field(columns, rows, tiles, x=0, y=0)` |
 | `draw_background(clip, frame, x=0, y=0)` |
 | `sprite_sheet(path, width=8, height=8)` |
 | `tile(path, solid=False, terrain=0, x=0, y=0)` |

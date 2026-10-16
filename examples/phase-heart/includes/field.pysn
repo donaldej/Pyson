@@ -1,0 +1,50 @@
+# Two short lists describe the changing surface. The runtime composes each cell.
+import includes.art as art
+import includes.tables as tables
+import includes.palettes as palettes
+columns = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+rows = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+center_x = 10
+center_y = 8
+
+def column(scene, x, phase):
+    if scene == 0:
+        return tables.wave[(x * 3 + phase) & 63]
+    elif scene == 1:
+        return tables.square[x - center_x + 32] + phase
+    elif scene == 2:
+        return tables.wave[(x * 7 + phase) & 63] + tables.wave[(x * 2 - phase) & 63]
+    return tables.wave[(x * 2 - phase) & 63] + tables.wave[(x * 5 + phase) & 63]
+
+def row(scene, y, phase):
+    if scene == 0:
+        return tables.wave[(y * 5 - phase) & 63]
+    elif scene == 1:
+        return tables.square[y - center_y + 32] + phase
+    elif scene == 2:
+        return tables.wave[(y * 3 + phase) & 63] - tables.wave[(y * 5 - phase) & 63]
+    return tables.wave[(y * 2 + phase) & 63]
+
+def draw(scene, phase, blend):
+    next_scene = (scene + 1) % 4
+    for x in range(20):
+        value = column(scene, x, phase)
+        if blend > 0:
+            value += (column(next_scene, x, phase) - value) * blend // 16
+        columns[x] = value
+    for y in range(16):
+        value = row(scene, y, phase)
+        if blend > 0:
+            value += (row(next_scene, y, phase) - value) * blend // 16
+        rows[y] = value
+    draw_tile_field(columns, rows, art.shades, 0, 1)
+    if scene == 3 and blend == 0:
+        draw_tile_grid(art.signature, 15, 2, 7)
+
+def initialize():
+    clear_screen()
+    draw_tile_grid(art.border, 20, 0, 0)
+    draw_tile_grid(art.border, 20, 0, 17)
+    draw_tile_grid(art.title, 11, 4, 0)
+    draw_tile_grid(art.footer, 12, 4, 17)
+    palettes.apply(0, 0)

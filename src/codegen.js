@@ -488,7 +488,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
         if (musicCall) return musicCall;
         const soundCall = soundCodegen.emitSound(node, context, { fail, expression, numeric, literalNumber, typeOf, label, frameClock: graphics.frameClock }, sound);
         if (soundCall) return soundCall;
-        const graphicsCall = graphicsCodegen.emitGraphics(node, context, { fail, expression, numeric, literalNumber, label }, graphics);
+        const graphicsCall = graphicsCodegen.emitGraphics(node, context, { fail, expression, numeric, literalNumber, label, arraySymbol, arrayLength, arrayBank }, graphics);
         if (graphicsCall) return graphicsCall;
         if (node.name === 'range') fail(node, 'range() is supported only in for loops');
         if (['print', 'print_window'].includes(node.name)) {
@@ -768,7 +768,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
     + '\n' + (dialogue.portraits ? fs.readFileSync(path.join(root, 'include', 'dialogue-portraits.asm'), 'utf8') : '')
     + '\n' + (graphics.terrainRectangles ? fs.readFileSync(path.join(root, 'include', 'terrain-rectangles.asm'), 'utf8') : '');
   graphics.sourceDiagnostics = sourceDiagnostics;
-  const clipRuntime = fs.readFileSync(path.join(root, 'include', 'background-clips.asm'), 'utf8');
+  const clipRuntime = fs.readFileSync(path.join(root, 'include', 'background-clips.asm'), 'utf8') + '\n' + fs.readFileSync(path.join(root, 'include', 'tile-grid.asm'), 'utf8') + '\n' + fs.readFileSync(path.join(root, 'include', 'tile-field.asm'), 'utf8');
   const assembly = generateROM({ rectangleEnabled: rectangle.enabled, rectangleRuntime, choicesEnabled: dialogue.choicesEnabled, choicesRuntime, choiceTables: dialogue.choiceTables || [], dialogueEnabled: dialogue.enabled, dialogueRuntime, poolEnabled: pool.enabled, poolRuntime, poolData: pool.data(), poolError, music, musicRuntime, animation, animationRuntime, save, saveRuntime, sound, soundRuntime, header, headerBytes, mainCode, codeBanking, runtime: runtime + '\n' + clipRuntime, strings, graphics, symbols, zeroError, indexError, arrayLiterals });
   return { assembly, sourceLocations, musicEnabled: music.enabled, music: [...music.used.values()].map(({ label, ...track }) => track), animationEnabled: animation.enabled, animations: [...animation.used.values()].map(({ label, ...definition }) => ({ ...definition })), soundEnabled: sound.enabled, sounds: [...sound.used.values()].map(({ bytes, label, ...effect }) => ({ ...effect, bytes: [...bytes] })), symbols: symbols.filter(symbol => symbol.name).map(symbol => ({ ...symbol })) };
 }

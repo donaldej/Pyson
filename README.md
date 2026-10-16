@@ -103,6 +103,7 @@ pitfalls. [CONTEXT.MF](CONTEXT.MF) covers project workflow and development conte
 - [Input and frame timing](documentation/input.md): buttons and interactive game loops.
 - [Hardware frame timing](documentation/frame-timing.md): elapsed-time movement, animation, waits, and audio pacing.
 - [Graphics](documentation/graphics.md): buffered drawing, palettes, and sprites.
+- [Runtime tile fields and grids](documentation/tile-fields.md): draw changing arrays and live additive fields.
 - [Animated backgrounds](documentation/background-clips.md): banked frame sheets with safe double-buffered uploads.
 - [BMP assets](documentation/assets.md): automatic imports and conversion tools.
 - [Nested tile maps and terrain](documentation/tilemaps.md): reusable tiles, static layouts, and gameplay properties.
@@ -119,6 +120,10 @@ pitfalls. [CONTEXT.MF](CONTEXT.MF) covers project workflow and development conte
 - [Star Chase](documentation/star-chase.md): a playable game using the current language.
 
 ## Example projects
+
+[Phase Heart](examples/phase-heart/README.md) builds moving interference fields
+during playback, with interactive phase/lens controls and an original score.
+It uses static tiles and numeric tables, with no background animation sheets.
 
 [God in the Circuit](examples/god-in-the-circuit/README.md) is a two-minute
 original DMG/Color audiovisual demo: mechanical iris, shaded inversion, moving

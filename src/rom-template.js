@@ -29,6 +29,8 @@ DEF SAVE_RAM_BANKS EQU ${save.ramBanks}
 DEF ANIMATION_ENABLED EQU ${animation.enabled ? 1 : 0}
 DEF STREAM_ENABLED EQU ${graphics.streaming ? 1 : 0}
 DEF CLIP_ENABLED EQU ${graphics.clips?.enabled ? 1 : 0}
+DEF TILE_GRID_ENABLED EQU ${graphics.tileGrid ? 1 : 0}
+DEF TILE_FIELD_ENABLED EQU ${graphics.tileField ? 1 : 0}
 DEF CLIP_TILE_BASE EQU ${graphics.clips?.base || 0}
 DEF CLIP_TILE_SPAN EQU ${graphics.clips?.span || 0}
 DEF STREAM_TILE_BASE EQU ${graphics.tileData.length / 16}
@@ -198,6 +200,7 @@ DefaultPalettes:
 ${lines(paletteBytes)}
 AssetDescriptors:
 ${descriptors}
+${graphics.tileGrid ? `GridTileDefinitions:\n${lines(graphics.assets.flatMap(asset => asset.kind === 'tile' ? [1, asset.maps[0][0], asset.paletteIndex] : [0,0,0]))}` : ''}
 ${graphics.paletteLiterals.map(palette => `${palette.label}:\n${db(palette.bytes)}`).join('\n')}
 ${codeBanking.objects.map(fn => `SECTION "Function ${fn.label}", ROMX[$${fn.address.toString(16)}], BANK[${fn.bank}]\n${fn.code.join('\n')}\nASSERT @ - ${fn.label} == ${fn.bytes}\n`).join('\n')}
 SECTION "Tile graphics", ROMX[$4000], BANK[1]
@@ -213,6 +216,8 @@ wShadowOAM: ds 160
 SECTION "Runtime state", WRAM0
 wIsCGB: ds 1
 wStateStart:
+${graphics.tileField ? 'wFieldLength0: ds 2\nwFieldLength1: ds 2\nwFieldLength2: ds 2\nwFieldBank0: ds 2\nwFieldBank1: ds 2\nwFieldBank2: ds 2\nwFieldPalette: ds 128\nwFieldMask: ds 1\nwFieldWidth: ds 1\nwFieldHeight: ds 1\nwFieldX: ds 1\nwFieldY: ds 1\nwFieldRow: ds 1\nwFieldLeft: ds 1\nwFieldColumns: ds 2\nwFieldRows: ds 2' : ''}
+${graphics.tileGrid ? 'wGridLength: ds 2\nwGridBank: ds 2\nwGridPointer: ds 2\nwGridCols: ds 1\nwGridX: ds 1\nwGridY: ds 1\nwGridCol: ds 1\nwGridRow: ds 1' : ''}
 ${graphics.clips?.enabled ? 'wClipFront: ds 1\nwClipTarget: ds 1\nwClipPending: ds 1\nwClipTileBase: ds 1\nwClipFrame: ds 1\nwClipX: ds 1\nwClipY: ds 1\nwClipLastX: ds 1\nwClipLastY: ds 1\nwClipLastCols: ds 1\nwClipLastRows: ds 1' : ''}
 ${graphics.frameClock ? 'wFrameCount: ds 2\nwFrameAudioCursor: ds 2' : ''}
 wButtonsHeld: ds 1
