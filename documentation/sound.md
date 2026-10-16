@@ -24,7 +24,9 @@ Invalid dynamic volume or priority values are ignored; invalid literals are
 compile errors.
 
 Master volume 0 is the hardware's quietest level, not silence. Use `mute_sound()`
-for silence. Pulse effects use hardware channel 2; noise uses channel 4. Channel 1 is used by [background music](music.md); channel 3 is reserved for future work. Hardware behavior is described in
+for silence. Pulse effects use hardware channel 2; noise uses channel 4.
+[Background music](music.md) uses channel 1 for pulse and channel 3 for wave music.
+Hardware behavior is described in
 [Pan Docs audio registers](https://github.com/gbdev/pandocs/blob/master/src/Audio_Registers.md).
 
 ## Built-in effects
@@ -104,7 +106,8 @@ Audio state uses 11 bytes of WRAM. Each referenced custom binding also uses two
 bytes; each effect uses a four-byte ROM header plus four bytes per step. The
 build writes `build/<name>.sounds.json` with included effects and encoded bytes.
 Current effects and runtime occupy ROM bank 0. Graphics and maps use
-[automatic ROM banking](banking.md). Music, simultaneous voices, and wave samples are future work.
+[automatic ROM banking](banking.md). Two simultaneous music voices, including
+custom wave instruments, are supported; see [music](music.md).
 
 ## Sound gallery
 
@@ -119,6 +122,6 @@ sound and a victory sound.
 
 ## Background music
 
-[Background music](music.md) uses channel 1 independently of these effects.
+[Background music](music.md) uses channels 1 and 3 independently of these effects.
 `set_sound_volume()` controls both. `mute_sound()` stops both; unmute does not
 resume stopped tracks. `stop_sound()` and `sound_playing()` affect effects only.
