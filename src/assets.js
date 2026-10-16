@@ -190,27 +190,32 @@ function collectAssets(ast, filename) {
         if (call.name === 'mutable_map') throw new Error(`${location}: mutable_map requires nested tile rows`);
         const sprite = call.name === 'sprite_sheet';
         const singleTile = call.name === 'tile';
-        let solid = false; let terrain = 0;
+        let solid = false; let terrain = 0; let tileX = 0; let tileY = 0; let atlas = false;
         if (singleTile) {
           const options = new Set();
           for (const option of call.args.slice(1)) {
-            if (option.type !== 'keyword' || !['solid', 'terrain'].includes(option.name) || options.has(option.name)) throw new Error(`${location}: tile options must be unique solid= and terrain= keywords`);
+            if (option.type !== 'keyword' || !['solid', 'terrain', 'x', 'y'].includes(option.name) || options.has(option.name)) throw new Error(`${location}: tile options must be unique solid=, terrain=, x= and y= keywords`);
             options.add(option.name);
             if (option.name === 'solid') {
               if (option.expression.type !== 'boolean') throw new Error(`${location}: solid must be a literal True or False`);
               solid = option.expression.value;
-            } else {
+            } else if (option.name === 'terrain') {
               if (option.expression.type !== 'number' || !Number.isInteger(option.expression.value) || option.expression.value < 0 || option.expression.value > 255) throw new Error(`${location}: terrain must be a literal integer 0..255`);
               terrain = option.expression.value;
+            } else {
+              if (option.expression.type !== 'number' || !Number.isInteger(option.expression.value) || option.expression.value < 0 || option.expression.value > 31) throw new Error(`${location}: tile atlas coordinates must be literal integers 0..31`);
+              if (option.name === 'x') tileX = option.expression.value;
+              else tileY = option.expression.value;
+              atlas = true;
             }
           }
         }
-        if (call.args.length < 1 || call.args.length > (sprite || singleTile ? 3 : streamed ? 2 : 1) || call.args[0].type !== 'string' || (!singleTile && !streamed && call.args.slice(1).some(arg => arg.type !== 'number'))) throw new Error(`${location}: use sprite_sheet("file.bmp", width, height), tilemap("file.bmp"), or tile("file.bmp", solid=True, terrain=1) with literal arguments`);
+        if (call.args.length < 1 || call.args.length > (singleTile ? 5 : sprite ? 3 : streamed ? 2 : 1) || call.args[0].type !== 'string' || (!singleTile && !streamed && call.args.slice(1).some(arg => arg.type !== 'number'))) throw new Error(`${location}: use sprite_sheet("file.bmp", width, height), tilemap("file.bmp"), or tile("file.bmp", solid=True, terrain=1) with literal arguments`);
         const sourceBase = node.filename && node.filename !== '<source>' ? path.dirname(path.resolve(node.filename)) : base;
         const file = path.resolve(sourceBase, call.args[0].value);
         const width = singleTile ? 8 : call.args[1]?.value ?? 8;
         const height = singleTile ? 8 : call.args[2]?.value ?? 8;
-        const signature = JSON.stringify([file, sprite, width, height, singleTile, solid, terrain, streamed, streamed ? call.args[1] : null]);
+        const signature = JSON.stringify([file, sprite, width, height, singleTile, solid, terrain, streamed, streamed ? call.args[1] : null, tileX, tileY, atlas]);
         if (!cache.has(signature)) {
           const paletteKey = JSON.stringify([file, sprite]);
           if (!palettes.has(paletteKey)) palettes.set(paletteKey, sprite ? obj++ : bg++);
@@ -219,7 +224,12 @@ function collectAssets(ast, filename) {
           let converted;
           try { converted = convertBMP(fs.readFileSync(file), sprite ? 'sprite' : streamed ? 'world' : 'background', width, height); }
           catch (error) { throw new Error(`${location}: ${file}: ${error.message}`); }
-          if (singleTile && (converted.width !== 8 || converted.height !== 8)) throw new Error(`${location}: tile BMP must be exactly 8x8 pixels`);
+          if (singleTile) {
+            if (!atlas && (converted.width !== 8 || converted.height !== 8)) throw new Error(`${location}: tile BMP must be exactly 8x8 pixels; select an atlas tile with x= and y=`);
+            if (tileX >= converted.columns || tileY >= converted.rows) throw new Error(`${location}: tile atlas coordinates are outside the BMP`);
+            const pattern = converted.tiles[converted.maps[0][tileY * converted.columns + tileX]];
+            converted = { ...converted, width: 8, height: 8, frameWidth: 8, frameHeight: 8, columns: 1, rows: 1, frames: 1, tiles: [pattern], maps: [[0]] };
+          }
           let collision;
           if (streamed && call.args[1]) {
             const option = call.args[1];

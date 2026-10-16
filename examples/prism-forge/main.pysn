@@ -1,0 +1,66 @@
+# Prism Forge: abstract imagery, live geometry, and an original electronic score.
+# A skips to the next act. Start pauses the show. The sequence loops.
+header.title = "PRISM FORGE"
+header.target = "dual"
+header.controller = "mbc5"
+header.cpu_speed = "double"
+
+import includes.visuals as visuals
+import includes.score as score
+
+scene = 0
+tick = 0
+cycles = 0
+updates = 0
+prepared = False
+paused = False
+previous = 0
+last_frame = -1
+last_color = -1
+
+while True:
+    # Prepare artwork once when entering an act, then start its arrangement.
+    if not prepared:
+        visuals.prepare(scene)
+        refresh_screen()
+        score.begin(scene)
+        previous = frame_count()
+        last_frame = -1
+        last_color = -1
+        prepared = True
+    read_buttons()
+    # Measure actual display frames so slower updates do not slow the timeline.
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    if button_pressed("start"):
+        paused = not paused
+        if paused:
+            pause_music()
+            stop_sound()
+        else:
+            resume_music()
+    if button_pressed("a"):
+        tick = 768
+    if not paused:
+        tick += delta
+        if tick >= 768:
+            scene += 1
+            if scene == 5:
+                scene = 0
+                cycles += 1
+            tick = 0
+            prepared = False
+        else:
+            # The background is a short loop of ROM layouts, not a video file.
+            frame = (tick // 6) % 24
+            if frame != last_frame:
+                visuals.field(scene, frame)
+                last_frame = frame
+            if tick // 24 != last_color:
+                visuals.colors(scene, tick)
+                last_color = tick // 24
+            # Sprite geometry is calculated live, separately from the layouts.
+            visuals.geometry(scene, tick, updates)
+            score.rhythm(tick)
+            updates += 1
+    refresh_screen()

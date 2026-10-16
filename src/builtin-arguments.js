@@ -17,7 +17,7 @@ const signatures = {
   tile_terrain: ['map', 'x', 'y'], tile_is_solid: ['map', 'x', 'y'], tile_at: ['map', 'x', 'y'],
   map_width: ['map'], map_height: ['map'],
   sprite_sheet: ['path', ['width', 8], ['height', 8]],
-  tile: ['path', ['solid', false], ['terrain', 0]],
+  tile: ['path', ['solid', false], ['terrain', 0], ['x', 0], ['y', 0]],
   tilemap: ['source'], mutable_map: ['rows'], collision_map: ['rows'],
   worldmap: ['source', ['collision', null]],
   constant: ['value'], constant_table: ['values'],

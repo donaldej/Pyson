@@ -5,11 +5,31 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { compile } = require('../src/compiler');
 const { parse } = require('../src/parser');
+const { convertBMP, collectAssets } = require('../src/assets');
 const root = path.resolve(__dirname, '..');
 const brick = path.join(root, 'examples/star-chase/assets/brick.bmp').replaceAll('\\', '/');
 const floor = path.join(root, 'examples/star-chase/assets/floor.bmp').replaceAll('\\', '/');
 const board = path.join(root, 'examples/star-chase/assets/board.bmp').replaceAll('\\', '/');
 const declarations = `wall = tile("${brick}", solid=True, terrain=255)\nopen_tile = tile("${floor}")\n`;
+
+test('atlas tile selection preserves whole-image palette, exact patterns, sharing and terrain', () => {
+  const atlas = path.join(root, 'examples/prism-forge/assets/patterns.bmp').replaceAll('\\', '/');
+  const original = convertBMP(fs.readFileSync(atlas), 'background');
+  const source = `a = tile("${atlas}", x=2, y=3, solid=True, terrain=7)\nb = tile("${atlas}", y=3, x=2)\nc = tile("${atlas}", x=13, y=7)\nboard = tilemap([[a,b,c]])`;
+  compile(source);
+  const [a, b, c] = collectAssets(parse(source), '<source>').assets;
+  assert.deepEqual(a.tiles[0], original.tiles[original.maps[0][3 * original.columns + 2]]);
+  assert.deepEqual(c.tiles[0], original.tiles[original.maps[0].at(-1)]);
+  assert.deepEqual(a.palette, original.palette);
+  assert.equal(a.paletteIndex, b.paletteIndex);
+  assert.equal(a.paletteIndex, c.paletteIndex);
+  assert.deepEqual(a.maps, b.maps);
+  assert.equal(a.solid, true);
+  assert.equal(a.terrain, 7);
+  for (const options of ['x=-1', 'y=32', 'x=True', 'x=14', 'y=8', 'x=1.5']) {
+    assert.throws(() => compile(`a = tile("${atlas}", ${options})`), /atlas|literal|integer/);
+  }
+});
 
 test('tile options and nested maps parse with Python keyword syntax and trailing commas', () => {
   const ast = parse('wall = tile("wall.bmp", terrain=2, solid=True,)\nboard = tilemap([[wall, wall], [wall, wall],])');

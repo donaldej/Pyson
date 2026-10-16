@@ -119,6 +119,11 @@ pitfalls. [CONTEXT.MF](CONTEXT.MF) covers project workflow and development conte
 
 ## Example projects
 
+[Prism Forge](examples/prism-forge/README.md) is an abstract DMG/Color music demo:
+faceted geometry, folding ribbons, a luminous knot, an eclipse and a machine-mask
+Pyson finale. Shared atlas tiles form full-screen animated layouts, accompanied
+by live sprite geometry and an original electronic score.
+
 Two larger examples combine several language features into playable games:
 [Vault Run](examples/vault-run/README.md), an exploration puzzle with mutable
 terrain and saved victories, and [Meteor Guard](examples/meteor-guard/README.md),
