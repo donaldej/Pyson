@@ -33,8 +33,27 @@ Normally remember the last picture number and redraw only when it changes.
 
 Both frame dimensions must be positive multiples of eight and fit inside
 160x144 pixels. The BMP must be divisible by those dimensions and no larger
-than 1024 pixels on either axis. A sheet can contain 1..255 frames. Declarations
+than 2048 pixels on either axis. A sheet can contain 1..255 frames. Declarations
 belong at module top level. Frame numbers start at zero.
+
+## Sharing a color palette between sheets
+
+Each clip normally gets its own background palette slot. A program can use up
+to seven imported background palettes (slot 0 is reserved for text). If you
+split one animation across several sheets, you can have those sheets use the
+same slot:
+
+```python
+walk = background_clip("assets/walk.bmp", 160, 80)
+jump = background_clip("assets/jump.bmp", 160, 96, palette=walk)
+```
+
+Declare `walk` first. Both BMPs must use the same colors in the same imported
+order; the compiler checks this and reports an error if they differ. Using the
+same four shades throughout the sheets is an easy way to keep them consistent.
+This shares the palette only. The two clips still have their own pictures.
+Changing their shared palette with `bg_palette()` changes both animations.
+Leave out `palette` when you want separate palette slots.
 
 ## Drawing and placement
 
@@ -67,9 +86,29 @@ the buffer size; all clips share those same two buffers. The budget is:
 resident font/sprite/map patterns + 2 × largest clip frame pattern count <= 256
 ```
 
+If the program also declares streamed actors, add their reserved buffer slots
+to that budget. Actor and background-clip buffers are disjoint; neither
+overwrites the other's patterns. The build report counts their combined cost.
+Actor programs may include a smaller font containing only the glyphs they need.
+
 With the standard 95-tile font and no other resident graphics, a frame can use
 at most 80 different tile patterns. Extra sprite or map patterns reduce that
 limit. A frame can cover more screen cells than this if cells repeat patterns.
+For sufficiently large sequences with many common patterns, Pyson can keep
+those patterns resident once instead of uploading them with every picture.
+The report includes them in resident tiles and lists them separately as
+persistent clip patterns. Buffer counts then describe only the patterns still
+streamed per picture. A fully persistent picture needs no pattern upload.
+The compiler also tries keeping extra patterns used by the largest pictures.
+One permanent pattern can replace a pattern in both working buffers, saving
+space overall. It accounts for actor-buffer alignment and keeps a layout only
+when the calculated tile reservation improves. This changes neither your drawing
+calls nor the artwork. The search is a heuristic, so a rejected picture may
+still need a different asset layout.
+Moving/resizing a clip still clears its old cells, including persistent ones;
+ordinary text and maps outside it remain intact. Imported palettes remain
+independent, even when their starting colors match.
+
 The compiler reports excess patterns; it does not silently simplify artwork.
 The build report lists the largest frame and the shared buffer reservation.
 

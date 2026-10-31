@@ -30,6 +30,66 @@ test('BMP decoder handles orientation, scanline padding and alpha', () => {
   assert.equal(decodeBMP(bmp(8, 8, () => [0, 0, 0, 0], false, 32)).alpha, false);
 });
 
+test('large clip sheets keep the frame and world-map limits', () => {
+  const data = bmp(1600, 1280, () => [0, 0, 0]);
+  const clip = convertBMP(data, 'clip', 160, 80);
+  assert.equal(clip.frames, 160);
+  assert.equal(clip.columns, 20);
+  assert.equal(clip.rows, 10);
+  assert.throws(() => convertBMP(data, 'world'), /1024/);
+  assert.throws(() => convertBMP(data, 'clip', 80, 80), /255 frames/);
+  assert.throws(() => decodeBMP(bmp(2056, 8, () => [0, 0, 0])), /2048/);
+});
+
+test('large clip sheets can also supply a selected static atlas tile', () => {
+  const dir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'pyson-large-atlas-'));
+  try {
+    const file = path.join(dir, 'shared.bmp');
+    fs.writeFileSync(file, bmp(1600, 1280, () => [0, 0, 0]));
+    const literal = JSON.stringify(file.replaceAll('\\', '/'));
+    const source = `clip = background_clip(${literal}, 160, 80)\na = tile(${literal}, x=3, y=2)\nmap = tilemap([[a]])`;
+    compile(source);
+    const { collectAssets } = require('../src/assets');
+    const { parse } = require('../src/parser');
+    const [clip, tile] = collectAssets(parse(source), '<source>').assets;
+    assert.equal(tile.kind, 'tile');
+    assert.equal(tile.paletteIndex, clip.paletteIndex);
+    assert.deepEqual(tile.palette, clip.palette);
+    assert.deepEqual(tile.tiles, [Array(16).fill(0)]);
+    assert.equal(tile.width, 8);
+    assert.equal(tile.height, 8);
+    assert.throws(() => compile(`map = tilemap(${literal})`), /1024|32x32/);
+    assert.throws(() => compile(`map = worldmap(${literal})`), /1024/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('one atlas tile can share a large clip source without creating a large background map', () => {
+  const dir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'pyson-atlas-'));
+  try {
+    const file = path.join(dir, 'large.bmp');
+    const data = bmp(320, 320, (x, y) => ((x + y) % 3 ? [255, 255, 255] : [0, 0, 0]));
+    fs.writeFileSync(file, data);
+    const literal = JSON.stringify(file.replaceAll('\\', '/'));
+    const source = `clip = background_clip(${literal}, 160, 80)\na = tile(${literal}, x=2, y=3)\nmap = tilemap([[a]])`;
+    compile(source);
+    const { collectAssets } = require('../src/assets');
+    const { parse } = require('../src/parser');
+    const [clip, tile, map] = collectAssets(parse(source), '<source>').assets;
+    assert.equal(tile.paletteIndex, clip.paletteIndex);
+    assert.deepEqual(tile.palette, clip.palette);
+    assert.equal(tile.width, 8);
+    assert.equal(tile.height, 8);
+    assert.equal(map.columns, 1);
+    const original = convertBMP(data, 'world');
+    assert.deepEqual(tile.tiles[0], original.tiles[original.maps[0][3 * 40 + 2]]);
+    assert.throws(() => compile(`map = tilemap(${literal})`), /32x32/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('converts exact bitplanes, deduplicates tiles, and orders sheet frames', () => {
   const black = [0, 0, 0]; const white = [255, 255, 255];
   const image = bmp(16, 8, (x, y) => x % 8 === y ? black : white);

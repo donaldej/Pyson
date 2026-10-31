@@ -46,7 +46,7 @@ Use [tile queries and collision](collision.md) for `tile_at`, `map_width`,
 `map_height`, `tile_terrain`, and static wall maps checked with `tile_is_solid`.
 [Nested tile maps](tilemaps.md) combine reusable BMP tiles, palettes, and properties.
 
-Palette indices for palette setters must be literals 0..7. Colors must be
+Palette indices for palette setters may be integers or variables in 0..7. An invalid variable index leaves the palette unchanged. Colors must be
 literal `"#RRGGBB"` strings or RGB15 integers 0..32767 (red bits 0..4, green
 5..9, blue 10..14). Initial palettes are grayscale; imports supply their own
 palettes. Text uses color 0 as its background and color 3 for letters.

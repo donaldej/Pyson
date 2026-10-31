@@ -8,6 +8,17 @@ InitState:
     ld a, b
     or c
     jr nz, .clear
+IF WRAM_SPILL_ENABLED
+    ld hl, wSpillStart
+    ld bc, wSpillEnd - wSpillStart
+.clearSpill:
+    xor a
+    ld [hli], a
+    dec bc
+    ld a, b
+    or c
+    jr nz, .clearSpill
+ENDC
     call InitGraphics
 IF MUTABLE_ENABLED
     call InitMutableMaps
@@ -59,8 +70,221 @@ ENDC
 
 ; Bits: right,left,up,down,A,B,select,start (low to high).
 PollButtons:
+IF BUFFERED_BUTTONS_ENABLED
+    ; Consume one coherent snapshot, including edges/chords seen during uploads.
+    di
+    call SampleBufferedButtons
+    ld a, [wInputPressed]
+    ld [wButtonsPressed], a
+    ld a, [wInputSample]
+    ld b, a
+    ld a, [wInputChord]
+    or b
+    ld [wButtonsHeld], a
+    xor a
+    ld [wInputPressed], a
+    ld [wInputChord], a
+    ei
+    ret
+ELSE
     ld a, [wButtonsHeld]
     ld c, a
+    call ReadJoypadButtons
+    ld a, c
+    cpl
+    and b
+    ld [wButtonsPressed], a
+    ld a, b
+    ld [wButtonsHeld], a
+    ret
+ENDC
+
+IF BUFFERED_BUTTONS_ENABLED
+; Interrupt-safe: only AF/BC/HL and dedicated input bytes; no bank/scratch use.
+SampleBufferedButtons:
+    ld a, [wInputSample]
+    ld c, a
+    call ReadJoypadButtons
+    ld a, c
+    cpl
+    and b
+    ld c, a
+    ld a, [wInputPressed]
+    or c
+    ld [wInputPressed], a
+    ld a, c
+    and a
+    jr z, .sampled
+    ld a, [wInputChord]
+    or b
+    ld [wInputChord], a
+.sampled:
+    ld a, b
+    ld [wInputSample], a
+    ret
+ENDC
+
+IF INPUT_FRAMES_ENABLED
+; Called exactly once per VBlank, never by an extra foreground input poll.
+; Only AF/BC/HL and dedicated queue storage are touched by the interrupt.
+QueueInputFrame:
+IF MASKED_ENABLED
+    ; Masked redraws may span more than64 display frames. Store64 runs of
+    ; (held buttons, remaining identical frames), preserving the public
+    ; one-frame-at-a-time API and at least the original worst-case history.
+    ld a, [wInputFrameCount]
+    and a
+    jr z, .append
+    ld a, [wInputFrameHead]
+    dec a
+    and 63
+    add a
+    ld c, a
+    ld b, 0
+    ld hl, wInputFrames
+    add hl, bc
+    ld a, [wInputSample]
+    cp [hl]
+    jr nz, .append
+    inc hl
+    ld a, [hl]
+    cp 255
+    jr z, .append
+    inc [hl]
+    ret
+.append:
+    ld a, [wInputFrameCount]
+    cp 64
+    jr nz, .store
+    ; Save the dropped run's frame count BEFORE overwriting its slot.
+    ld a, [wInputFrameTail]
+    add a
+    ld c, a
+    ld b, 0
+    ld hl, wInputFrames + 1
+    add hl, bc
+    ld b, [hl]
+    ld a, [wInputFramesLost]
+    add b
+    jr nc, .lostReady
+    ld a, 255
+.lostReady:
+    ld [wInputFramesLost], a
+    ld a, [wInputFrameTail]
+    inc a
+    and 63
+    ld [wInputFrameTail], a
+    ld hl, wInputFrameCount
+    dec [hl]
+.store:
+    ld a, [wInputFrameHead]
+    add a
+    ld c, a
+    ld b, 0
+    ld hl, wInputFrames
+    add hl, bc
+    ld a, [wInputSample]
+    ld [hli], a
+    ld [hl], 1
+    ld a, [wInputFrameHead]
+    inc a
+    and 63
+    ld [wInputFrameHead], a
+    ld hl, wInputFrameCount
+    inc [hl]
+    ret
+ELSE
+    ld a, [wInputFrameHead]
+    ld c, a
+    ld b, 0
+    ld hl, wInputFrames
+    add hl, bc
+    ld a, [wInputSample]
+    ld [hl], a
+    ld a, c
+    inc a
+    and 63
+    ld [wInputFrameHead], a
+    ld a, [wInputFrameCount]
+    cp 64
+    jr z, .full
+    inc a
+    ld [wInputFrameCount], a
+    ret
+.full:
+    ld a, [wInputFrameTail]
+    inc a
+    and 63
+    ld [wInputFrameTail], a
+    ld a, [wInputFramesLost]
+    cp 255
+    ret z
+    inc a
+    ld [wInputFramesLost], a
+    ret
+ENDC
+
+NextInputFrame:
+    di
+    ld a, [wInputFrameCount]
+    and a
+    jr z, .empty
+IF MASKED_ENABLED
+    ld a, [wInputFrameTail]
+    add a
+    ld c, a
+    ld b, 0
+    ld hl, wInputFrames
+    add hl, bc
+    ld a, [hli]
+    ld [wInputFrameHeld], a
+    dec [hl]
+    jr nz, .frameReady
+    ld a, [wInputFrameTail]
+    inc a
+    and 63
+    ld [wInputFrameTail], a
+    ld hl, wInputFrameCount
+    dec [hl]
+.frameReady:
+ELSE
+    dec a
+    ld [wInputFrameCount], a
+    ld a, [wInputFrameTail]
+    ld c, a
+    inc a
+    and 63
+    ld [wInputFrameTail], a
+    ld b, 0
+    ld hl, wInputFrames
+    add hl, bc
+    ld a, [hl]
+    ld [wInputFrameHeld], a
+ENDC
+    ld hl, 1
+    ei
+    ret
+.empty:
+    xor a
+    ld [wInputFrameHeld], a
+    ld hl, 0
+    ei
+    ret
+
+ClearInputFrames:
+    di
+    xor a
+    ld [wInputFrameHead], a
+    ld [wInputFrameTail], a
+    ld [wInputFrameCount], a
+    ld [wInputFrameHeld], a
+    ld [wInputFramesLost], a
+    ei
+    ret
+ENDC
+
+; Returns the current hardware state in B; preserves C and DE.
+ReadJoypadButtons:
     ld a, $20
     ld [$FF00], a
     ld a, [$FF00]
@@ -85,12 +309,6 @@ PollButtons:
     swap a
     or l
     ld b, a
-    ld a, c
-    cpl
-    and b
-    ld [wButtonsPressed], a
-    ld a, b
-    ld [wButtonsHeld], a
     ld a, $30
     ld [$FF00], a
     ret

@@ -48,6 +48,10 @@ npm.cmd run setup
 npm.cmd run build -- examples/hello-world/main.pysn hello-world
 ```
 
+Optional interactive play: after `npm.cmd run setup:emulator`, use
+`npm.cmd run play -- source.pysn [output-name]` to build and open PyBoy.
+This requires the optional Python environment; normal builds do not.
+
 Use `npm.cmd` in PowerShell to avoid `npm.ps1` execution-policy issues. Setup
 installs checksum-verified RGBDS 1.0.4 locally. Required executables are `rgbasm`,
 `rgblink`, and `rgbfix`. Bundled `rgbgfx` is optional: BMP conversion is internal.
@@ -123,6 +127,9 @@ an operand of the same fixed type. Numeric zero and empty strings are false.
 Integer `/`, powers, and shifts are unsupported. `abs(-32768)` wraps.
 Augmented scalar/indexed integer assignments include `+= -= *= //= %= &= |= ^=`.
 Division by literal zero fails compilation; dynamic zero stops with a diagnostic.
+Known nonzero integer literal divisors omit unreachable runtime source-context
+setup (including non-power-of-two `//` and `%`). Dynamic and fixed divisors keep
+their diagnostics; arithmetic semantics and APIs are unchanged.
 
 ### Fractions
 
@@ -296,6 +303,7 @@ Declare imports at module top level using literal paths/dimensions:
 `sprite_sheet("assets/hero.bmp",16,16)`, `tilemap("assets/room.bmp")`,
 `worldmap("assets/world.bmp")`, or `tile("assets/wall.bmp",solid=True,terrain=1)`.
 For an atlas, `tile("assets/tiles.bmp", x=2, y=1)` selects one 8x8 tile;
+source atlases may be up to2048x2048, including shared background-clip sheets.
 coordinates are literal tile indices 0..31, inside the image. Atlas selections
 share one palette for the source BMP; only selected patterns become resident.
 No external generator or `rgbgfx` call is needed. Runtime loops remain runtime
@@ -319,7 +327,7 @@ Keep that corner blank. An all-zero alpha channel is treated as no alpha.
 Transparent background pixels become white, not transparent holes in the map.
 
 Tile patterns are 8x8, 16 bytes each; identical patterns are deduplicated.
-The current resident pool is 256 patterns, including 95 font entries, leaving
+The current resident pool is 256 patterns. Ordinary programs include 95 font entries, leaving
 up to 161 additional unique resident patterns. Sprite sheets, text, and ordinary
 maps share it. Streamed worlds use remaining cache slots. Total dictionary size
 and simultaneous local working-set size are different. A large repeated BMP
@@ -354,6 +362,38 @@ right/bottom edges; ordinary print does not wrap or scroll automatically.
 `clear_screen(palette=0)` clears background, not sprite objects. Queue graphics,
 then refresh. No current `present()` API: the canonical name is `refresh_screen()`.
 
+### Streamed actors
+
+`actor_sheet("assets/fighter.bmp",72,96)` declares one independent actor.
+`draw_actor(actor,frame,x,y,flip_x=False,flip_y=False)` positions it in pixels;
+`hide_actor(actor)` hides its complete reserved sprite range. Each declaration
+owns its instance, two pattern buffers, and automatically assigned high OAM
+slots. Copying the numeric handle aliases that instance. Repeating a declaration
+creates another instance, even for the same BMP. Fully transparent 8x8 cells
+use no sprite components. Compatible actor-only programs automatically use
+8x16 components (all actor heights divisible by 16, no ordinary sprite sheets);
+other programs use 8x8. Padding alignment is optimized without changing visible
+pixels, and actor programs retain only required font glyphs. Button identifiers
+and palette hex strings do not count as printable text; optional dialogue/pool
+glyphs remain available when those features are present. Frames fit 128x128; at most 255 per sheet and 40
+nonempty components per frame. All actors' largest component counts must sum
+to at most 40; the ten-per-scanline limit still applies. Ordinary `sprite()`
+slots must stay below the lowest actor reservation (see the build report).
+
+Only the current pose's patterns are resident in each buffer. Repositioning a
+cached pose does not upload its patterns again. Uploads target the invisible
+buffer, and refresh commits OAM; two new poses queued before refresh force a
+safe intermediate commit. Each actor's two buffers plus resident tiles must
+fit 256 slots. Actors cannot mix with streamed worlds yet. Background clips
+can coexist using disjoint buffers included in the same budget; clips still
+cannot mix with fixed windows. Sprite transparency/three opaque colors still apply; grayscale actor
+fallback uses object palette 1 (white/light gray/black), also shared by any
+ordinary sprite selecting that DMG palette. New literal declarations use named
+arguments normally. Invalid dynamic handles/frames do nothing. Off-screen
+components clip; flips reflect the entire frame canvas, so game code should
+keep a consistent anchor. No automatic movement, animation or combat is added.
+See [streamed actors](documentation/actors.md).
+
 ### Runtime grids and additive fields
 
 `draw_tile_grid(cells,columns,x=0,y=0)` draws a flat integer array of tile()
@@ -371,19 +411,52 @@ and [Phase Heart](examples/phase-heart/README.md).
 
 ### Prepared animated backgrounds
 
+`screen_image(path)` imports a single 160x144 BMP as an exclusive still screen
+with up to 256 patterns, banked separately from resident/actor/clip budgets.
+`show_image(image)` temporarily replaces ordinary graphics, hides all sprites,
+and queues this picture. **Call refresh_screen() before any frame wait**: the
+LCD is stopped during this transition until presentation. Further queued images
+replace the pending image. Invalid handles do nothing. While displayed, only
+input, timing, audio and palette-0 changes should be used; do not draw normal
+graphics over it. `clear_screen()` restores resident patterns, previous palette
+0 and DMG mapping, invalidates actor/clip caches and leaves sprites hidden.
+Redraw normal graphics afterwards. Imported screen images use palette 0 without
+consuming an additional imported palette slot. `bg_palette(0,...)` also selects
+nearest DMG shades while an image is active; changes commit at refresh. Other
+palette slots are preserved. A two-color import can place black at index 1.
+Screen images cannot share a program with window HUD/world-camera routines.
+They stop the LCD briefly and do not count upload time as display frames; they
+are for transitions, not smooth animation. See [screen images](documentation/screen-images.md).
+
 `background_clip("assets/intro.bmp",160,128)` imports a grid of 1..255 equal
 frames, left-to-right then top-to-bottom. Frame dimensions are multiples of 8,
-at most 160x144; the sheet fits 1024x1024. `draw_background(clip,frame,x=0,y=0)`
+at most 160x144; the sheet fits 2048x2048 (at most 255 frames). `draw_background(clip,frame,x=0,y=0)`
 queues a frame at tile coordinates. `refresh_screen()` commits it. Two reserved
 VRAM buffers keep uploads off the displayed picture; the frame clock is enabled
 automatically. Budget: resident patterns + 2 * largest frame pattern count <=256.
-All clips share those buffers; there is one clip layer. Movement/resizing clears
+For sufficiently large sequences with widely shared patterns, common tiles
+can be kept resident once; the report includes those in resident tiles and the
+buffer counts then describe only streamed patterns. The allocator also explores
+promoting peak-frame patterns into the persistent set (up to 64 shared patterns),
+keeping the best lower-reservation layout it finds and accounting for actor
+alignment. This is a deterministic heuristic, not a guarantee of optimal packing.
+Source pixels and drawing APIs are unchanged. Zero-upload frames are
+supported. Clip palette slots are independent by default. Optional
+`background_clip(path,width,height,palette=earlier_clip)` shares the imported
+palette slot of a previously declared clip. Both sheets must produce exactly
+the same ordered four-color palette; otherwise compilation fails. Changing
+that slot at runtime affects both clips. All clips share the dynamic
+buffers; there is one clip layer. Movement/resizing clears
 old dynamic cells to blank palette 0; static text/maps are preserved elsewhere.
 A second call before refresh first commits the pending frame. Clips cannot
 currently coexist with world cameras, streaming, or fixed window/HUD routines.
 Uploads service cooperative audio but may take multiple display frames; do not
 promise 60 picture updates per second. The compiler does not simplify tile
-patterns. See [background clips](documentation/background-clips.md) and the
+patterns. Combined actor/clip programs automatically retain short button edges
+and their held combinations across redraws. Consume one input snapshot per
+iteration (`wait_frames` also samples at return); this is not an ordered input
+history. Other programs retain existing input sampling. See
+[background clips](documentation/background-clips.md) and the
 [God in the Circuit example](examples/god-in-the-circuit/README.md).
 
 ## 7. Maps, cameras, collision, and movement
@@ -580,12 +653,22 @@ motor control, and SGB command APIs are **not implemented**.
 Graphics, maps, ROM tables and user functions bank automatically; callers' banks
 are restored without user assembly. Each placed object/function must fit one
 16 KiB bank; a ROM integer table therefore holds at most 8191 words. Increasing
-ROM size does not enlarge a bank or WRAM. Main, runtime and audio sequences stay
-in fixed bank 0; bank overflow there can require reducing code/data in that bank.
+ROM size does not enlarge a bank or WRAM. For masked-graphics programs, main
+code larger than 2 KiB (including module initialization) banks automatically as
+`$main`, with the same 16 KiB object limit. Other main code, runtime and audio
+sequences stay in fixed bank 0; overflow can require reducing fixed-bank data.
 Do not promise arbitrary large functions or unlimited music.
 
-User allocations share 4096 bytes of WRAM0 with runtime buffers and compiler
-temporaries; the stack uses WRAMX separately. Scalar/string references use two
+Normally user allocations share 4096 bytes of WRAM0 with runtime buffers and
+compiler temporaries, with 4096 bytes of WRAMX reserved for the stack. For
+masked-graphics programs with more than 1024 declared variable bytes, the
+compiler automatically moves up to 1024 bytes of static variables into fixed
+WRAMX bank 1 ($D000..$D3FF), leaving $D400..$DFFF (3072 bytes) for the stack.
+Their reported state capacity is 5120 bytes. Bank 1 is selected before the first
+stack use on CGB; DMG uses the same addresses. This is fixed allocation, not
+lifetime-based variable reuse, and does not consume cartridge RAM. Smaller
+masked programs and other renderers retain the original layout.
+Scalar/string references use two
 bytes; array elements two each; array parameters four; record references two;
 pool handles six. Inactive scenes, function locals, unused array elements and
 inactive pool slots remain allocated. There is no heap, garbage collector, or
@@ -920,10 +1003,27 @@ not write `None`. `randrange(stop)` is the supported one-argument overload.
 | `tile_at(map, x, y)` |
 | `map_width(map)` |
 | `map_height(map)` |
-| `background_clip(path, width, height)` |
+| `masked_sheet(path, width, height)` |
+| `draw_masked(slot, sheet, frame, x, y, flip_x=False, clip_top=0)` |
+| `hide_masked(slot)` |
+| `masked_palette(slot, index=-1, fill_tiles=False)` |
+| `is_cgb()` |
+| `screen_image(path, palettes=1)` |
+| `scroll_image(path, palettes=1)` |
+| `show_scroll(image, y=0)` |
+| `audio_file(path)` |
+| `play_audio(audio, slot=0, priority=3)` |
+| `stop_audio(slot=0)` |
+| `scene_map(path, hud_rows=2, palettes=1)` |
+| `draw_scene(scene, camera_x=0)` |
+| `show_image(image)` |
+| `background_clip(path, width, height, palette=omitted)` |
 | `draw_tile_grid(cells, columns, x=0, y=0)` |
 | `draw_tile_field(columns, rows, tiles, x=0, y=0)` |
 | `draw_background(clip, frame, x=0, y=0)` |
+| `actor_sheet(path, width, height)` |
+| `draw_actor(actor, frame, x, y, flip_x=False, flip_y=False)` |
+| `hide_actor(actor)` |
 | `sprite_sheet(path, width=8, height=8)` |
 | `tile(path, solid=False, terrain=0, x=0, y=0)` |
 | `tilemap(source)` |
@@ -956,6 +1056,7 @@ not write `None`. `randrange(stop)` is the supported one-argument overload.
 | `wait_frames(count)` |
 | `button(name)` |
 | `button_pressed(name)` |
+| `input_button(name)` |
 | `len(array)` |
 | `dialogue_speaker(name)` |
 | `dialogue_portrait(sheet, frame=0, palette=0)` |
@@ -982,6 +1083,9 @@ not write `None`. `randrange(stop)` is the supported one-argument overload.
 | `frame_count()` |
 | `wait_vblank()` |
 | `read_buttons()` |
+| `next_input_frame()` |
+| `clear_input_frames()` |
+| `input_frames_lost()` |
 | `stop_music()` |
 | `pause_music()` |
 | `resume_music()` |
@@ -1023,3 +1127,104 @@ docs, relevant tutorial/example, this manual, and CONTEXT.MF. Keep optional
 tooling out of required setup. Do not claim a planned debugger, memory optimizer,
 hardware effect, or unsupported Python construct is available. Preserve the
 user's edit/plan/approval workflow and explicitly requested scope.
+
+## Masked composition
+
+`scene_map(path, hud_rows=2)` and `draw_scene(scene, camera_x=0)` add banked, horizontally
+scrolling arenas to this renderer. See [scene maps](documentation/scene-maps.md).
+BMPs are 160–1024 by 144 pixels, in multiples of eight. Each arena plus resident
+font/ordinary patterns must fit 128 slots; arenas reuse the same slots. The top
+16 pixels are a stationary HUD by default; literal `hud_rows=1..6` chooses
+another height in eight-pixel rows. All scenes in one ROM must agree. Masked coordinates stay screen pixels: draw a
+world character at `world_x - camera_x`. Scene changes load patterns during a
+display transition; camera movement keeps the LCD running. Clear/image changes
+invalidate the current scene. This does not enable ordinary `worldmap` or
+`set_camera` on masked programs. Source diagnostics are uppercase in this mode.
+
+Ordered input is optional: `next_input_frame()` consumes one oldest VBlank
+held-state sample, returning 1, or 0 and clearing the recorded held state when
+empty. `input_button(name)` queries that frame using the ordinary literal button
+names. `clear_input_frames()` clears the queue, current recorded held state and
+loss counter. `input_frames_lost()` returns a saturating 0..255 counter of old
+frames dropped since clear. Ordinary programs retain 64 frames in 69 bytes of
+queue RAM. Masked programs retain 64 runs of equal held states in 133 bytes;
+each run stores at most 255 frames, then continues in another run. Consumption
+still returns one physical frame per call. Overflow discards the oldest
+remaining run and counts its frames, saturating at 255. Clear discards all runs.
+Use enables frame clock/buffered input automatically. Record once per
+VBlank, never once per foreground read_buttons(). Existing button/button_pressed
+semantics remain unchanged. Clear after menus/pause and reset partial command
+state on loss. See [input](documentation/input.md). No mandatory dependencies.
+
+See [masked graphics](documentation/masked-graphics.md). `masked_sheet(path, width, height)` imports four opaque colors plus alpha. `draw_masked(slot, sheet, frame, x, y, flip_x=False, clip_top=0)` retains a layer; `hide_masked(slot)` removes it. Slots are 0 through 3, drawn from back to front. The base renderer uses 4 KB of volatile MBC5 cartridge RAM (8 KB cartridge allocation), automatically configured unless explicit settings conflict. Save-enabled or battery-backed programs are rejected for this mode. Other save programs are unaffected. It supports 128 shared resident tiles and 128 dynamic tiles across all four layers, no OAM cost, horizontal mirroring and pixel clipping. Without accents, characters inherit the underlying tile palette. Optional `masked_palette(slot, index=-1)` selects an ordinary `sprite_palette` for CGB color indices 1..3; index 0 remains in the base image, and -1 disables accents. DMG automatically keeps its four shades; `is_cgb()` reports the hardware mode. Accents reserve OAM (40 components, ten per aligned 16-pixel band) and private CGB work-RAM bank 2. Pyson automatically selects 32 KB of volatile cartridge RAM for a three-entry-per-layer color cache; an explicit `header.ram_kb=8` keeps the uncached path. The cache uses exact actor/overlap/clip/palette-index/budget keys, rebases OAM for fine scrolling and hidden buffers, tracks residency in both buffers, and uploads only dirty runs. Reset invalidates entries; continuously moving misses avoid storing one-use patterns. Palette RGB changes do not require rebuilding patterns. Hardware sprite limits still apply, and cache misses still cost composition time. Higher layers have priority; exhausted areas retain untinted body pixels. Do not combine accents with ordinary sprite sheets. Asset alignment/mirroring and identical variant sharing are precomputed, with sparse row storage. Performance depends on picture size; it does not promise 60 FPS. Do not combine with windows, camera scrolling, streamed worlds, actor sheets or background clips.
+
+
+## Exclusive scrolling pictures and imported audio
+
+Indexed color imports: `screen_image(path, palettes=1)`,
+`scroll_image(path, palettes=1)`, and `scene_map(path, hud_rows=2, palettes=1)`.
+Counts greater than one require an indexed BMP whose table entries are groups
+of four. Each 8x8 tile must use exactly one group. Screens/scrolls allow up to8,
+scenes up to4. Preserve lower two index bits as shade numbers; patterns dedupe
+across palette groups. DMG mapping is derived from group0 for every tile, so
+use the same brightness ordering in every group. The default retains legacy
+RGB reduction. A mixed program uses 64-byte palette headers and attribute
+planes for all exclusive images/scenes, including legacy declarations. Saved
+BG palettes are restored on leaving an exclusive image. Colored scrolls retain
+attributes through ring-row updates. No extra build dependency.
+
+An indexed program reloads all eight BG palette slots at image/arena loads,
+including unused slots and legacy imports in that program. Configure HUD
+palettes after draw_scene. Filled actor slots are mirrored automatically after
+scene loads and sprite_palette updates; RGB-only changes need no recomposition.
+
+`masked_palette(slot, index=-1, fill_tiles=False)` optionally fills opaque cells
+with BG palettes4..7 mirrored from OBJ0..3. Those four BG slots are reserved
+when fill is compiled; scene/interface palettes must stay0..3. Fill uses OBJ
+indices0..3. Only fully opaque single-owner cells fill; mixed edges use normal
+overlays. Keep scenery/fighter color0 consistent for uniform edge outlines.
+The 40 total/10 per band limits still apply, with untinted fallback. Filled cells
+skip overlays. Ownership comes from own/front descriptors, so existing exact
+cache keys remain sufficient and RGB changes do not require pattern rebuilds.
+Private WRAM bank3 holds stationary
+attrs576 bytes and saved image palettes64 bytes; bank2 retains staging/stack.
+Six bytes of fill state are added, plus selected-ROM tracking when not already
+enabled by APU streams. CGB bank/IE/stack state is restored before source resumes.
+DMG remains four-shade. See [indexed colors](documentation/indexed-colors.md).
+
+`scroll_image(path)` is a module-level asset declaration for a BMP exactly 160
+pixels wide, 144..2040 pixels tall, dimensions divisible by eight, at most 256
+unique tile patterns. `show_scroll(image, y=0)` shows its 144-pixel viewport;
+integer pixel y is clamped. Refresh after drawing. Ordinary one-row scrolling
+keeps the LCD on; large jumps rebuild as transitions. This exclusive mode
+temporarily replaces ordinary graphics; `clear_screen()` restores them. It
+coexists in a ROM with masked sheets but is shown separately. See
+[screen images](documentation/screen-images.md).
+
+`audio_file(path)` declares an immutable imported APU stream, used directly by
+`play_audio(audio, slot=0, priority=3)`; slot/priority must be literal integers
+0..1/0..7. Slot 0 is background; slot 1 is an effect, with higher/equal priority
+replacing its predecessor. `stop_audio(slot=0)` stops a slot. No dynamic audio
+handles or copying bindings. JSON is `{"format":"pyson-apu-1","frames":60,
+"events":[[0,38,128],[0,36,119],[0,37,255]]}`; ordered events are frame, writable
+APU offset 0x10..0x3F, byte value. Optional integer `loop` is inside the duration.
+Duration is 1..1,000,000 frames; empty events are legal. Import tools supply the
+register data. This advanced alternative does not replace ordinary novice music
+APIs. Only played streams emit data; data chunks are automatically banked.
+
+The player uses 71 bytes plus shared sound/frame-clock state and two bytes per
+binding. VBlank services playback and preserves the actual mapped bank (including
+MBC5 bit 8), without touching compiler scratch. Starting/stopping is atomic.
+LCD-off transitions pause the clock. Effect-owned channels suppress background
+writes while its timeline continues; restoring background registers may restart
+hardware envelopes. This is frame-accurate register-stream playback, not a copy
+of an original audio driver or cycle-exact waveform/mixing emulation. Do not
+mix with play_music/play_sound, whose mute/volume/pause controls do not control
+these streams. No additional build dependency. See
+[imported audio](documentation/imported-audio.md).
+
+
+
+
+Live exclusive-image updates: nearly identical `screen_image` imports with identical palette tables are automatically assigned an `imageFamily` and a common tile-number pool by src/image-families.js. With any family enabled, all screen/scroll payloads gain one leading family byte; scene payloads do not. `IMAGE_FAMILIES` controls this format. ShowScroll's map offset includes that byte. ShowImage uses UpdateImageFamily only for a nonzero matching active family; it copies the palette/map/attributes in RAM, clears sprites, marks both maps dirty, and refresh_screen flips a completed hidden map without LCD shutdown. Other images retain ordinary full transitions. No new public syntax/API. CPU_DOUBLE_SPEED allows compact palette-copy loops within the longer CGB VBlank cycle budget; normal-speed builds retain unrolled copies.
+Filled attributes: wMaskedAttrSP saves the source SP; MASKED_ATTRIBUTE_BANK masks IE briefly while switching to bank3 with SP DFF0, then restores IE during the 576-byte copy. Exit masks IE for bank/SP restoration, then restores IE. IME is never changed by this helper. Bank3's remaining space above D280 provides the interrupt stack. This fixes long STAT/audio/input interrupt suppression. Double-speed CGB's fixed HUD uses LYC=HUD*8 and writes SCX during mode2; DMG/default-speed keep the preceding-line HBlank path. This avoids the interrupt waiting behind bulk HDMA.

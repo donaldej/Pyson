@@ -22,6 +22,12 @@ test('fixed array storage, len and negative indexing compile', () => {
   assert.equal(items.length, 3);
   assert.equal(items.bytes, 6);
   assert.match(result.assembly, new RegExp(`${items.label}: ds 6`));
+  assert.doesNotMatch(result.assembly, /call ArrayIndexAddress/);
+  assert.match(result.assembly, new RegExp(`ld hl, ${items.label} \\+ 4`));
+});
+
+test('variable array indices retain runtime bounds checks', () => {
+  const result = compile('items = [1, 2, 3]\ni = 1\nx = items[i]');
   assert.match(result.assembly, /call ArrayIndexAddress/);
 });
 

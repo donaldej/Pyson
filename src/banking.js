@@ -5,8 +5,8 @@ function planBanks(graphics, header, explicitController = false, functions = [])
   const limit = 16383; // Leave the final byte available for capacity padding.
   const objects = [{ label: 'Font', bytes: graphics.tileData.length }];
   for (const asset of graphics.assets) {
-    if (['world', 'clip'].includes(asset.kind)) continue;
-    asset.romBytes = asset.mutable ? asset.initialCells.length : asset.kind === 'manual' ? 2 + asset.cellMap.length + asset.definitions.length * 3 : asset.maps.flat().length;
+    if (['world', 'clip', 'actor', 'masked'].includes(asset.kind)) continue;
+    asset.romBytes = asset.kind === 'scene' ? asset.sceneData.length : ['scroll','screen'].includes(asset.kind) ? asset.screenData.length : asset.mutable ? asset.initialCells.length : asset.kind === 'manual' ? 2 + asset.cellMap.length + asset.definitions.length * 3 : asset.maps.flat().length;
     objects.push({ label: asset.label, bytes: asset.romBytes, asset });
   }
   objects.push(...(graphics.worldObjects || []).map(object => ({ label: object.label, kind: object.kind, bytes: object.bytes, worldObject: object, asset: object.asset })));

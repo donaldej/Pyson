@@ -1,0 +1,40 @@
+# Original neon-noir imagery. Titles are integrated into signs and the finale.
+city = background_clip("../assets/act-0.bmp", 160, 144)
+eye = background_clip("../assets/act-1.bmp", 160, 144, palette=city)
+pyramids = background_clip("../assets/act-2.bmp", 160, 144, palette=city)
+alley = background_clip("../assets/act-3.bmp", 160, 144, palette=city)
+identity = background_clip("../assets/act-4.bmp", 160, 144, palette=city)
+letters = sprite_sheet("../assets/letters.bmp", 8, 8)
+numbers = sprite_sheet("../assets/numbers.bmp", 24, 32)
+marks = sprite_sheet("../assets/marks.bmp", 8, 8)
+rain = sprite_sheet("../assets/rain.bmp", 8, 8)
+
+def draw(scene, frame):
+    if scene == 0:
+        draw_background(city, frame)
+    elif scene == 1:
+        draw_background(eye, frame)
+    elif scene == 2:
+        draw_background(pyramids, frame)
+    elif scene == 3:
+        draw_background(alley, frame)
+    else:
+        draw_background(identity, frame)
+
+def colors(scene):
+    if scene == 0 or scene == 3:
+        bg_palette(1, "#ffe3cf", "#9a4a8b", "#1d5363", "#070b1a")
+    elif scene == 1:
+        bg_palette(1, "#d6ebe0", "#698e9e", "#283d5c", "#070c1a")
+    elif scene == 2:
+        bg_palette(1, "#ffe4a3", "#ba7950", "#4b3048", "#100c1b")
+    else:
+        bg_palette(1, "#ffe3cf", "#9e719e", "#28455a", "#080d1b")
+
+def weather(tick):
+    # Twelve drops occupy slots 28..39, safely separate from the alert text.
+    # Their y offsets are evenly distributed to respect scanline sprite limits.
+    for i in range(12):
+        x = (i*37-tick // 2) % 152
+        y = (i*11+tick*2) % 136
+        sprite(28+i, rain, i%2, x, y)

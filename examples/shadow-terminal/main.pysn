@@ -1,0 +1,88 @@
+# SHADOW TERMINAL: a military command system escalating from DEFCON 5 to 1.
+# There are no scene-name captions. The terminal name and countdown are the
+# only foreground lettering, apart from the small Pyson credit in the finale.
+header.title = "SHADOW TERMINAL"
+header.target = "dual"
+header.controller = "mbc5"
+header.cpu_speed = "double"
+import includes.art as art
+import includes.overlay as overlay
+import includes.score as score
+
+scene = 0
+tick = 0
+cycles = 0
+previous = 0
+prepared = False
+paused = False
+last_frame = -1
+last_second = -1
+level = 0
+remaining = 0
+duration = 360
+
+while True:
+    if not prepared:
+        stop_music()
+        stop_sound()
+        for slot in range(40):
+            hide_sprite(slot)
+        clear_screen()
+        art.colors(scene)
+        art.draw(scene, 0)
+        if scene == 0:
+            level = 0
+            duration = 360
+            overlay.brand(False)
+        elif scene == 6:
+            level = 0
+            duration = 480
+            overlay.brand(True)
+        else:
+            level = 6-scene
+            duration = 600
+            remaining = 10
+            overlay.readiness(level, remaining)
+        refresh_screen()
+        score.begin(scene)
+        previous = frame_count()
+        last_frame = -1
+        last_second = -1
+        prepared = True
+
+    read_buttons()
+    delta = elapsed_frames(previous)
+    previous = (previous+delta) & 32767
+    if button_pressed("start"):
+        paused = not paused
+        if paused:
+            pause_music()
+            stop_sound()
+        else:
+            resume_music()
+    if button_pressed("a"):
+        tick = duration
+    if not paused:
+        tick += delta
+        if tick >= duration:
+            tick = 0
+            scene += 1
+            if scene == 7:
+                scene = 0
+                cycles += 1
+            prepared = False
+        else:
+            score.update(tick)
+            # Faster machinery; the ten-second readiness clock stays unchanged.
+            frame = tick // 4 % 24
+            if frame != last_frame:
+                art.draw(scene, frame)
+                last_frame = frame
+            if level > 0:
+                second = tick // 60
+                if second != last_second:
+                    last_second = second
+                    remaining = 10-second
+                    overlay.readiness(level, remaining)
+            overlay.pulse(tick)
+    refresh_screen()

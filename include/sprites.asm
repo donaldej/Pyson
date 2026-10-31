@@ -2,6 +2,10 @@
 FindAsset:
     cp ASSET_COUNT
     jr nc, .invalid
+    push bc
+    ld bc, BANK(AssetDescriptors)
+    call SelectROMBank
+    pop bc
     ld h, 0
     ld l, a
     add hl, hl
@@ -20,6 +24,12 @@ FindAsset:
 
 ; HL points at descriptor's columns byte; load common dimensions/palette/map.
 ReadDescriptor:
+    ; A queued refresh can service audio and restore the execution bank while
+    ; a caller retains this descriptor pointer on the stack.
+    push bc
+    ld bc, BANK(AssetDescriptors)
+    call SelectROMBank
+    pop bc
     ld a, [hli]
     ld [wAssetCols], a
     ld a, [hli]
@@ -37,6 +47,12 @@ ReadDescriptor:
     ld a, [hli]
     ld c, a
     ld b, [hl]
+IF ASSET_COUNT > 0
+    ld a, c
+    ld [wDescriptorBank], a
+    ld a, b
+    ld [wDescriptorBank + 1], a
+ENDC
 IF STREAM_ENABLED
     ld a, c
     ld [wAssetBank], a
@@ -253,6 +269,9 @@ DrawSprite:
     ld d, a
     add hl, de
     ld a, [hl]
+IF MASKED_ENABLED
+    add 128
+ENDC
     ld [wSpriteTile], a
     jr .write
 .hidden:

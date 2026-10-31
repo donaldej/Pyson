@@ -1,0 +1,44 @@
+# Sprites keep the live text independent of the changing background clip.
+# Numbers use 12 components, small characters use one component each.
+import includes.art as art
+import includes.labels as labels
+
+def brand(finale):
+    for i in range(6):
+        sprite(i, art.letters, labels.shadow[i], 56+i*8, 56)
+    for i in range(8):
+        sprite(6+i, art.letters, labels.terminal[i], 48+i*8, 72)
+    if finale:
+        for i in range(5):
+            sprite(14+i, art.letters, labels.pyson[i], 60+i*8, 104)
+
+def readiness(level, remaining):
+    for i in range(6):
+        sprite(i, art.letters, labels.defcon[i], 56+i*8, 32)
+    # Frames 0..4 contain the digits 1..5. This call occupies slots 6..17.
+    sprite(6, art.numbers, level-1, 68, 48)
+    sprite(18, art.letters, 0, 60, 88)
+    sprite(19, art.letters, 0, 68, 88)
+    sprite(20, art.letters, labels.colon, 76, 88)
+    sprite(21, art.letters, remaining // 10, 84, 88)
+    sprite(22, art.letters, remaining % 10, 92, 88)
+    # Each escalation illuminates another readiness lamp.
+    for i in range(5):
+        if i >= level-1:
+            sprite(23+i, art.marks, 0, 16+i*30, 112)
+        else:
+            hide_sprite(23+i)
+
+def pulse(tick):
+    # Side markers now sweep in two axes, staying outside the countdown.
+    for i in range(4):
+        y = 16+i*32+(tick // 4+i*2) % 8
+        offset = (tick // 4+i) % 3
+        sprite(28+i, art.marks, 1, 8+offset*8, y)
+        sprite(32+i, art.marks, 1, 144-offset*8, y)
+    # Four packet tracers race along the outer rails. All 40 components can
+    # be addressed, while their vertical separation keeps scanline costs low.
+    for i in range(2):
+        x = 16+(tick*2+i*60) % 120
+        sprite(36+i, art.marks, 0, x, 8)
+        sprite(38+i, art.marks, 0, 152-x, 128)

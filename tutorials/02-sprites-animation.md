@@ -79,6 +79,37 @@ animate more slowly without changing the artwork. Next compare the independent
 players: pausing or restarting one playback slot need not redefine its shared
 animation data.
 
+## Larger characters with many poses
+
+An ordinary sprite sheet keeps all its patterns ready in video memory. If a
+character has many detailed poses, that can fill the available space quickly.
+Use a streamed actor when you want Pyson to load poses into reusable buffers:
+
+```python
+hero = actor_sheet("assets/hero.bmp", width=16, height=16)
+draw_actor(hero, frame=0, x=40, y=48)
+refresh_screen()
+```
+
+This is a declaration and drawing excerpt, using the existing hero sheet; put
+the declaration at module top level and the drawing in your game loop. Choose
+other frame numbers using your game's animation timing. Changing only x/y is
+cheaper than loading a new pose. Use `hide_actor(hero)` to hide the complete
+character. Each declaration creates one actor; copying its handle does not
+create a second character.
+
+The hardware's sprite and color limits still apply. Actors reserve their own
+slots automatically, so check the build report before mixing them with ordinary
+`sprite()` calls. [Streamed actors](../documentation/actors.md) explains the
+limits, flips, transparent artwork, and supported combinations in detail.
+
+For compatible actor-only programs, Pyson automatically uses taller hardware
+components and omits unused font glyphs. You still position the same image in
+pixels; you do not need to select a hardware mode. An independently animated
+background can also complement an actor when a scene is too wide for the
+ten-sprites-per-scanline limit. See [background clips](../documentation/background-clips.md)
+for that separate layer and its resource budget.
+
 References: [BMP conversion](../documentation/assets.md),
 [graphics](../documentation/graphics.md), [animation](../documentation/animation.md).
 

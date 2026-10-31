@@ -19,6 +19,13 @@ holds changing values and runtime buffers. Cartridge ROM holds code and fixed
 data. Free working RAM tells you how much room remains for additional state;
 the report does not measure stack usage at runtime.
 
+Large [masked-graphics](masked-graphics.md) programs may show a separate line
+for variables in fixed work-RAM bank 1. Pyson can place up to 1 KB there,
+automatically, while reserving 3 KB for the CPU stack. Their reported state
+capacity is 5 KB. Other layouts retain 4 KB for state and 4 KB for the stack.
+The used/free totals include both state areas when this layout is selected.
+This is ordinary working memory; it does not consume cartridge save space.
+
 ## Tile positions versus unique tiles
 
 For the supplied Star Squadron example, the report includes:

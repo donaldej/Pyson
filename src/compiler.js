@@ -79,6 +79,14 @@ function compile(source, filename = '<source>') {
     if (!seen.has('controller') && header.rom_kb > 32 && !save.enabled) header.controller = 'mbc5';
     validateHeader(header);
     const graphics = collectAssets(ast, filename);
+    if(graphics.masked){
+      if(header.battery || save.enabled)throw new Error('Masked composition uses volatile cartridge RAM; battery-backed/save-enabled cartridges are not supported yet');
+      if(!seen.has('controller'))header.controller='mbc5';
+      if(header.controller!=='mbc5')throw new Error('Masked composition requires MBC5');
+      const usesTint=node=>node&&typeof node==='object'&&((node.type==='call'&&node.name==='masked_palette')||Object.values(node).some(usesTint));
+      if(!seen.has('ram_kb'))header.ram_kb=usesTint(ast)?32:8;
+      if(header.ram_kb<8)throw new Error('Masked composition needs 8 KB of volatile cartridge RAM');
+    }
     graphics.tables = collectTables(ast);
     planBanks(graphics, header, seen.has('controller'));
     const headerBytes = validateHeader(header);

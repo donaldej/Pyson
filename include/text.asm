@@ -65,10 +65,20 @@ ENDC
     ld [$FF47], a
     ld [$FF48], a
     ld [$FF49], a
+IF ACTOR_ENABLED
+    ; Streamed actors use object palette 1 on DMG: white, light gray, black.
+    ; Color 0 remains transparent; this does not change CGB palette colors.
+    ld a, $D0
+    ld [$FF49], a
+ENDC
     ld bc, BANK(Font)
     call SelectROMBank
     ld hl, Font
+IF MASKED_ENABLED
+    ld de, $8800
+ELSE
     ld de, $8000
+ENDC
     ld bc, FontEnd - Font
 .font:
     ld a, [hli]
@@ -80,6 +90,9 @@ ENDC
     jr nz, .font
     call ClearMap
     ld a, $93
+IF ACTOR_COMPONENT_HEIGHT == 16
+    or 4
+ENDC
     ld [$FF40], a
     ret
 
@@ -90,6 +103,9 @@ ClearMap:
     xor a
     ld [hli], a
     dec bc
+IF SCREEN_IMAGE_ENABLED
+    call SampleImageInput
+ENDC
     ld a, b
     or c
     jr nz, .loop

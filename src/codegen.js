@@ -6,6 +6,7 @@ const font = require('./font');
 const graphicsCodegen = require('./graphics-codegen');
 const frameCodegen = require('./frame-codegen');
 const soundCodegen = require('./sound-codegen');
+const apuCodegen = require('./apu-codegen');
 const musicCodegen = require('./music-codegen');
 const saveCodegen = require('./save-codegen');
 const animationCodegen = require('./animation-codegen');
@@ -17,11 +18,13 @@ const rectangleCodegen = require('./rectangle-codegen');
 const randomCodegen = require('./random-codegen');
 const formatCodegen = require('./format-codegen');
 const { generateROM } = require('./rom-template');
-const { bankFunctions } = require('./code-banking');
+const { bankFunctions, instructionBytes } = require('./code-banking');
 const root = path.resolve(__dirname, '..');
 const buttons = { right: 1, left: 2, up: 4, down: 8, a: 16, b: 32, select: 64, start: 128 };
 const constants = new Map(Object.entries(buttons).map(([name, value]) => [`BUTTON_${name.toUpperCase()}`, value]));
-const builtins = new Set(['print', 'wait_vblank', 'read_buttons', 'button', 'button_pressed', 'range', 'len', ...graphicsCodegen.names, ...soundCodegen.names, ...musicCodegen.names, ...saveCodegen.names, ...animationCodegen.names]);
+const builtins = new Set(['print', 'wait_vblank', 'read_buttons', 'button', 'button_pressed', 'range', 'len', ...graphicsCodegen.names, ...apuCodegen.names, ...soundCodegen.names, ...musicCodegen.names, ...saveCodegen.names, ...animationCodegen.names]);
+const inputFrameNames = ['next_input_frame', 'input_button', 'clear_input_frames', 'input_frames_lost'];
+inputFrameNames.forEach(name => builtins.add(name));
 const fail = (node, message) => { throw new Error(`${node.filename ? node.filename + ': ' : ''}Line ${node.line}: ${message}`); };
 builtins.add('record');
 builtins.add('records');
@@ -46,13 +49,32 @@ function walk(statements, visit) {
 }
 
 function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
+  const font = graphics.font || require('./font');
   const usesFrameClock = node => node && typeof node === 'object' &&
     ((node.type === 'call' && frameCodegen.names.includes(node.name)) || Object.values(node).some(usesFrameClock));
-  graphics.frameClock = Boolean(usesFrameClock(ast) || graphics.clips?.enabled);
+  const usesInputFrames = node => node && typeof node === 'object' &&
+    ((node.type === 'call' && inputFrameNames.includes(node.name)) || Object.values(node).some(usesInputFrames));
+  graphics.inputFrames = Boolean(usesInputFrames(ast));
+  graphics.bufferedButtons = Boolean(graphics.inputFrames || graphics.masked || (graphics.actors?.enabled && graphics.clips?.enabled) || graphics.assets.some(asset=>['scroll','screen'].includes(asset.kind)));
+  graphics.frameClock = Boolean(usesFrameClock(ast) || graphics.clips?.enabled || graphics.actors?.enabled || graphics.bufferedButtons);
+  const usesMaskedPalette = node => node && typeof node==='object' && ((node.type==='call' && node.name==='masked_palette') || Object.values(node).some(usesMaskedPalette));
+  graphics.maskedTint=Boolean(usesMaskedPalette(ast));
+  const usesMaskedFill = node => node && typeof node==='object' && ((node.type==='call' && node.name==='masked_palette' && node.args[2] && !(['number','boolean'].includes(node.args[2].type) && !node.args[2].value)) || Object.values(node).some(usesMaskedFill));
+  graphics.maskedFill=Boolean(usesMaskedFill(ast));
+  graphics.maskedTintCache=graphics.maskedTint&&header.ram_kb>=32;
+  if(graphics.maskedTint){
+    if(!graphics.masked) throw Error('masked_palette requires masked_sheet composition');
+    if(graphics.assets.some(a=>['sprite','actor'].includes(a.kind))) throw Error('masked_palette reserves OAM; use masked layers for projectiles instead of sprite_sheet/actor_sheet');
+    const tintBody=fs.readFileSync(path.join(__dirname,'../include/masked-tint-engine.asm'),'utf8').replace('; TINT_CACHE_BODY',fs.readFileSync(path.join(__dirname,'../include/masked-tint-cache.asm'),'utf8'));
+    graphics.worldObjects.push({label:'MaskedTintEngine',kind:'masked-tint-engine',bytes:graphics.maskedFill?8192:4096,body:tintBody});
+  }
   graphics.paletteLiterals = [];
   const music = musicCodegen.collectMusic(ast);
   const sound = soundCodegen.collectSounds(ast);
-  sound.enabled ||= music.enabled;
+  const apu = apuCodegen.collect(ast, graphics);
+  graphics.worldObjects.push({label:'AssetDescriptors',kind:'asset-descriptors',bytes:Math.max(1,graphics.assets.length*10)});
+  sound.enabled ||= music.enabled || apu.enabled;
+  graphics.frameClock ||= apu.enabled;
   const animation = animationCodegen.collectAnimations(ast, graphics);
   const dialogue = { enabled: false };
   const rectangle = { enabled: false };
@@ -147,7 +169,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
         return node.op === '//' && (left === 'fixed' || right === 'fixed') ? 'number'
           : left === 'fixed' || right === 'fixed' ? 'fixed' : left;
       }
-      case 'call': return node.name === 'fixed' ? 'fixed' : node.name === 'int' ? 'number' : functions.has(node.name) ? functions.get(node.name).returnType || 'number' : node.name === 'format_text' ? 'string' : ['music_track', 'music_file'].includes(node.name) ? 'music' : node.name === 'sprite_animation' ? 'animation' : node.name === 'sound_effect' ? 'sound' : ['print', 'wait_vblank', ...frameCodegen.procedures, ...randomCodegen.procedures, ...dialogueCodegen.procedures, ...graphicsCodegen.procedures, ...soundCodegen.procedures, ...musicCodegen.procedures, ...saveCodegen.procedures, ...animationCodegen.procedures].includes(node.name) ? 'void' : 'number';
+      case 'call': return node.name === 'fixed' ? 'fixed' : node.name === 'int' ? 'number' : functions.has(node.name) ? functions.get(node.name).returnType || 'number' : node.name === 'format_text' ? 'string' : ['music_track', 'music_file'].includes(node.name) ? 'music' : node.name === 'sprite_animation' ? 'animation' : node.name === 'audio_file' ? 'audio' : node.name === 'sound_effect' ? 'sound' : ['print', 'wait_vblank', ...frameCodegen.procedures, ...randomCodegen.procedures, ...dialogueCodegen.procedures, ...graphicsCodegen.procedures, ...apuCodegen.procedures, ...soundCodegen.procedures, ...musicCodegen.procedures, ...saveCodegen.procedures, ...animationCodegen.procedures].includes(node.name) ? 'void' : 'number';
       default: fail(node, 'Unsupported expression');
     }
   }
@@ -242,6 +264,35 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
     }
     return null;
   }
+  function jumpCondition(node, target, whenTrue, context) {
+    const type=typeOf(node,context.scope);
+    if(type==='void')fail(node,'A procedure cannot be used as a condition');
+    if(node.type==='unary' && node.op==='not')return jumpCondition(node.expression,target,!whenTrue,context);
+    if(node.type==='binary' && ['and','or'].includes(node.op)){
+      const lt=typeOf(node.left,context.scope),rt=typeOf(node.right,context.scope);
+      if(lt!==rt || lt==='void' || lt==='array')fail(node,'and/or operands must have the same fixed scalar type; use len(array) for array conditions');
+      if((node.op==='and'&&!whenTrue)||(node.op==='or'&&whenTrue))return [...jumpCondition(node.left,target,whenTrue,context),...jumpCondition(node.right,target,whenTrue,context)];
+      const skip=label('condition_skip');
+      return [...jumpCondition(node.left,skip,!whenTrue,context),...jumpCondition(node.right,target,whenTrue,context),`${skip}:`];
+    }
+    if(node.type==='compare' && node.rest.length===1){
+      const item=node.rest[0];arithmetic(node.first,context);arithmetic(item.expression,context);
+      const lt=typeOf(node.first,context.scope),rt=typeOf(item.expression,context.scope);
+      if(['==','!='].includes(item.op) && literalNumber(item.expression)===0)return [...expression(node.first,context),...truth(lt,node.first,context.scope),`    jp ${(item.op==='==')===whenTrue?'z':'nz'}, ${target}`];
+      const emit=lt==='fixed'||rt==='fixed'?asFixed:expression;
+      const out=[...emit(node.first,context),'    push hl',...emit(item.expression,context),'    pop de','    call CompareSigned'];
+      if(lt==='fixed'||rt==='fixed')graphics.fixed=true;
+      const op=whenTrue?item.op:({'==':'!=','!=':'==','<':'>=','<=':'>','>':'<=','>=':'<'})[item.op];
+      if(op==='==')out.push(`    jp z, ${target}`);
+      if(op==='!=')out.push(`    jp nz, ${target}`);
+      if(op==='<')out.push(`    jp c, ${target}`);
+      if(op==='>=')out.push(`    jp nc, ${target}`);
+      if(op==='<=')out.push(`    jp c, ${target}`,`    jp z, ${target}`);
+      if(op==='>'){const skip=label('condition_equal');out.push(`    jp z, ${skip}`,`    jp nc, ${target}`,`${skip}:`);}
+      return out;
+    }
+    return [...expression(node,context),...truth(type,node,context.scope),`    jp ${whenTrue?'nz':'z'}, ${target}`];
+  }
   function compare(op) {
     const yes = label('comparison_true');
     const done = label('comparison_done');
@@ -255,14 +306,40 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
     code.push(`    jp ${done}`, `${yes}:`, '    ld hl, 1', `${done}:`);
     return code;
   }
-  function binaryOperation(op, right) {
+  // Integer constants can use exact 16-bit operations without the generic
+  // multiply/divide loops. Signed shifts preserve Python floor division.
+  function constantInteger(op, n) {
+    if(!Number.isInteger(n))return null;
+    if(op==='*' && Math.abs(n)<=255){
+      if(n===0)return ['    ld hl, 0'];
+      const bits=Math.abs(n).toString(2).slice(1),out=[];
+      if(bits.includes('1'))out.push('    ld d, h','    ld e, l');
+      for(const bit of bits){out.push('    add hl, hl');if(bit==='1')out.push('    add hl, de');}
+      if(n<0)out.push('    call NegHL');
+      return out;
+    }
+    if(['//','%'].includes(op) && n>0 && n<=16384 && (n&(n-1))===0){
+      if(op==='%')return ['    ld a, l',`    and ${(n-1)&255}`,'    ld l, a','    ld a, h',`    and ${(n-1)>>8}`,'    ld h, a'];
+      return Array.from({length:Math.log2(n)},()=>['    sra h','    rr l']).flat();
+    }
+    return null;
+  }
+  function binaryOperation(op, right, optimizeInteger = true) {
+    const optimized=optimizeInteger && constantInteger(op,literalNumber(right));
+    if(optimized)return ['    ld h, d','    ld l, e',...optimized];
     const code = [];
     if (op === '+') code.push('    add hl, de');
     if (op === '-') code.push('    ld a, e', '    sub l', '    ld l, a', '    ld a, d', '    sbc h', '    ld h, a');
     if (op === '*') code.push('    call Mul16');
     if (['//', '%'].includes(op)) {
       if (literalNumber(right) === 0) fail(right, 'Division by zero');
-      code.push(...errorSite(right), '    call Div16');
+      // A validated integer literal cannot become zero at runtime. Keep
+      // diagnostics for dynamic/fixed divisors, but do not fill ROM0 with
+      // unreachable error-location strings for divisions such as x % 3.
+      const divisor = literalNumber(right);
+      const knownNonzero = optimizeInteger && Number.isInteger(divisor) &&
+        divisor >= -32768 && divisor <= 32767 && divisor !== 0;
+      code.push(...(knownNonzero ? [] : errorSite(right)), '    call Div16');
       if (op === '%') code.push('    ld a, [wRemainder]', '    ld l, a', '    ld a, [wRemainder + 1]', '    ld h, a');
     }
     const bitop = { '&': 'and', '|': 'or', '^': 'xor' }[op];
@@ -281,13 +358,33 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
   function indexAddress(node, context) {
     const symbol = arraySymbol(node.array, context);
     numeric(node.index, context);
+    const baseCode = expression(node.array, context);
     const value = literalNumber(node.index);
     if (symbol.length !== undefined && value !== null && (value < -symbol.length || value >= symbol.length)) fail(node, `Array index out of range for length ${symbol.length}`);
-    return elementAddress(symbol, expression(node.index, context), expression(node.array, context), node);
+    // Owned arrays have a fixed address and length. A checked literal index
+    // needs neither a runtime bounds check nor a diagnostic location string.
+    if (!symbol.arrayReference && symbol.length !== undefined && Number.isInteger(value)) {
+      const index = value < 0 ? value + symbol.length : value;
+      return [`    ld hl, ${symbol.label} + ${index * (symbol.stride || 2)}`];
+    }
+    if (!symbol.arrayReference && symbol.length === 2 && record.isArray(symbol.type)) {
+      // A pair needs only a checked choice of two fixed addresses. Avoid the
+      // general word-index calculation followed by record-stride scaling.
+      // Evaluate the index once and retain Python's -2/-1 normalization.
+      const positive = label('pair_index_positive'), done = label('pair_index_done');
+      return [...expression(node.index, context), ...errorSite(node),
+        '    bit 7, h', `    jr z, ${positive}`, '    ld de, 2', '    add hl, de',
+        `${positive}:`, '    ld a, h', '    and a', '    jp nz, ArrayIndexError',
+        '    ld a, l', '    cp 2', '    jp nc, ArrayIndexError', '    and a',
+        `    ld hl, ${symbol.label}`, `    jr z, ${done}`,
+        `    ld hl, ${symbol.label} + ${symbol.stride}`, `${done}:`];
+    }
+    return elementAddress(symbol, expression(node.index, context), baseCode, node);
   }
   function errorSite(node) {
     sourceDiagnostics = true;
-    const location = `${path.basename(node.filename || '<source>')}:${node.line}`;
+    const rawLocation = `${path.basename(node.filename || '<source>')}:${node.line}`;
+    const location = font.foldDiagnostics ? rawLocation.toUpperCase() : rawLocation;
     const safe = [...location].map(char => font.ids.has(char) ? char : '?').join('');
     const pointer = stringLabel(safe, node);
     return ['    push hl', `    ld hl, ${pointer}`, '    ld a, l', '    ld [wErrorContext], a', '    ld a, h', '    ld [wErrorContext + 1], a', '    pop hl'];
@@ -415,6 +512,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
         const fractional = leftType === 'fixed' || rightType === 'fixed';
         if (fractional && ['&', '|', '^'].includes(node.op)) fail(node, 'Bitwise operations require integers; use int(value) first');
         if (!fractional && node.op === '/') fail(node, 'Use fixed(value) for fractional division, or // for integer division');
+        if(!fractional){const optimized=constantInteger(node.op,literalNumber(node.right));if(optimized)return [...expression(node.left,context),...optimized];}
         const emit = fractional ? asFixed : expression;
         code.push(...emit(node.left, context), '    push hl', ...emit(node.right, context), '    pop de');
         if (fractional && ['*', '/'].includes(node.op)) {
@@ -424,7 +522,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
             code.push(...errorSite(node));
           }
           code.push(`    call ${node.op === '*' ? 'FixedMul' : 'FixedDiv'}`);
-        } else code.push(...binaryOperation(node.op, node.right));
+        } else code.push(...binaryOperation(node.op, node.right, !fractional));
         return code;
       }
       case 'compare': {
@@ -468,7 +566,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
         const pooled = pool.emit(node, context, { expression, numeric, typeOf, store, load });
         if (pooled) return pooled;
         if (['record', 'records'].includes(node.name)) fail(node, 'Record constructors are supported in initialization assignments; pass a named record or array element to a helper');
-        if (!['tile', 'music_track', 'worldmap'].includes(node.name) && node.args.some(arg => arg.type === 'keyword')) fail(node, `${node.name} does not accept named arguments here`);
+        if (!['tile', 'music_track', 'worldmap', 'background_clip'].includes(node.name) && node.args.some(arg => arg.type === 'keyword')) fail(node, `${node.name} does not accept named arguments here`);
         if (node.name === 'len') {
           if (node.args.length !== 1) fail(node, 'len expects one named array');
           if (pool.isPool(typeOf(node.args[0], scope))) {
@@ -486,6 +584,8 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
         if (saveCall) return saveCall;
         const musicCall = musicCodegen.emitMusic(node, context, { fail, expression, numeric, literalNumber, typeOf, frameClock: graphics.frameClock }, music);
         if (musicCall) return musicCall;
+        const apuCall = apuCodegen.emit(node, context, { fail, typeOf }, apu);
+        if (apuCall) return apuCall;
         const soundCall = soundCodegen.emitSound(node, context, { fail, expression, numeric, literalNumber, typeOf, label, frameClock: graphics.frameClock }, sound);
         if (soundCall) return soundCall;
         const graphicsCall = graphicsCodegen.emitGraphics(node, context, { fail, expression, numeric, literalNumber, label, arraySymbol, arrayLength, arrayBank }, graphics);
@@ -526,11 +626,17 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
           code.push('    call PollButtons', '    ld h, 0', '    ld a, [wButtonsHeld]', '    ld l, a');
           return code;
         }
-        if (['button', 'button_pressed'].includes(node.name)) {
+        if (['next_input_frame', 'clear_input_frames', 'input_frames_lost'].includes(node.name)) {
+          if (node.args.length) fail(node, `${node.name} expects no arguments`);
+          if (node.name === 'next_input_frame') return ['    call NextInputFrame'];
+          if (node.name === 'clear_input_frames') return ['    call ClearInputFrames', '    ld hl, 0'];
+          return ['    ld a, [wInputFramesLost]', '    ld l, a', '    ld h, 0'];
+        }
+        if (['button', 'button_pressed', 'input_button'].includes(node.name)) {
           const arg = node.args[0];
           if (node.args.length !== 1 || arg.type !== 'string' || !buttons[arg.value.toLowerCase()]) fail(node, `${node.name} expects a literal button name: right, left, up, down, a, b, select, start`);
           const done = label('button');
-          return [`    ld a, [${node.name === 'button' ? 'wButtonsHeld' : 'wButtonsPressed'}]`, `    and ${buttons[arg.value.toLowerCase()]}`, '    ld hl, 0', `    jp z, ${done}`, '    inc hl', `${done}:`];
+          return [`    ld a, [${node.name === 'input_button' ? 'wInputFrameHeld' : node.name === 'button' ? 'wButtonsHeld' : 'wButtonsPressed'}]`, `    and ${buttons[arg.value.toLowerCase()]}`, '    ld hl, 0', `    jp z, ${done}`, '    inc hl', `${done}:`];
         }
         const fn = functions.get(node.name);
         if (!fn) fail(node, `Unknown function "${node.name}"`);
@@ -586,6 +692,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
       } else if (node.type === 'assign') {
         const symbol = context.scope.symbols.get(node.name);
         if (symbol.type === 'music' && !(node.expression.type === 'call' && ['music_track', 'music_file'].includes(node.expression.name))) fail(node, 'music_track bindings cannot be copied or reassigned');
+        if (symbol.type === 'audio' && !(node.expression.type === 'call' && node.expression.name === 'audio_file')) fail(node, 'audio_file bindings cannot be copied or reassigned');
         if (symbol.type === 'sound' && !(node.expression.type === 'call' && node.expression.name === 'sound_effect')) fail(node, 'sound_effect bindings cannot be copied or reassigned');
         if (symbol.type === 'animation' && !(node.expression.type === 'call' && node.expression.name === 'sprite_animation')) fail(node, 'sprite_animation bindings cannot be copied or reassigned');
         if (typeOf(node.expression, context.scope) === 'void') fail(node, 'Cannot assign the result of a procedure');
@@ -662,7 +769,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
         for (const branch of node.branches) {
           const next = label('if_next');
           if (typeOf(branch.condition, context.scope) === 'void') fail(branch.condition, 'A procedure cannot be used as a condition');
-          code.push(...expression(branch.condition, context), ...truth(typeOf(branch.condition, context.scope), branch.condition, context.scope), `    jp z, ${next}`);
+          code.push(...jumpCondition(branch.condition,next,false,context));
           const branchContext = { ...context, nested: true, assigned: new Set(context.assigned) };
           code.push(...statements(branch.body, branchContext), `    jp ${done}`, `${next}:`);
           assignedPaths.push(branchContext.assigned);
@@ -675,7 +782,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
         const next = label('while_next');
         const end = label('while_end');
         if (typeOf(node.condition, context.scope) === 'void') fail(node, 'A procedure cannot be used as a condition');
-        code.push(`${next}:`, ...expression(node.condition, context), ...truth(typeOf(node.condition, context.scope), node.condition, context.scope), `    jp z, ${end}`,
+        code.push(`${next}:`, ...jumpCondition(node.condition,end,false,context),
           ...statements(node.body, { ...context, nested: true, assigned: new Set(context.assigned), loop: { next, end } }), `    jp ${next}`, `${end}:`);
       } else if (node.type === 'for') {
         if (node.iterable) {
@@ -731,7 +838,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
   for (const fn of functions.values()) emittedFunctions.push({ name: fn.name, label: fn.label, filename: fn.node.filename || '<source>', line: fn.node.line,
     code: [`${fn.label}:`, ...statements(fn.node.body,
       { scope: fn, assigned: new Set(fn.node.params), nested: false, loop: null }), '    ld hl, 0', '    ret'] });
-  const mainCode = statements(ast, { scope: main, assigned: new Set(), nested: false, loop: null });
+  let mainCode = statements(ast, { scope: main, assigned: new Set(), nested: false, loop: null });
   const visiting = new Set();
   const visited = new Set();
   function resolve(fn) {
@@ -749,13 +856,25 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
   for (const fn of functions.values()) resolve(fn);
   for (const call of mainCalls) for (const name of call.fn.required) if (!call.assigned.has(name)) fail(call.node, `Function "${call.fn.name}" reads global "${name}" before assignment`);
 
+  if (graphics.assets.some(asset=>asset.kind==='screen') && (graphics.window || graphics.scrolling || graphics.streaming)) throw new Error('Screen images currently require a fixed background without window or world-camera routines');
+  if (graphics.masked && (graphics.window || graphics.scrolling || graphics.streaming)) throw new Error('Masked composition requires a fixed background without window or world-camera routines');
   if (graphics.clips?.enabled && (graphics.window || graphics.scrolling)) throw new Error('Background clips currently require a fixed background without window or world-camera routines');
+  // Large masked games can spend most of ROM0 merely initializing their
+  // asset handles and module arrays. Use the same bank/restore machinery as
+  // ordinary functions; a raw ROMX main would break after an asset read.
+  if (graphics.masked && mainCode.reduce((size, line) => size + instructionBytes(line), 0) > 2048) {
+    const entry = label('banked_main');
+    emittedFunctions.push({ name: '$main', label: entry, filename: ast[0]?.filename || '<source>', line: ast[0]?.line || 1,
+      code: [`${entry}:`, ...mainCode, '    ld hl, 0', '    ret'] });
+    mainCode = [`    ld bc, BANK(${entry})`, `    ld hl, ${entry}`, '    call CallBankedFunction'];
+  }
   const codeBanking = bankFunctions(emittedFunctions);
+  if(graphics.paletteLiterals.length) graphics.worldObjects.push({label:'PaletteLiterals',kind:'palette-literals',bytes:graphics.paletteLiterals.length*8,body:'PaletteLiterals:\n'+graphics.paletteLiterals.map(p=>`${p.label}:\n    db ${p.bytes.join(', ')}`).join('\n')});
   headerBytes = finalizeBanks(codeBanking.objects);
-  const zeroError = stringLabel('Division by zero', { line: 0 });
-  const indexError = stringLabel('Index out of range', { line: 0 });
-  const poolError = pool.enabled ? stringLabel('Invalid pool handle', { line: 0 }) : null;
-  const runtime = ['banking.asm', 'text.asm', 'frame-clock.asm', 'language.asm', 'graphics.asm', 'sprites.asm', 'arrays.asm', 'collision.asm', 'scrolling.asm', 'window.asm', ...(graphics.fixed ? ['fixed.asm'] : []), ...(graphics.random ? ['random.asm'] : []), ...(graphics.streaming ? ['streaming.asm', 'streaming-async.asm'] : [])].map(file => fs.readFileSync(path.join(root, 'include', file), 'utf8')).join('\n');
+  const zeroError = stringLabel(font.foldDiagnostics ? 'DIVISION BY ZERO' : 'Division by zero', { line: 0 });
+  const indexError = stringLabel(font.foldDiagnostics ? 'INDEX OUT OF RANGE' : 'Index out of range', { line: 0 });
+  const poolError = pool.enabled ? stringLabel(font.foldDiagnostics ? 'INVALID POOL HANDLE' : 'Invalid pool handle', { line: 0 }) : null;
+  const runtime = ['banking.asm', 'text.asm', 'frame-clock.asm', 'language.asm', 'graphics.asm', ...(graphics.masked ? ['masked-graphics.asm'] : []), ...(apu.enabled ? ['apu-streams.asm'] : []), ...(graphics.assets.some(a=>a.kind==='scroll') ? ['scroll-images.asm'] : []), ...(graphics.assets.some(asset=>['scroll','screen','scene'].includes(asset.kind)) ? ['screen-images.asm'] : []), ...(graphics.assets.some(asset=>asset.kind==='scene') ? ['scene-maps.asm'] : []), 'sprites.asm', 'actors.asm', 'arrays.asm', 'collision.asm', 'scrolling.asm', 'window.asm', ...(graphics.fixed ? ['fixed.asm'] : []), ...(graphics.random ? ['random.asm'] : []), ...(graphics.streaming ? ['streaming.asm', 'streaming-async.asm'] : [])].map(file => fs.readFileSync(path.join(root, 'include', file), 'utf8')).join('\n');
   const musicRuntime = (music.enabled ? fs.readFileSync(path.join(root, 'include', 'music.asm'), 'utf8') : '') + (music.waveEnabled ? '\n' + require('./wave-music').runtime(root) : '');
   const soundRuntime = sound.enabled ? fs.readFileSync(path.join(root, 'include', 'sound.asm'), 'utf8') : '';
   const saveRuntime = save.enabled ? fs.readFileSync(path.join(root, 'include', 'save.asm'), 'utf8') : '';
@@ -769,7 +888,7 @@ function generate(ast, header, headerBytes, graphics, save, finalizeBanks) {
     + '\n' + (graphics.terrainRectangles ? fs.readFileSync(path.join(root, 'include', 'terrain-rectangles.asm'), 'utf8') : '');
   graphics.sourceDiagnostics = sourceDiagnostics;
   const clipRuntime = fs.readFileSync(path.join(root, 'include', 'background-clips.asm'), 'utf8') + '\n' + fs.readFileSync(path.join(root, 'include', 'tile-grid.asm'), 'utf8') + '\n' + fs.readFileSync(path.join(root, 'include', 'tile-field.asm'), 'utf8');
-  const assembly = generateROM({ rectangleEnabled: rectangle.enabled, rectangleRuntime, choicesEnabled: dialogue.choicesEnabled, choicesRuntime, choiceTables: dialogue.choiceTables || [], dialogueEnabled: dialogue.enabled, dialogueRuntime, poolEnabled: pool.enabled, poolRuntime, poolData: pool.data(), poolError, music, musicRuntime, animation, animationRuntime, save, saveRuntime, sound, soundRuntime, header, headerBytes, mainCode, codeBanking, runtime: runtime + '\n' + clipRuntime, strings, graphics, symbols, zeroError, indexError, arrayLiterals });
+  const assembly = generateROM({ apuEnabled: apu.enabled, rectangleEnabled: rectangle.enabled, rectangleRuntime, choicesEnabled: dialogue.choicesEnabled, choicesRuntime, choiceTables: dialogue.choiceTables || [], dialogueEnabled: dialogue.enabled, dialogueRuntime, poolEnabled: pool.enabled, poolRuntime, poolData: pool.data(), poolError, music, musicRuntime, animation, animationRuntime, save, saveRuntime, sound, soundRuntime, header, headerBytes, mainCode, codeBanking, runtime: runtime + '\n' + clipRuntime, strings, graphics, symbols, zeroError, indexError, arrayLiterals });
   return { assembly, sourceLocations, musicEnabled: music.enabled, music: [...music.used.values()].map(({ label, ...track }) => track), animationEnabled: animation.enabled, animations: [...animation.used.values()].map(({ label, ...definition }) => ({ ...definition })), soundEnabled: sound.enabled, sounds: [...sound.used.values()].map(({ bytes, label, ...effect }) => ({ ...effect, bytes: [...bytes] })), symbols: symbols.filter(symbol => symbol.name).map(symbol => ({ ...symbol })) };
 }
 

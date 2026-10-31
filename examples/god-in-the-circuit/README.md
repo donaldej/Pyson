@@ -12,7 +12,12 @@ returns.
 npm.cmd run build -- examples/god-in-the-circuit/main.pysn god-in-the-circuit
 ```
 
-Open `binary/god-in-the-circuit.gb` in your preferred Game Boy emulator.
+Open `binary/god-in-the-circuit.gb` in your emulator. With the optional local
+PyBoy environment, you can also use:
+
+```powershell
+npm.cmd run play -- examples/god-in-the-circuit/main.pysn god-in-the-circuit
+```
 
 **A** advances to the next movement. **Start** pauses/resumes. In PyBoy those
 are keyboard A and Enter. The show loops. Both models have the same timeline;

@@ -1,0 +1,33 @@
+# No scene captions: the lettering belongs to the dossier and terminal itself.
+file = background_clip("../assets/act-0.bmp", 160, 144)
+camera = background_clip("../assets/act-1.bmp", 160, 144, palette=file)
+biometric = background_clip("../assets/act-2.bmp", 160, 144, palette=file)
+shredder = background_clip("../assets/act-3.bmp", 160, 144, palette=file)
+seal = background_clip("../assets/act-4.bmp", 160, 144, palette=file)
+letters = sprite_sheet("../assets/letters.bmp", 8, 8)
+numbers = sprite_sheet("../assets/numbers.bmp", 24, 32)
+marks = sprite_sheet("../assets/marks.bmp", 8, 8)
+
+def draw(scene, frame):
+    if scene == 0:
+        draw_background(file, frame)
+    elif scene == 1:
+        draw_background(camera, frame)
+    elif scene == 2:
+        draw_background(biometric, frame)
+    elif scene == 3:
+        draw_background(shredder, frame)
+    else:
+        draw_background(seal, frame)
+
+def colors(scene):
+    if scene == 0:
+        bg_palette(1, "#c6c3a5", "#77766a", "#282e2c", "#090d0e")
+    elif scene == 1:
+        bg_palette(1, "#b7c5b5", "#687c74", "#202d2b", "#050a0c")
+    elif scene == 2:
+        bg_palette(1, "#e0b6a0", "#9c514d", "#34262b", "#0b080d")
+    elif scene == 3:
+        bg_palette(1, "#bebbae", "#78706d", "#2e292c", "#09090d")
+    else:
+        bg_palette(1, "#c8c3a2", "#83745a", "#2e2927", "#080b0e")
