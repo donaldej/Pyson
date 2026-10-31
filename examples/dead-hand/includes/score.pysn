@@ -1,0 +1,45 @@
+# Original two-voice sequencer score. Effects occupy the other audio channels.
+lead0 = music_file("../assets/score-0.json")
+bass0 = music_file("../assets/score-0.json", part=1)
+lead1 = music_file("../assets/score-1.json")
+bass1 = music_file("../assets/score-1.json", part=1)
+lead2 = music_file("../assets/score-2.json")
+bass2 = music_file("../assets/score-2.json", part=1)
+lead3 = music_file("../assets/score-3.json")
+bass3 = music_file("../assets/score-3.json", part=1)
+kick = sound_effect("pulse", [[110,1,12],[65,3,9]], duty=1)
+snare = sound_effect("noise", [[35,2,10],[67,2,5]])
+hat = sound_effect("noise", [[8,1,4]])
+alarm = sound_effect("pulse", [[880,4,9],[660,4,8],[880,4,9]], priority=5)
+last_beat = -1
+
+def begin(scene):
+    global last_beat
+    last_beat = -1
+    set_sound_volume(6, 6)
+    if scene == 0:
+        play_music(lead0, restart=True)
+        play_music(bass0, restart=True)
+    elif scene == 1:
+        play_music(lead1, restart=True)
+        play_music(bass1, restart=True)
+    elif scene == 2:
+        play_music(lead2, restart=True)
+        play_music(bass2, restart=True)
+    else:
+        play_music(lead3, restart=True)
+        play_music(bass3, restart=True)
+
+def update(scene, tick):
+    global last_beat
+    beat = tick // 8
+    if beat != last_beat:
+        last_beat = beat
+        if scene == 1 and tick % 240 < 8:
+            play_sound(alarm)
+        elif beat % 8 == 0 or beat % 8 == 3:
+            play_sound(kick)
+        elif beat % 8 == 4:
+            play_sound(snare)
+        elif beat % 2 == 0:
+            play_sound(hat)

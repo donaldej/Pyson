@@ -949,3 +949,26 @@ tile list. RAM/ROM arrays and helper parameters work. Native composition avoids
 per-cell Pyson loops; no new dependencies. See documentation/tile-fields.md and
 test:phase-heart. Existing demos are unchanged. Physical hardware untested for
 this new example; user reports about prior demos must not be extended to it.
+
+
+Validated runtime/tooling additions
+
+The public references now cover streamed actors (documentation/actors.md),
+exclusive pictures and scrolling pictures (documentation/screen-images.md),
+four-shade masked composition (documentation/masked-graphics.md), scene maps
+(documentation/scene-maps.md), indexed CGB colors (documentation/indexed-colors.md),
+and imported register-stream audio (documentation/imported-audio.md).
+AI_REFERENCE.md contains their API signatures, resource limits and caveats.
+Masked rendering uses volatile MBC5 cartridge RAM; save/battery builds are rejected.
+Its optional CGB color path falls back to monochrome on DMG and has finite OBJ
+budgets. Large programs can spill source state into an extra 1 KiB of WRAM;
+reports account for that allocation and the source stack separately.
+
+Near-identical compatible screen pictures share a tile pool and update the
+hidden map without an LCD-off reload. Double-speed CGB raster timing avoids
+HBlank DMA contention; banked color attribute copies retain a private interrupt
+stack so input/audio/raster interrupts can continue safely.
+Ordered input frames and integer constant validation have regression coverage.
+The optional npm play command builds and launches the configured emulator;
+it adds no mandatory compilation dependency. Original demos and recording
+helpers remain separate from language/runtime tests.

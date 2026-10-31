@@ -1,0 +1,37 @@
+# Iron Eclipse's projected holograms share a contour dictionary and palette.
+# Projection is authored into the clips; the countdown is a live sprite layer.
+helmet = background_clip("../assets/act-0.bmp", 160, 144)
+array = background_clip("../assets/act-1.bmp", 160, 144, palette=helmet)
+globe = background_clip("../assets/act-2.bmp", 160, 144, palette=helmet)
+helix = background_clip("../assets/act-3.bmp", 160, 144, palette=helmet)
+interceptor = background_clip("../assets/act-4.bmp", 160, 144, palette=helmet)
+eclipse = background_clip("../assets/act-5.bmp", 160, 144, palette=helmet)
+intelligence = background_clip("../assets/act-6.bmp", 160, 144, palette=helmet)
+letters = sprite_sheet("../assets/letters.bmp", 8, 8)
+numbers = sprite_sheet("../assets/numbers.bmp", 24, 32)
+marks = sprite_sheet("../assets/marks.bmp", 8, 8)
+
+def draw(scene, frame):
+    if scene == 0:
+        draw_background(helmet, frame)
+    elif scene == 1:
+        draw_background(array, frame)
+    elif scene == 2:
+        draw_background(globe, frame)
+    elif scene == 3:
+        draw_background(helix, frame)
+    elif scene == 4:
+        draw_background(interceptor, frame)
+    elif scene == 5:
+        draw_background(eclipse, frame)
+    else:
+        draw_background(intelligence, frame)
+
+def colors(scene):
+    # Imported background colors are ordered from brightest to darkest.
+    if scene < 3:
+        bg_palette(1, "#d4f5ed", "#5098a5", "#163746", "#040b15")
+    elif scene < 5:
+        bg_palette(1, "#ffeac3", "#bc894f", "#493442", "#100d1c")
+    else:
+        bg_palette(1, "#ffe0c8", "#cb6265", "#50263d", "#140b18")

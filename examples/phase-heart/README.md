@@ -8,7 +8,11 @@ and a large Pyson signature. New pulse/wave music plays with native percussion.
 npm.cmd run build -- examples/phase-heart/main.pysn phase-heart
 ```
 
-Open `binary/phase-heart.gb` in your preferred Game Boy emulator.
+Open `binary/phase-heart.gb` in your emulator. With optional PyBoy installed:
+
+```powershell
+npm.cmd run play -- examples/phase-heart/main.pysn phase-heart
+```
 
 - **A:** advance to the next movement.
 - **B:** perturb the live phase immediately.

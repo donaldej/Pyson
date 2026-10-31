@@ -1,0 +1,72 @@
+# Iron Eclipse: four new electronic movements, a custom harmonic wave bass,
+# and evolving dance/military percussion at approximately 150 BPM.
+lead0 = music_file("../assets/score-0.json")
+bass0 = music_file("../assets/score-0.json", part=1)
+lead1 = music_file("../assets/score-1.json")
+bass1 = music_file("../assets/score-1.json", part=1)
+lead2 = music_file("../assets/score-2.json")
+bass2 = music_file("../assets/score-2.json", part=1)
+lead3 = music_file("../assets/score-3.json")
+bass3 = music_file("../assets/score-3.json", part=1)
+kick = sound_effect("pulse", [[147,1,12],[73,2,10],[65,2,5]], duty=1)
+snare = sound_effect("noise", [[35,2,11],[53,2,6],[78,2,3]])
+hat = sound_effect("noise", [[4,1,4]])
+last_beat = -1
+current = -1
+origin = 0
+paused_at = 0
+
+def begin(scene):
+    global last_beat, current, origin
+    movement = 0
+    if scene > 0 and scene < 3:
+        movement = 1
+    elif scene >= 3 and scene < 5:
+        movement = 2
+    elif scene >= 5:
+        movement = 3
+    if movement == current:
+        return
+    current = movement
+    last_beat = -1
+    set_sound_volume(6, 6)
+    if scene == 0:
+        play_music(lead0, restart=True)
+        play_music(bass0, restart=True)
+    elif scene < 3:
+        play_music(lead1, restart=True)
+        play_music(bass1, restart=True)
+    elif scene < 5:
+        play_music(lead2, restart=True)
+        play_music(bass2, restart=True)
+    else:
+        play_music(lead3, restart=True)
+        play_music(bass3, restart=True)
+    origin = frame_count()
+
+def pause():
+    global paused_at
+    paused_at = frame_count()
+    pause_music()
+
+def resume():
+    global origin
+    origin = (origin+elapsed_frames(paused_at)) & 32767
+    resume_music()
+
+def update():
+    global last_beat
+    # This clock preserves percussion phase across visual changes and pauses.
+    beat = elapsed_frames(origin) // 6
+    if beat != last_beat:
+        last_beat = beat
+        # Kick and snare use different channels, so both can hit together.
+        # There are no warning beeps at transitions or during DEFCON 1.
+        step = beat % 16
+        bar = beat // 16 % 8
+        if step % 4 == 0 or (bar == 7 and (step == 13 or step == 15)):
+            play_sound(kick)
+        if step == 4 or step == 12:
+            play_sound(snare)
+        elif step % 2 == 1 or (bar % 2 == 1 and step == 2):
+            play_sound(hat)

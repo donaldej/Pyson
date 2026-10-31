@@ -9,7 +9,10 @@ Pyson was developed through active collaboration between the project owner and
 OpenAI's ChatGPT and Codex coding agents. AI generated nearly all project-specific
 implementation, alongside tests, documentation, and example content. The project
 owner established the vision and requirements, challenged design and
-implementation decisions, guided revisions, and tested example ROMs in emulators.
+implementation decisions, and guided revisions. All examples available at the
+time of the project owner's hardware review were tested in emulation, on FPGA
+hardware, and on original Game Boy hardware using a flash cartridge. Subsequent
+examples document their own validation status in their READMEs.
 
 AI-generated code and content are a substantial part of this repository. This
 disclosure does not imply that every line received human code review or that
@@ -65,6 +68,12 @@ npm.cmd run test:emulator
 is absent. `test:emulator` requires that environment. See the
 [Windows setup guide](documentation/development.md) for prerequisites, offline
 RGBDS installation, troubleshooting, and all commands.
+
+To build and immediately play in an emulator window, see [build and play](documentation/development.md#build-and-play-immediately). After the optional emulator setup, run:
+
+```powershell
+npm.cmd run play -- examples/hello-world/main.pysn hello-world
+```
 
 ## Getting started
 
@@ -165,6 +174,34 @@ armored mask with animated crimson eyes. It supports Game Boy and Color.
 [Star Squadron](examples/star-squadron/README.md) is a single-screen automatic
 space battle using all 40 sprite components: a player, four enemies, twelve
 bullets, and eight sparks, with a fixed HUD over a scrolling starfield.
+
+[Dead Hand](examples/dead-hand/README.md) is an original military sci-fi music
+demo: orbital radar, a DEFCON 5-to-1 countdown, tactical trajectories, and an
+autonomous command core. It runs on Game Boy and Color with no extra build tools.
+
+[Black Channel](examples/black-channel/README.md) takes the military sci-fi theme
+into abstract intercepted transmissions: waveform ribbons, a rotating cipher
+seal, pressure interference, and a mechanical iris with an original soundtrack.
+
+[Shadow Terminal](examples/shadow-terminal/README.md) returns to a central DEFCON
+5-to-1 countdown, surrounded by animated bunker machinery and a new military
+score. Its presentation has no scene-name captions along the screen edges.
+
+[Shadow Terminal: Nightwatch](examples/shadow-nightwatch/README.md) is a separate
+companion with new command-system animation and an evolving, syncopated
+military sci-fi score, retaining the central DEFCON countdown.
+
+[Shadow Terminal: Iron Eclipse](examples/shadow-eclipse/README.md) expands the
+series into glowing military holograms, projected 3D shapes and a helmet-like
+command intelligence, with a new four-movement electronic soundtrack.
+
+[Black File](examples/black-file/README.md) is a darker classified-archive
+presentation: censored dossiers, surveillance, a biometric DEFCON alert,
+document destruction and a fictional agency seal, with original electronic music.
+
+[Shadow Terminal: Neon Rain](examples/shadow-neon/README.md) brings neon-noir
+rain, a megacity, a synthetic-eye scan, a corporate DEFCON alert and an artificial
+identity finale together with an original atmospheric synth-style chiptune score.
 
 ```powershell
 npm.cmd run build -- examples/header-print.pysn header-print

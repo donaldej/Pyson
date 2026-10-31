@@ -2,6 +2,7 @@
 const font = require('./font');
 function emitFormat(node, context, { fail, numeric, expression, label }, graphics) {
   if (node.name !== 'format_text') return null;
+  const font = graphics.font || require('./font');
   if (node.args.length < 1 || node.args.length > 5 || node.args[0].type !== 'string') fail(node, 'format_text expects a literal template and up to four integers');
   graphics.format = true;
   const bytes = [], template = node.args[0].value;

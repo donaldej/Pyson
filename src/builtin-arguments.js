@@ -11,7 +11,11 @@ const signatures = {
   sprite: ['slot', 'sheet', 'frame', 'x', 'y', ['flip_x', false], ['flip_y', false]],
   world_sprite: ['slot', 'sheet', 'frame', 'x', 'y', ['flip_x', false], ['flip_y', false]],
   hide_sprite: ['slot'], draw_map: ['map', 'x', 'y'], draw_world: ['map'],
-  background_clip: ['path', 'width', 'height'], draw_background: ['clip', 'frame', ['x', 0], ['y', 0]],
+  masked_sheet: ['path','width','height'], draw_masked: ['slot','sheet','frame','x','y',['flip_x',false],['clip_top',0]], hide_masked: ['slot'], masked_palette: ['slot',['index',-1],['fill_tiles',false]], is_cgb: [],
+  scroll_image: ['path',['palettes',1]], show_scroll: ['image',['y',0]],
+  screen_image: ['path',['palettes',1]], show_image: ['image'],
+  scene_map: ['path', ['hud_rows', 2],['palettes',1]], draw_scene: ['scene', ['camera_x', 0]],
+  background_clip: ['path', 'width', 'height', ['palette', null]], draw_background: ['clip', 'frame', ['x', 0], ['y', 0]],
   draw_tile_grid: ['cells', 'columns', ['x', 0], ['y', 0]],
   draw_tile_field: ['columns', 'rows', 'tiles', ['x', 0], ['y', 0]],
   set_camera: ['x', 'y'], window_position: ['x', 'y'],
@@ -19,6 +23,7 @@ const signatures = {
   rect_is_solid: ['map', 'x', 'y', 'width', 'height'],
   tile_terrain: ['map', 'x', 'y'], tile_is_solid: ['map', 'x', 'y'], tile_at: ['map', 'x', 'y'],
   map_width: ['map'], map_height: ['map'],
+  actor_sheet: ['path', 'width', 'height'], draw_actor: ['actor', 'frame', 'x', 'y', ['flip_x', false], ['flip_y', false]], hide_actor: ['actor'],
   sprite_sheet: ['path', ['width', 8], ['height', 8]],
   tile: ['path', ['solid', false], ['terrain', 0], ['x', 0], ['y', 0]],
   tilemap: ['source'], mutable_map: ['rows'], collision_map: ['rows'],
@@ -36,11 +41,12 @@ const signatures = {
   random_seed: ['seed'], randint: ['low', 'high'], randrange: [['start', 0], 'stop'],
   rect_overlap: ['ax', 'ay', 'aw', 'ah', 'bx', 'by', 'bw', 'bh'],
   elapsed_frames: ['previous'], wait_frames: ['count'],
-  button: ['name'], button_pressed: ['name'], len: ['array'],
+    button: ['name'], button_pressed: ['name'], input_button: ['name'], len: ['array'],
   dialogue_speaker: ['name'], dialogue_portrait: ['sheet', ['frame', 0], ['palette', 0]],
   start_dialogue: ['text', ['speed', 2], ['palette', 0]],
   start_choices: ['labels', ['palette', 0], ['selected_palette', 0], ['default', 0], ['cancel', true]],
   music_track: ['notes', ['loop', true], ['duty', 2], ['voice', 0], ['instrument', 'triangle']],
+  audio_file: ['path'], play_audio: ['audio', ['slot', 0], ['priority', 3]], stop_audio: [['slot', 0]],
   music_file: ['path', ['part', 0]], play_music: ['track', ['restart', false]],
   sound_effect: ['channel', 'steps', ['priority', 3], ['duty', 2]],
   // Priority defaults to the selected effect, so it is never synthesized here.
@@ -49,7 +55,8 @@ const signatures = {
   reset_pool: ['pool'], pool_count: ['pool'], despawn: ['handle'], pool_index: ['handle']
 };
 for (const name of ['refresh_screen', 'show_window', 'hide_window', 'camera_x', 'camera_y',
-  'save_clear', 'save_capacity', 'frame_count', 'wait_vblank', 'read_buttons',
+    'save_clear', 'save_capacity', 'frame_count', 'wait_vblank', 'read_buttons',
+    'next_input_frame', 'clear_input_frames', 'input_frames_lost',
   'stop_music', 'pause_music', 'resume_music', 'music_playing', 'stop_sound', 'sound_playing',
   'update_dialogue', 'close_dialogue', 'dialogue_active', 'dialogue_waiting', 'dialogue_finished',
   'choices_active', 'choices_finished', 'choices_cancelled', 'choices_result', 'choices_selected']) signatures[name] = [];
@@ -80,6 +87,10 @@ function normalize(node, fail) {
   });
   // These collectors consume named compile-time options. Keep absent options absent
   // (e.g. pulse music must not acquire a wave instrument, nor noise a pulse duty).
+  if (node.name === 'background_clip') {
+    node.args = [...args.slice(0, 3), ...(args[3] ? [{ type: 'keyword', name: 'palette', expression: args[3], line: args[3].line }] : [])];
+    return;
+  }
   if (['tile', 'worldmap', 'music_track'].includes(node.name)) {
     node.args = [args[0], ...args.slice(1).flatMap((arg, index) => arg ? [{ type: 'keyword', name: names[index + 1], expression: arg, line: arg.line }] : [])];
     return;

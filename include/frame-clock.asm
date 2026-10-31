@@ -1,7 +1,11 @@
 IF FRAME_CLOCK_ENABLED
-; No bank changes or compiler scratch writes in the interrupt handler.
+; Optional audio preserves the actual mapped ROM bank; compiler scratch is untouched.
 FrameClockInterrupt:
     push af
+IF SCENE_ENABLED
+    xor a
+    ldh [$FF43], a
+ENDC
     ld a, [wFrameCount]
     inc a
     ld [wFrameCount], a
@@ -11,6 +15,35 @@ FrameClockInterrupt:
     and $7F
     ld [wFrameCount + 1], a
 .done:
+IF APU_STREAM_ENABLED
+    ; Streams keep hardware-frame rhythm even during slow game calculations.
+    ; Preserve the actual mapping, which may be a graphics/data bank rather
+    ; than the compiled caller's execution bank.
+    push bc
+    push de
+    push hl
+    ld a, [wSelectedROMBank]
+    ld c, a
+    ld a, [wSelectedROMBank + 1]
+    ld b, a
+    push bc
+    call APUTick
+    pop bc
+    call SelectROMBank
+    pop hl
+    pop de
+    pop bc
+ENDC
+IF BUFFERED_BUTTONS_ENABLED
+    push bc
+    push hl
+    call SampleBufferedButtons
+IF INPUT_FRAMES_ENABLED
+    call QueueInputFrame
+ENDC
+    pop hl
+    pop bc
+ENDC
     pop af
     reti
 InitFrameClock:

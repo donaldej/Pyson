@@ -2,7 +2,7 @@
 
 The automated setup supports **64-bit Windows**. Install 64-bit Node.js 18 or
 newer with npm, and Git if you will clone the repository. Python is optional
-unless you want to run emulator tests. The setup does not install system-wide
+unless you want to use build-and-play, emulator tests, or profiling. The setup does not install system-wide
 software, require administrator rights, or change PATH.
 
 You do not need Docker, Python, an emulator, FFmpeg, an editor extension, or a
@@ -17,7 +17,7 @@ downloading the repository ZIP also works.
 | RGBDS assembler, linker, and header fixer | Yes, installed by `setup` | Turn generated assembly into a ROM |
 | `rgbgfx` | No; bundled with RGBDS | Separate graphics utility; Pyson already converts BMPs |
 | Game Boy emulator such as BGB | Only to play or interactively debug ROMs | Choose your preferred emulator |
-| Python and PyBoy | Only for automated emulator tests and profiling | Installed separately through the optional setup path |
+| Python and PyBoy | Only for build-and-play, automated emulator tests, and profiling | Installed separately through the optional setup path |
 | FFmpeg | Only for MP4 recording | Used by the optional recording scripts |
 
 ## Fresh clone
@@ -85,13 +85,47 @@ When RGBDS must be installed or repaired, setup also checks Windows PowerShell
 can extract ZIP archives before proceeding. Node/Jison failures are reported
 before downloads. The installer cannot run without Node.js; install Node first.
 
-Only `setup:emulator` checks Python and its packages. It reports each rejected
+`setup:emulator` checks Python and its packages before installing. It reports each rejected
 Python candidate's version and bitness, then looks for a supported installation.
 An explicit `PYSON_SETUP_PYTHON` choice is not silently replaced by another Python.
 A compatible existing project-local emulator environment is reused without
 running pip. Missing or wrong package versions are listed and repaired locally;
 an unsupported or unusable Python environment gets instructions to rename it
 and recreate it. Other Python installations are never replaced.
+
+## Build and play immediately
+
+To build a game and open it in a playable emulator window, first install
+64-bit Python 3.10-3.13 and run the optional setup once:
+
+```powershell
+npm.cmd run setup:emulator
+```
+
+Then run:
+
+```powershell
+npm.cmd run play -- examples/hello-world/main.pysn hello-world
+```
+
+Replace the source path with your own game's entry file. The output name is
+optional and defaults to `pyson`. The command builds the ROM, then opens it in
+PyBoy at three times the original screen size, with sound. If compilation fails,
+it stops without opening an older ROM. Close the emulator window to return to
+PowerShell; run the command again after editing your game.
+
+| Keyboard | Game Boy button |
+|---|---|
+| Arrow keys | Direction pad |
+| A | A |
+| S | B |
+| Enter | Start |
+| Backspace | Select |
+
+This uses the same optional PyBoy environment as emulator tests. PyBoy is
+downloaded by setup, not bundled in the repository. Normal `build` and `setup`
+commands still work without Python or an emulator. To use BGB or another emulator,
+build normally and open `binary/<output-name>.gb` in that emulator yourself.
 
 ## Emulator tests
 
@@ -144,6 +178,7 @@ test harness writes its own PNG screenshots and does not require Pillow.
 | `npm.cmd run test:emulator` | Require the emulator environment and execute all emulator tests |
 | `npm.cmd test` | Run everything, with emulator cases explicitly skipped when their environment is absent |
 | `npm.cmd run build -- source.pysn name` | Compile source and write `binary/name.gb` |
+| `npm.cmd run play -- source.pysn name` | Build and open an interactive PyBoy window (optional emulator setup required) |
 | `npm.cmd run build:asm -- source.asm name` | Assemble an existing RGBDS assembly file |
 
 `test:emulator` fails its environment check if the emulator is missing instead

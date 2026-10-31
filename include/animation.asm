@@ -261,6 +261,10 @@ DrawAnimatedSprite:
     ret c
     jp DrawSprite
 DrawWorldAnimatedSprite:
+IF SCROLLING_ENABLED
     call PrepareAnimatedSprite
     ret c
     jp DrawWorldSprite
+ELSE
+    ret
+ENDC

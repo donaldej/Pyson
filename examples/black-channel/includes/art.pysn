@@ -1,0 +1,28 @@
+# Each sheet contains 32 distinct contour frames. The compiler banks and
+# deduplicates the exact patterns; the ROM chooses the frame at runtime.
+carrier = background_clip("../assets/act-0.bmp", 160, 112)
+cipher = background_clip("../assets/act-1.bmp", 160, 112, palette=carrier)
+pressure = background_clip("../assets/act-2.bmp", 160, 112, palette=carrier)
+iris = background_clip("../assets/act-3.bmp", 160, 112, palette=carrier)
+marks = sprite_sheet("../assets/marks.bmp", 8, 8)
+
+def draw(scene, frame):
+    if scene == 0:
+        draw_background(carrier, frame, 0, 2)
+    elif scene == 1:
+        draw_background(cipher, frame, 0, 2)
+    elif scene == 2:
+        draw_background(pressure, frame, 0, 2)
+    else:
+        draw_background(iris, frame, 0, 2)
+
+def color(scene):
+    # Palette slot 1 belongs to every clip. Text uses independent slot 0.
+    if scene == 0:
+        bg_palette(1, "#c4ebe4", "#3e7e95", "#10273a", "#030912")
+    elif scene == 1:
+        bg_palette(1, "#ffe9ad", "#d17b32", "#493028", "#0b0d16")
+    elif scene == 2:
+        bg_palette(1, "#dee7ff", "#7b7fad", "#242b4b", "#080c18")
+    else:
+        bg_palette(1, "#ffe6c5", "#c45346", "#48232e", "#0b0c15")

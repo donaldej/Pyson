@@ -2,6 +2,12 @@
 ; This routine executes from ROM0 even when its caller is in switchable ROM.
 SelectROMBank:
     push af
+IF APU_STREAM_ENABLED || MASKED_FILL_ENABLED
+    ld a, c
+    ld [wSelectedROMBank], a
+    ld a, b
+    ld [wSelectedROMBank + 1], a
+ENDC
 IF CARTRIDGE_CONTROLLER == 1
     xor a
     ld [$6000], a ; MBC1 simple mode keeps ROM0 permanently mapped.

@@ -1,4 +1,5 @@
 ; Shared asset handles: background=2, bit-packed collision=3, nested map=4.
+IF MAP_QUERY_ENABLED
 QueryMapDescriptor:
     ld a, [wArg0 + 1]
     and a
@@ -260,3 +261,5 @@ ENDC
 .solid:
     ld hl, 1
     ret
+
+ENDC

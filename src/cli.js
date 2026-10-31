@@ -28,7 +28,8 @@ try {
       return [symbol, parseInt(address.split(':')[1], 16)];
     }));
   const variables = symbols.map(symbol => ({ ...symbol, bytes: symbol.bytes ?? 2, address: addresses.get(symbol.label) }));
-  const memory = { wramCapacityBytes: 4096, wramUsedBytes: addresses.get('wStateEnd') - 0xc000,
+  const spilledBytes = addresses.has('wSpillEnd') ? addresses.get('wSpillEnd') - addresses.get('wSpillStart') : 0;
+  const memory = { wramCapacityBytes: spilledBytes ? 5120 : 4096, wramUsedBytes: addresses.get('wStateEnd') - 0xc000 + spilledBytes,
     namedVariableBytes: variables.reduce((total, symbol) => total + symbol.bytes, 0), variables };
   fs.writeFileSync(path.join(root, 'build', `${name}.memory.json`), JSON.stringify(memory, null, 2));
   const report = makeReport(compiled, fs.readFileSync(path.join(root, 'build', `${name}.sym`), 'utf8'), fs.statSync(path.join(root, 'binary', `${name}.gb`)).size);
@@ -36,7 +37,7 @@ try {
   const readableReport = path.join(root, 'build', `${name}.report.txt`);
   fs.writeFileSync(readableReport, formatReport(report));
   console.log(`Report: ${path.join(root, 'build', `${name}.report.json`)} (${report.romBytes / 1024} KB ROM, ${report.wramFreeBytes} WRAM bytes free)`);
-  console.log(`WRAM: ${memory.wramUsedBytes}/4096 bytes (${memory.namedVariableBytes} bytes of named variables)`);
+  console.log(`WRAM: ${memory.wramUsedBytes}/${memory.wramCapacityBytes} bytes (${memory.namedVariableBytes} bytes of named variables)`);
   console.log(`Readable graphics and memory report: ${readableReport}`);
 } catch (error) {
   console.error(error.message);

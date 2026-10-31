@@ -96,10 +96,13 @@ The manifest marks functions with `kind: "function"` and records their qualified
 name, source file, line, exact byte count, address, and bank. RGBDS assertions
 verify each function's generated size during assembly.
 
-Main's top-level executable statements, runtime routines, text strings, integer
-array initialization data, palettes, sound/music sequences, and sprite animation
-definitions still occupy bank 0 and must fit its remaining space. Put large screen
-or gameplay routines in functions rather than expanding them in the main scaffold.
+Large programs using masked graphics automatically bank their top-level code
+when it exceeds 2 KiB. This includes module initialization. No source changes
+are needed; the bank manifest names that code `$main`. Like a function, this
+code must fit one 16 KiB bank. Keep substantial gameplay routines in functions.
+Smaller main programs, runtime routines, text strings, integer array
+initialization data, palettes, sound/music sequences, and sprite animation
+definitions still occupy bank 0 and must fit its remaining space.
 Increasing capacity cannot fix overflow in the remaining fixed-bank content;
 runtime and static-definition banking are future work.
 

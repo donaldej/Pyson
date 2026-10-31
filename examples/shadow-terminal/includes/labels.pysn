@@ -1,0 +1,6 @@
+# Foreground letters live in OAM, independently of the clip buffers.
+defcon = constant_table([11, 12, 13, 14, 15, 16])
+shadow = constant_table([17, 18, 19, 11, 15, 20])
+terminal = constant_table([21, 12, 22, 23, 24, 16, 19, 25])
+pyson = constant_table([27, 26, 17, 15, 16])
+colon = 10

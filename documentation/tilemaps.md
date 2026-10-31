@@ -56,8 +56,11 @@ water = tile("assets/tileset.bmp", x=0, y=1, terrain=2)
 
 Coordinates count **tiles, not pixels**, starting at the top-left corner. Thus
 `x=1` selects the tile eight pixels to the right. Omit one coordinate to use zero
-for that axis. The source dimensions must be multiples of eight and at most
-256x256 pixels, with at most 256 distinct patterns in the source image.
+for that axis. The source dimensions must be multiples of eight. A source atlas
+can be up to 2048x2048 pixels, including a background clip sheet; selecting
+one tile does not turn the whole sheet into a background map. Selection
+coordinates currently range from 0 to 31 and must lie inside the image.
+Full background maps still have the 32x32 tile limit.
 
 Selections from the same BMP share one background palette. Its four colors are
 chosen from the whole image, so each selected tile keeps consistent colors.

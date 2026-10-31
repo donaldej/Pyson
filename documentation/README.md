@@ -12,6 +12,7 @@ assembled in the test suite, and its API catalog is checked against the compiler
 ## Getting started
 
 - [Windows setup and commands](development.md)
+- [Imported audio streams for advanced asset tools](imported-audio.md)
 - [Reading memory and graphics build reports](build-reports.md)
 - [ROM header configuration](header.md)
 - [Text drawing](print.md)
@@ -38,6 +39,7 @@ assembled in the test suite, and its API catalog is checked against the compiler
 - [BMP formats and conversion](assets.md)
 - [Runtime tile fields and grids](tile-fields.md)
 - [Animated backgrounds and frame sheets](background-clips.md)
+- [Full-screen pictures between scenes](screen-images.md)
 - [Nested tile maps and terrain](tilemaps.md)
 - [Editable maps](mutable-maps.md)
 - [Scrolling and cameras](scrolling.md)
@@ -77,3 +79,12 @@ historical observations, proposals, and a documentation backlog. They are not
 a promise that every proposed rendering feature is implemented. For supported
 APIs use the feature references above; for an agent handoff use
 [CONTEXT.MF](../CONTEXT.MF).
+
+- [Streamed actors](actors.md): large animated characters with reusable pose buffers.
+
+- [Masked graphics: four visible shades plus transparency](masked-graphics.md)
+- [Masked colors example](../examples/masked-colors/README.md): optional independent
+  CGB accents with automatic original Game Boy fallback.
+- [Scrolling arenas with masked characters](scene-maps.md)
+- [Indexed colors](indexed-colors.md): multiple palettes in pictures/arenas,
+  preserved monochrome shades, and filled masked character tiles.

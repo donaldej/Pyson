@@ -73,6 +73,9 @@ IF CLIP_ENABLED
     ld l, e
     ld a, [hli]
     ld b, a
+IF CLIP_SHARED_TILE_COUNT > 0
+    ld [wClipPatternCount], a
+ENDC
     ; Pattern bytes occupy a disjoint range from the displayed clip.
     ld a, [wClipTileBase]
     ld e, a
@@ -82,6 +85,9 @@ IF CLIP_ENABLED
         rl d
     ENDR
     set 7, d
+    ld a, b
+    and a
+    jr z, .patternsDone
 .tile:
     push bc
     ld b, 16
@@ -105,6 +111,7 @@ IF CLIP_ENABLED
     pop bc
     dec b
     jr nz, .tile
+.patternsDone:
     ld a, [wAssetPalette]
     ld [wTextPalette], a
     xor a
@@ -133,8 +140,23 @@ IF CLIP_ENABLED
     jr nc, .skip
     pop af
     ld d, a
+IF CLIP_SHARED_TILE_COUNT > 0
+    ld a, [wClipPatternCount]
+    cp d
+    jr z, .sharedTile
+    jr c, .sharedTile
+ENDC
     ld a, [wClipTileBase]
     add d
+IF CLIP_SHARED_TILE_COUNT > 0
+    jr .resolvedTile
+.sharedTile:
+    ld e, a
+    ld a, d
+    sub e
+    add CLIP_SHARED_TILE_BASE
+.resolvedTile:
+ENDC
     call SetCell
     jr .next
 .skip:
@@ -203,11 +225,27 @@ ClearBackgroundClipCells:
     ld c, 32
 .cell:
     ld a, [hl]
+IF CLIP_SHARED_TILE_COUNT > 0
+    cp CLIP_SHARED_TILE_BASE
+    jr c, .dynamicTile
+IF CLIP_SHARED_TILE_BASE + CLIP_SHARED_TILE_COUNT < 256
+    cp CLIP_SHARED_TILE_BASE + CLIP_SHARED_TILE_COUNT
+    jr nc, .dynamicTile
+ENDC
+    jr .erase
+.dynamicTile:
+ENDC
+IF CLIP_TILE_SPAN > 0
     cp CLIP_TILE_BASE
     jr c, .next
 IF CLIP_TILE_BASE + CLIP_TILE_SPAN * 2 < 256
     cp CLIP_TILE_BASE + CLIP_TILE_SPAN * 2
     jr nc, .next
+ENDC
+.erase:
+ELSE
+    jr .next
+.erase:
 ENDC
     xor a
     ld [hl], a

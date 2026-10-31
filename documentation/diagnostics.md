@@ -61,6 +61,11 @@ appear, plus ROM strings and call-site instructions. Source labels themselves
 add no ROM instruction bytes. Internal helpers can appear as `<Pyson ...>`
 sources in the report. This does not add stack traces or an interactive debugger.
 
+Division by a known nonzero integer, such as `score // 3` or `score % 3`, does
+not store an extra error location: that divisor cannot become zero. This saves
+code and ROM text automatically. A variable divisor still keeps its runtime
+error location, and writing a literal zero is still a compile-time error.
+
 Build `examples/runtime-diagnostics/main.pysn` as `runtime-diagnostics`. A
 triggers an array-bound failure; B triggers division by zero. Reset the ROM to
 test the other error. These are deliberate failures in this diagnostics example.

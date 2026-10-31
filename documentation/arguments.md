@@ -50,6 +50,7 @@ keywords. Feature references describe ranges, return values, and hardware limits
 | `bg_palette(index, color0, color1, color2, color3)` | None |
 | `button(name)` | None |
 | `button_pressed(name)` | None |
+| `input_button(name)` | None |
 | `camera_x()` | None |
 | `camera_y()` | None |
 | `choices_active()` | None |
@@ -72,6 +73,21 @@ keywords. Feature references describe ranges, return values, and hardware limits
 | `dialogue_speaker(name)` | None |
 | `dialogue_waiting()` | None |
 | `draw_map(map, x, y)` | None |
+| `scene_map(path, hud_rows, palettes)` | `hud_rows=2`, `palettes=1` |
+| `draw_scene(scene, camera_x)` | `camera_x=0` |
+| `masked_sheet(path, width, height)` | None |
+| `draw_masked(slot, sheet, frame, x, y, flip_x, clip_top)` | `flip_x=False`, `clip_top=0` |
+| `hide_masked(slot)` | None |
+| `masked_palette(slot, index, fill_tiles)` | `index=-1`, `fill_tiles=False` |
+| `is_cgb()` | None; True on Game Boy Color |
+| `screen_image(path, palettes)` | `palettes=1` |
+| `scroll_image(path, palettes)` | `palettes=1` |
+| `show_scroll(image, y)` | `y=0` |
+| `audio_file(path)` | None |
+| `play_audio(audio, slot, priority)` | `slot=0`, `priority=3` |
+| `stop_audio(slot)` | `slot=0` |
+| `show_image(image)` | None |
+| `draw_actor(actor, frame, x, y, flip_x, flip_y)` | `flip_x=False`, `flip_y=False` |
 | `draw_world(map)` | None |
 | `elapsed_frames(previous)` | None |
 | `frame_count()` | None |
@@ -97,6 +113,9 @@ keywords. Feature references describe ranges, return values, and hardware limits
 | `random_seed(seed)` | None |
 | `randrange(start, stop)` | `start=0` |
 | `read_buttons()` | None |
+| `next_input_frame()` | None |
+| `clear_input_frames()` | None |
+| `input_frames_lost()` | None |
 | `rect_is_solid(map, x, y, width, height)` | None |
 | `rect_overlap(ax, ay, aw, ah, bx, by, bw, bh)` | None |
 | `refresh_screen()` | None |
@@ -119,10 +138,20 @@ keywords. Feature references describe ranges, return values, and hardware limits
 | `sprite(slot, sheet, frame, x, y, flip_x, flip_y)` | `flip_x=False`, `flip_y=False` |
 | `sprite_animation(sheet, steps, loop)` | `loop=True` |
 | `sprite_palette(index, color0, color1, color2, color3)` | None |
-| `background_clip(path, width, height)` | None |
+| `masked_palette(slot, index, fill_tiles)` | `index=-1`, `fill_tiles=False`; see indexed colors |
+| `is_cgb()` | No arguments; True on Game Boy Color |
+| `masked_sheet(path, width, height)` | Required literal alpha BMP path and frame size |
+| `draw_masked(slot, sheet, frame, x, y, flip_x, clip_top)` | flip_x defaults to False, clip_top to 0; slots 0 through 3; clip_top 0..144 hides pixels above that screen row |
+| `hide_masked(slot)` | Required layer slot |
+| `screen_image(path, palettes)` | Literal 160x144 BMP path, `palettes=1` |
+| `show_image(image)` | Required screen-image handle |
+| `background_clip(path, width, height, palette)` | Optional `palette=earlier_clip`; otherwise a separate imported palette |
 | `draw_tile_grid(cells, columns, x, y)` | `x=0`, `y=0` |
 | `draw_tile_field(columns, rows, tiles, x, y)` | `x=0`, `y=0` |
 | `draw_background(clip, frame, x, y)` | `x=0`, `y=0` |
+| `actor_sheet(path, width, height)` | Required literal path and frame size |
+| `draw_actor(actor, frame, x, y, flip_x, flip_y)` | `flip_x=False`, `flip_y=False` |
+| `hide_actor(actor)` | None |
 | `sprite_sheet(path, width, height)` | `width=8`, `height=8` |
 | `start_choices(labels, palette, selected_palette, default, cancel)` | `palette=0`, `selected_palette=0`, `default=0`, `cancel=True` |
 | `start_dialogue(text, speed, palette)` | `speed=2`, `palette=0` |
@@ -169,3 +198,8 @@ in parameter order keep the existing evaluation path. No extra persistent WRAM
 variables are allocated for keywords.
 
 For a guided exercise, see [readable calls](../tutorials/09-readable-calls.md).
+
+Streamed actor declarations and drawing also accept named arguments:
+`actor_sheet(path, width, height)`,
+`draw_actor(actor, frame, x, y, flip_x=False, flip_y=False)`, and
+`hide_actor(actor)`. See [actors](actors.md) for lifetime and resource limits.

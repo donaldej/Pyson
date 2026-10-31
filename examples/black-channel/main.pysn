@@ -1,0 +1,92 @@
+# BLACK CHANNEL: an intercepted military machine transmission in four acts.
+# Unlike Dead Hand, this is an abstract audiovisual piece, not a command HUD.
+header.title = "BLACK CHANNEL"
+header.target = "dual"
+header.controller = "mbc5"
+header.cpu_speed = "double"
+import includes.art as art
+import includes.motion as motion
+import includes.score as score
+
+scene = 0
+tick = 0
+cycles = 0
+previous = 0
+prepared = False
+paused = False
+last_frame = -1
+updates = 0
+
+while True:
+    if not prepared:
+        stop_music()
+        stop_sound()
+        for slot in range(40):
+            hide_sprite(slot)
+        clear_screen()
+        bg_palette(0, "#030912", "#10273a", "#3e7e95", "#c4ebe4")
+        art.color(scene)
+        if scene == 0:
+            print("BLACK CHANNEL", 3, 0)
+            print("01 / CARRIER FOUND", 1, 17)
+        elif scene == 1:
+            print("CIPHER DIVISION", 2, 0)
+            print("02 / SEAL ROTATION", 1, 17)
+        elif scene == 2:
+            print("PRESSURE FRONT", 3, 0)
+            print("03 / SIGNAL COLLIDE", 0, 17)
+        else:
+            print("PYSON: BLACK CHANNEL", 0, 0)
+            print("04 / TRANSMIT DENIED", 0, 17)
+        art.draw(scene, 0)
+        refresh_screen()
+        score.begin(scene)
+        previous = frame_count()
+        last_frame = -1
+        prepared = True
+
+    read_buttons()
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    if button_pressed("start"):
+        paused = not paused
+        if paused:
+            pause_music()
+            stop_sound()
+        else:
+            resume_music()
+    if button_pressed("a"):
+        tick = 960
+    if not paused:
+        tick += delta
+        if tick >= 960:
+            tick = 0
+            scene += 1
+            if scene == 4:
+                scene = 0
+                cycles += 1
+            prepared = False
+        else:
+            score.update(tick)
+            # Only queue a new image when its frame changes. Uploads keep the
+            # LCD on; hardware frame time keeps the music and scene clock honest.
+            frame = tick // 6 % 32
+            if frame != last_frame:
+                art.draw(scene, frame)
+                last_frame = frame
+            # Independently running sprite telemetry gives a second animation
+            # layer. It is kept sparse to stay below ten sprites per scanline.
+            phase = tick // 3 & 63
+            for i in range(8):
+                angle = (phase + i*8) & 63
+                x = 76 + motion.sine[angle] * 3 // 2
+                y = 68 + motion.sine[(angle+16)&63] // 2
+                if scene == 0:
+                    x = (tick // 2 + i*19) % 152
+                    y = 40 + motion.sine[(phase+i*5)&63] // 2
+                elif scene == 2:
+                    x = 12 + i*19
+                    y = 68 + motion.sine[(phase+i*7)&63]
+                sprite(i, art.marks, scene, x, y)
+            updates += 1
+    refresh_screen()

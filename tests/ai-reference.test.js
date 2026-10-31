@@ -27,7 +27,7 @@ test('AI reference signature catalog tracks every fixed built-in and its actual 
     const formatted = params.map(param => {
       if (!Array.isArray(param)) return param;
       const [key, value] = param;
-      const fallback = value === null ? name === 'worldmap' ? 'omitted' : 'effect default'
+      const fallback = value === null ? ['worldmap', 'background_clip'].includes(name) ? 'omitted' : 'effect default'
         : typeof value === 'boolean' ? value ? 'True' : 'False' : JSON.stringify(value);
       return `${key}=${fallback}`;
     }).join(', ');

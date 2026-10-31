@@ -1,0 +1,37 @@
+# Nightwatch's seven animations share one background palette and exact
+# tile vocabulary. They contain no scene names or baked-in countdown text.
+crest = background_clip("../assets/act-0.bmp", 160, 144)
+towers = background_clip("../assets/act-1.bmp", 160, 144, palette=crest)
+spectrum = background_clip("../assets/act-2.bmp", 160, 144, palette=crest)
+cage = background_clip("../assets/act-3.bmp", 160, 144, palette=crest)
+conveyor = background_clip("../assets/act-4.bmp", 160, 144, palette=crest)
+containment = background_clip("../assets/act-5.bmp", 160, 144, palette=crest)
+lock = background_clip("../assets/act-6.bmp", 160, 144, palette=crest)
+letters = sprite_sheet("../assets/letters.bmp", 8, 8)
+numbers = sprite_sheet("../assets/numbers.bmp", 24, 32)
+marks = sprite_sheet("../assets/marks.bmp", 8, 8)
+
+def draw(scene, frame):
+    if scene == 0:
+        draw_background(crest, frame)
+    elif scene == 1:
+        draw_background(towers, frame)
+    elif scene == 2:
+        draw_background(spectrum, frame)
+    elif scene == 3:
+        draw_background(cage, frame)
+    elif scene == 4:
+        draw_background(conveyor, frame)
+    elif scene == 5:
+        draw_background(containment, frame)
+    else:
+        draw_background(lock, frame)
+
+def colors(scene):
+    # Imported background colors are ordered from brightest to darkest.
+    if scene < 3:
+        bg_palette(1, "#d3eced", "#477d99", "#172b45", "#050b16")
+    elif scene < 5:
+        bg_palette(1, "#ffe6b3", "#ba8050", "#403236", "#0c101c")
+    else:
+        bg_palette(1, "#ffd9c0", "#b75b62", "#482639", "#130c19")

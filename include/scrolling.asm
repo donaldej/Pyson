@@ -16,6 +16,7 @@ ENDC
     ret
 
 ; Load an immutable world once. Same-handle calls preserve the camera/overlays.
+IF SCROLLING_ENABLED
 DrawWorld:
     call QueryMapDescriptor
     ret c
@@ -175,3 +176,5 @@ ELSE
 ENDC
     ld [wArg4 + 1], a
     jp DrawSprite
+
+ENDC

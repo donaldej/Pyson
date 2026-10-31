@@ -1,0 +1,131 @@
+# DEAD HAND: fictional military command-network demonstration.
+# Hardware frame time drives the timeline, independently of rendering speed.
+header.title = "DEAD HAND"
+header.target = "dual"
+header.controller = "mbc5"
+header.cpu_speed = "double"
+import includes.motion as motion
+import includes.score as score
+
+radar = tilemap("assets/console-0.bmp")
+readiness = tilemap("assets/console-1.bmp")
+trajectories = tilemap("assets/console-2.bmp")
+core = tilemap("assets/console-3.bmp")
+contacts = sprite_sheet("assets/contacts.bmp", 8, 8)
+scene = 0
+tick = 0
+cycles = 0
+previous = 0
+prepared = False
+paused = False
+last_second = -1
+level = 5
+
+while True:
+    if not prepared:
+        stop_music()
+        stop_sound()
+        for slot in range(40):
+            hide_sprite(slot)
+        clear_screen()
+        if scene == 0:
+            draw_map(radar, 0, 0)
+        elif scene == 1:
+            draw_map(readiness, 0, 0)
+        elif scene == 2:
+            draw_map(trajectories, 0, 0)
+        else:
+            draw_map(core, 0, 0)
+        set_camera(0, 0)
+        # Finish the background upload before adding console text.
+        refresh_screen()
+        bg_palette(0, "#020c0f", "#0a3133", "#246f65", "#97efb1")
+        if scene == 0:
+            print("01  ACQUIRE SIGNAL", 1, 2)
+            print("ORBITAL EARLY WARNING", 0, 16)
+        elif scene == 1:
+            print("02 READINESS CONTROL", 0, 2)
+            print("DEFCON", 7, 5)
+            print("NEXT LEVEL IN", 3, 9)
+            print("SIMULATION / NO LINK", 0, 16)
+        elif scene == 2:
+            print("03 TRAJECTORY LOCK", 1, 2)
+            print("INTERCEPT SOLUTION", 1, 16)
+        else:
+            print("04  AUTONOMOUS CORE", 1, 2)
+            print("DEAD HAND", 5, 14)
+            print("PYSON / SIGNAL HELD", 0, 16)
+        refresh_screen()
+        score.begin(scene)
+        previous = frame_count()
+        last_second = -1
+        prepared = True
+
+    read_buttons()
+    delta = elapsed_frames(previous)
+    previous = (previous + delta) & 32767
+    if button_pressed("start"):
+        paused = not paused
+        if paused:
+            pause_music()
+        else:
+            resume_music()
+    if button_pressed("a"):
+        tick = 1200
+    if not paused:
+        tick += delta
+        if tick >= 1200:
+            tick = 0
+            scene += 1
+            if scene == 4:
+                scene = 0
+                cycles += 1
+            prepared = False
+        else:
+            score.update(scene, tick)
+            phase = tick // 3 & 63
+            if scene == 0:
+                # A rotating radar arm: eight contacts on distinct radii.
+                for i in range(8):
+                    x = 74 + motion.sine[phase] * (i + 1) // 8
+                    y = 68 + motion.sine[(phase + 16) & 63] * (i + 1) // 8
+                    sprite(i, contacts, 0, x, y)
+                for i in range(4):
+                    sprite(8+i, contacts, 1, 32+i*25, 40+(i*19)%60)
+            elif scene == 1:
+                # Four seconds per level. DEFCON 1 remains visible for four
+                # seconds too; it is a readiness level, not a detonation.
+                level = 5 - tick // 240
+                second = tick // 60
+                if second != last_second:
+                    last_second = second
+                    print(level, 9, 7)
+                    print("00:0", 7, 11)
+                    print(4 - tick % 240 // 60, 11, 11)
+                    if level == 1:
+                        print("MAXIMUM READINESS", 1, 14)
+                    else:
+                        print("ESCALATION ACTIVE", 1, 14)
+                if level <= 2:
+                    bg_palette(0, "#100609", "#402022", "#a54230", "#ffd18c")
+                for i in range(5):
+                    if i >= level - 1:
+                        sprite(i, contacts, 0, 24+i*24, 96)
+                    else:
+                        hide_sprite(i)
+            elif scene == 2:
+                for i in range(6):
+                    progress = (tick // 2 + i*16) % 100
+                    x = 8 + progress
+                    y = 105 - motion.sine[progress * 31 // 100] + i
+                    sprite(i, contacts, 2, x, y)
+            else:
+                # Counter-rotating telemetry rings frame the command core.
+                for i in range(12):
+                    angle = (phase + i*5) & 63
+                    x = 76 + motion.sine[angle] * 5 // 4
+                    y = 68 + motion.sine[(angle+16)&63] * 3 // 4
+                    sprite(i, contacts, 0, x, y)
+                sprite(12, contacts, 1, 59, 57)
+                sprite(13, contacts, 1, 95, 57)
+    refresh_screen()

@@ -32,6 +32,11 @@ top-left; selections share the image palette. See
   at most 256x256 pixels. `draw_map` clips to the visible screen; `draw_world`
   loads a scrollable map. Larger `worldmap` BMPs use the streamed-world rules
   described in [streaming worlds](worlds.md).
+- Background clip sheets may be up to 2048x2048 pixels, with at most 255
+  frames. Each individual frame still fits the Game Boy screen. This is
+  cartridge image storage; it does not increase graphics memory on the console.
+  Tile atlases selected with `tile(..., x=..., y=...)` can share these large
+  sheets. Other BMP sources remain limited to 1024 pixels per axis.
 - Sprite frames default to 8x8. Optional width and height must be multiples of
   eight and divide the image dimensions. Frames are read left to right, then
   top to bottom. A sheet supports at most 255 frames.
@@ -86,3 +91,9 @@ Standalone indices refer to that export's own tiles. The compiler remaps assets
 into its shared tile pool. The example BMPs are included in the repository and
 can be edited with a bitmap editor. No asset-generation step is needed to build
 the examples.
+
+## Detailed still screens
+
+For a 160x144 title or credits picture that temporarily replaces the game
+graphics, use [screen_image and show_image](screen-images.md). Its patterns do
+not consume the resident sprite/map/font budget while the game is running.

@@ -33,6 +33,14 @@ def pick():
     return 0
 items[pick()].x += 1
 snapshot = items[pick()]
+pair = records(2, x=0, health=8)
+pair[pick()].x += 17
+index = -1
+pair[index].x = 23
+index = -2
+pair[index].health = pair[pick()].x
+hit(pair[index], 1)
+pair_result = [pair[index].x, pair[-1].x, pair[0].health]
 result = [p.x, p.health, copy.x, len(items), items[0].x, items[0].health, items[1].x, items[1].health, items[2].x, items[2].health]
 refresh_screen()
 `;
@@ -46,7 +54,7 @@ refresh_screen()
     fs.writeFileSync(asm, result.assembly);
     cases.push({ name, rom: assemble(asm, name), cgb, frames: 120, symbols: path.join(root, 'build', name + '.sym'),
       symbolNames: Object.fromEntries(result.symbols.filter(symbol => symbol.scope === '$module').map(symbol => [symbol.name, symbol.label])),
-      variables: { counter: 2 }, arrays: { result: [9, 4, 99, 3, 10, 1, 9, 2, 99, 9] } });
+      variables: { counter: 4 }, arrays: { result: [9, 4, 99, 3, 10, 1, 9, 2, 99, 9], pair_result: [17, 23, 16] } });
   }
   for (const index of [2, -3, -32768]) {
     const result = compile(`items = records(2, x=0)\nindex = ${index}\nitems[index].x = 9\nreached = 123`);

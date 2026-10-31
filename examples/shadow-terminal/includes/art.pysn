@@ -1,0 +1,37 @@
+# The seven architectural animations share one background palette and exact
+# tile vocabulary. They contain no scene names or baked-in countdown text.
+doors = background_clip("../assets/act-0.bmp", 160, 144)
+relay = background_clip("../assets/act-1.bmp", 160, 144, palette=doors)
+scanner = background_clip("../assets/act-2.bmp", 160, 144, palette=doors)
+targeting = background_clip("../assets/act-3.bmp", 160, 144, palette=doors)
+silos = background_clip("../assets/act-4.bmp", 160, 144, palette=doors)
+reactor = background_clip("../assets/act-5.bmp", 160, 144, palette=doors)
+sealed = background_clip("../assets/act-6.bmp", 160, 144, palette=doors)
+letters = sprite_sheet("../assets/letters.bmp", 8, 8)
+numbers = sprite_sheet("../assets/numbers.bmp", 24, 32)
+marks = sprite_sheet("../assets/marks.bmp", 8, 8)
+
+def draw(scene, frame):
+    if scene == 0:
+        draw_background(doors, frame)
+    elif scene == 1:
+        draw_background(relay, frame)
+    elif scene == 2:
+        draw_background(scanner, frame)
+    elif scene == 3:
+        draw_background(targeting, frame)
+    elif scene == 4:
+        draw_background(silos, frame)
+    elif scene == 5:
+        draw_background(reactor, frame)
+    else:
+        draw_background(sealed, frame)
+
+def colors(scene):
+    # Imported background colors are ordered from brightest to darkest.
+    if scene < 3:
+        bg_palette(1, "#d9e5cd", "#45696d", "#13262c", "#04090d")
+    elif scene < 5:
+        bg_palette(1, "#ffe3a0", "#9d6a39", "#352b27", "#090b0e")
+    else:
+        bg_palette(1, "#ffd4a2", "#b7533b", "#44262a", "#0e090d")

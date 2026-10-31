@@ -19,7 +19,7 @@ function instructionBytes(line) {
     if (/^(bc|de|hl|sp)$/.test(args[0])) return 3;
     return 2;
   }
-  if (['push', 'pop', 'inc', 'dec', 'ret', 'cpl', 'nop', 'scf', 'ccf', 'rlca', 'rrca', 'rla', 'rra'].includes(op)) return 1;
+  if (['push', 'pop', 'inc', 'dec', 'ret', 'cpl', 'nop', 'scf', 'ccf', 'rlca', 'rrca', 'rla', 'rra', 'di', 'ei'].includes(op)) return 1;
   if (['bit', 'res', 'set', 'rl', 'rr', 'sla', 'sra', 'srl', 'swap'].includes(op)) return 2;
   if (['add', 'adc', 'sub', 'sbc', 'and', 'or', 'xor', 'cp'].includes(op)) {
     if (args[0] === 'hl') return 1;
@@ -29,11 +29,17 @@ function instructionBytes(line) {
 }
 
 function bankFunctions(functions) {
+  // These ROM0 helpers either never change the switchable bank or already
+  // restore it themselves. Wrapping them again wastes ROM0 and CPU cycles.
+  const bankNeutral = new Set(['CompareSigned','NegHL','Mul16','Div16',
+    'ArrayIndexAddress','CopyArray','ReadConstantTableWord','ReadArrayParameterWord',
+    'ReadFrameCount','ElapsedFrames','PollButtons','ClearInputFrames','NextInputFrame',
+    'HideMasked','APUStop','FormatText']);
   const wrappers = new Set();
   const objects = functions.map(fn => {
     const code = fn.code.map(line => {
       const match = /^\s+call ([A-Za-z_][A-Za-z0-9_]*)$/.exec(line);
-      if (!match || match[1] === 'CallBankedFunction') return line;
+      if (!match || match[1] === 'CallBankedFunction' || bankNeutral.has(match[1])) return line;
       wrappers.add(match[1]);
       return `    call BankedRuntime_${match[1]}`;
     });
